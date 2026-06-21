@@ -1,0 +1,28 @@
+.home {
+    position: relative;
+
+    min-height: 100vh;
+    overflow: hidden;
+
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+
+    padding: 104px var(--page-padding) 22px;
+
+    background: transparent;
+}
+
+@media (max-width: 1200px) {
+    .home {
+        min-height: unset;
+        overflow: visible;
+        padding-bottom: 64px;
+    }
+}
+
+@media (max-width: 768px) {
+    .home {
+        padding-top: 96px;
+        padding-bottom: 56px;
+    }
+}

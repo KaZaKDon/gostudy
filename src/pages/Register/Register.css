@@ -1,0 +1,120 @@
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 32px var(--page-padding);
+
+    background-image:
+        linear-gradient(rgba(68, 39, 18, 0.04), rgba(38, 21, 10, 0.12)),
+        url('/images/home/gostudy-background-desktop.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.auth-card {
+    width: min(460px, 100%);
+    padding: 32px;
+
+    border-left: 10px solid var(--color-brown-dark);
+    border-radius: 24px;
+
+    background: rgba(255, 248, 235, 0.97);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.auth-card__back,
+.auth-card__forgot {
+    color: var(--color-ink-muted);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.auth-card h1 {
+    margin: 18px 0 24px;
+    font-family: var(--font-serif);
+    font-size: 42px;
+    color: var(--color-ink-strong);
+}
+
+.auth-card__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.auth-card__tabs button {
+    padding: 12px 16px;
+    border: 1px solid rgba(92, 58, 28, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 245, 224, 0.8);
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.auth-card__tabs .is-active {
+    color: #fff8ec;
+    background: var(--color-brown-dark);
+}
+
+.auth-card__form {
+    display: grid;
+    gap: 16px;
+}
+
+.auth-card__form label {
+    display: grid;
+    gap: 7px;
+    color: var(--color-ink-strong);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.auth-card__form input {
+    width: 100%;
+    padding: 13px 15px;
+    border: 1px solid rgba(92, 58, 28, 0.18);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    font: inherit;
+}
+
+.auth-card__form button {
+    margin-top: 8px;
+    padding: 14px 22px;
+    border: 0;
+    border-radius: 999px;
+    color: #fff8ec;
+    background: var(--color-brown-dark);
+    cursor: pointer;
+    font-weight: 900;
+}
+.auth-card__note {
+    margin: 16px 0 0;
+
+    color: var(--color-ink-muted);
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.auth-card__bottom {
+    margin: 18px 0 0;
+
+    color: var(--color-ink-muted);
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.auth-card__bottom a {
+    color: var(--color-ink-strong);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.auth-card__bottom a:hover {
+    text-decoration: underline;
+}

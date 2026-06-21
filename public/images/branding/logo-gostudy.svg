@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">GoStudy GS feather logo</title>
+  <desc id="desc">Dark brown feather and GS letters on transparent background.</desc>
+
+  <defs>
+    <style>
+      .brand { fill: #4A3525; }
+      .brand-stroke { stroke: #4A3525; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .cut { stroke: transparent; }
+      .letters {
+        fill: #4A3525;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+
+  <!-- long quill shaft -->
+  <path class="brand" d="M76 440 C126 359 174 285 222 220 C230 209 243 213 235 226 C190 297 141 369 84 445 C79 452 72 447 76 440 Z"/>
+
+  <!-- feather body -->
+  <path class="brand" d="M228 216
+    C261 142 330 83 448 44
+    C429 118 383 177 312 222
+    C279 242 251 246 228 216 Z"/>
+
+  <!-- feather lower cuts as negative-looking slits -->
+  <path d="M305 218 C341 212 371 198 395 178 C372 202 345 221 309 236 Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M282 242 C315 237 341 225 363 208 C342 230 317 248 286 258 Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M260 263 C289 259 311 249 330 236 C314 253 291 268 263 277 Z" fill="#ffffff" opacity="0.95"/>
+
+  <!-- central feather vein -->
+  <path d="M232 213 C283 145 347 96 429 62" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.95"/>
+  <path d="M237 223 C288 156 350 109 425 74" stroke="#4A3525" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.75"/>
+
+  <!-- small collar -->
+  <ellipse class="brand" cx="222" cy="228" rx="13" ry="18" transform="rotate(35 222 228)"/>
+
+  <!-- GS letters -->
+  <text class="letters" x="206" y="390" font-size="156">GS</text>
+</svg>

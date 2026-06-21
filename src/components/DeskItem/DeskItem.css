@@ -1,0 +1,82 @@
+.desk-item {
+  display: block;
+  width: 100%;
+
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  filter: drop-shadow(0 28px 26px rgba(42, 22, 8, 0.3));
+
+  cursor: pointer;
+
+  transition:
+    transform 180ms ease,
+    filter 180ms ease;
+}
+
+.desk-item:hover {
+  transform: translateY(-8px);
+  filter: drop-shadow(0 34px 32px rgba(42, 22, 8, 0.38));
+}
+
+.desk-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.desk-item__caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.desk-item--brochure {
+  max-width: 410px;
+  transform: rotate(8deg);
+}
+
+.desk-item--students {
+  max-width: 430px;
+  transform: rotate(-6deg);
+}
+
+.desk-item--teachers {
+  max-width: 430px;
+  transform: rotate(8deg);
+}
+
+.desk-item--pricing {
+  max-width: 420px;
+  transform: rotate(-5deg);
+}
+
+.desk-item--brochure:hover {
+  transform: translateY(-12px) rotate(0deg) scale(1.5);;
+}
+
+.desk-item--students:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.5);;
+}
+
+.desk-item--teachers:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.5);;
+}
+
+.desk-item--pricing:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.5);;
+}
+
+@media (max-width: 1200px) {
+  .desk-item {
+    max-width: none;
+    transform: none !important;
+  }
+
+  .desk-item:hover {
+    transform: translateY(-4px) !important;
+  }
+}

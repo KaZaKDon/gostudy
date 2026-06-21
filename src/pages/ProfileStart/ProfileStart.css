@@ -1,0 +1,124 @@
+.profile-start {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    padding: 40px var(--page-padding) 40px;
+}
+
+.profile-start__card {
+    width: min(760px, 100%);
+
+    padding: 32px;
+
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface-paper);
+
+    box-shadow: var(--shadow-card);
+}
+
+.profile-start__card--student {
+    border-left: 10px solid var(--color-student);
+}
+
+.profile-start__card--teacher {
+    border-left: 10px solid var(--color-teacher);
+}
+
+.profile-start__back {
+    text-decoration: none;
+    color: var(--color-ink-muted);
+}
+
+.profile-start__header {
+    margin-bottom: 28px;
+}
+
+.profile-start__eyebrow {
+    display: block;
+
+    margin-bottom: 12px;
+
+    color: var(--color-ink-muted);
+
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.profile-start__header h1 {
+    margin: 0 0 12px;
+
+    font-family: var(--font-serif);
+
+    font-size: clamp(32px, 4vw, 46px);
+}
+
+.profile-start__header p {
+    margin: 0 0 10px;
+
+    color: var(--color-ink-muted);
+
+    line-height: 1.6;
+}
+
+.profile-form {
+    display: grid;
+    gap: 18px;
+}
+
+.profile-form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.profile-form label {
+    display: grid;
+    gap: 8px;
+}
+
+.profile-form span {
+    font-weight: 700;
+}
+
+.profile-form input,
+.profile-form textarea {
+    width: 100%;
+
+    padding: 14px 16px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+
+    background: #fff;
+
+    font: inherit;
+}
+
+.profile-form__submit {
+    margin-top: 8px;
+
+    padding: 16px 24px;
+
+    border: 0;
+    border-radius: var(--radius-pill);
+
+    color: #fff8ec;
+    background: var(--color-brown-dark);
+
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    .profile-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-start__card {
+        padding: 24px;
+    }
+}

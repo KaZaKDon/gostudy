@@ -1,0 +1,13 @@
+.app {
+    min-height: 100vh;
+    color: var(--color-text);
+    background-image:
+        linear-gradient(
+            180deg,
+            rgba(68, 39, 18, 0.03),
+            rgba(38, 21, 10, 0.08)
+        ),
+        url('/images/home/gostudy-background-desktop.png');
+    background-size: cover;
+    background-position: center;
+}
