@@ -6,7 +6,7 @@ export const STUDENT_NAVIGATION = [
     { id: 'materials', title: 'Материалы' },
     { id: 'messages', title: 'Сообщения', count: 1 },
     { id: 'payments', title: 'Оплата' },
-    { id: 'reviews', title: 'Отзывы' },
+    { id: 'teachers', title: 'Мои преподаватели' },
     { id: 'settings', title: 'Настройки' },
 ];
 
@@ -15,10 +15,9 @@ export const TEACHER_NAVIGATION = [
     { id: 'classroom', title: 'Класс' },
     { id: 'homework', title: 'Домашние работы', count: 2 },
     { id: 'journal', title: 'Журнал' },
-    { id: 'students', title: 'Ученики' },
+    { id: 'students', title: 'Мои ученики' },
     { id: 'materials', title: 'Материалы' },
     { id: 'payments', title: 'Оплаты', count: 2 },
     { id: 'messages', title: 'Сообщения', count: 1 },
-    { id: 'reviews', title: 'Отзывы' },
     { id: 'settings', title: 'Настройки' },
 ];

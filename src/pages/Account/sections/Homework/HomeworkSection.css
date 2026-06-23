@@ -1,0 +1,397 @@
+.homework-section {
+    --homework-accent: var(--color-student);
+}
+
+.account--teacher .homework-section {
+    --homework-accent: var(--color-teacher);
+}
+
+.homework-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.homework-section__header span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.homework-section__header h2 {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.homework-section__layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 20px;
+    min-height: 0;
+}
+
+.homework-statuses,
+.homework-list,
+.homework-list__empty {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.homework-statuses {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+}
+
+.homework-statuses__button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-text);
+    text-align: left;
+    background: transparent;
+    font-weight: 700;
+}
+
+.homework-statuses__button strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    border-radius: var(--radius-pill);
+    color: var(--color-ink-muted);
+    background: var(--color-surface-strong);
+    font-size: 0.85rem;
+}
+
+.homework-statuses__button:hover,
+.homework-statuses__button--active {
+    border-color: var(--homework-accent);
+    background: color-mix(
+        in srgb,
+        var(--color-teacher) 13%,
+        transparent
+    );
+}
+
+.homework-statuses__button--active strong {
+    color: var(--color-surface-paper);
+    background: var(--homework-accent);
+}
+
+.homework-list {
+    overflow: hidden;
+}
+
+.homework-list__head,
+.homework-row {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) 160px;
+    align-items: center;
+    gap: 16px;
+}
+
+.homework-list__head {
+    padding: 14px 18px;
+    color: var(--color-ink-muted);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-strong);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.homework-row {
+    width: 100%;
+    border: 0;
+    padding: 16px 18px;
+    color: inherit;
+    text-align: left;
+    background: transparent;
+}
+
+.homework-row:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.homework-row:hover {
+    background: color-mix(
+        in srgb,
+        var(--color-teacher) 8%,
+        transparent
+    );
+}
+
+.homework-row__student {
+    color: var(--color-text);
+    font-weight: 800;
+}
+
+.homework-row__title {
+    overflow: hidden;
+    color: var(--color-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.homework-row__deadline {
+    color: var(--color-ink-muted);
+}
+
+.homework-list__empty {
+    padding: 20px;
+    color: var(--color-ink-muted);
+}
+
+.homework-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.homework-modal__overlay {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.58);
+}
+
+.homework-modal__panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(920px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-card);
+}
+
+.homework-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.homework-modal__header span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.homework-modal__header h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+.homework-modal__close {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: var(--radius-pill);
+    width: 38px;
+    height: 38px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.homework-modal__meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.homework-modal__meta span {
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    color: var(--color-ink-muted);
+    background: var(--color-surface-strong);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.homework-modal__content {
+    display: grid;
+    gap: 14px;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.homework-modal__content section {
+    border-radius: var(--radius-md);
+    padding: 16px;
+    background: var(--color-surface-strong);
+}
+
+.homework-modal__content h3 {
+    margin: 0 0 10px;
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
+.homework-modal__content p,
+.homework-modal__content ul {
+    margin: 0;
+    color: var(--color-ink-muted);
+    line-height: 1.6;
+}
+
+.homework-modal__content ul {
+    padding-left: 18px;
+}
+
+.homework-modal__grades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.homework-modal__grade {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 9px 14px;
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    font-weight: 800;
+}
+
+.homework-modal__grade--active {
+    border-color: var(--color-teacher);
+    color: var(--color-surface-paper);
+    background: var(--color-teacher);
+}
+
+.homework-modal__content textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    resize: vertical;
+}
+
+.homework-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.homework-modal__actions button {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 10px 16px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font-weight: 800;
+}
+
+.homework-modal__accept {
+    border-color: var(--homework-accent) !important;
+    color: var(--color-surface-paper) !important;
+    background: var(--homework-accent) !important;
+}
+
+.homework-modal__revision {
+    color: var(--color-accent-red) !important;
+}
+
+@media (max-width: 800px) {
+    .homework-section__layout {
+        grid-template-columns: 1fr;
+    }
+
+    .homework-statuses {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .homework-statuses__button {
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .homework-list__head,
+    .homework-row {
+        grid-template-columns: 170px minmax(0, 1fr) 130px;
+    }
+
+    .homework-modal__meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .homework-statuses {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .homework-list__head {
+        display: none;
+    }
+
+    .homework-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .homework-row__deadline::before {
+        content: 'Срок: ';
+    }
+
+    .homework-modal {
+        padding: 12px;
+    }
+
+    .homework-modal__panel {
+        max-height: calc(100vh - 24px);
+        border-radius: var(--radius-md);
+    }
+
+    .homework-modal__meta {
+        grid-template-columns: 1fr;
+    }
+
+    .homework-modal__actions {
+        flex-direction: column;
+    }
+
+    .homework-modal__actions button {
+        width: 100%;
+    }
+}

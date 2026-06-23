@@ -1,4 +1,7 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+    createBrowserRouter,
+    RouterProvider,
+} from 'react-router-dom';
 
 import { Home } from '../pages/Home/Home.jsx';
 import { Login } from '../pages/Login/Login.jsx';
@@ -21,6 +24,10 @@ const router = createBrowserRouter([
         element: <Register />,
     },
     {
+        path: '/password-reset',
+        element: <PasswordReset />,
+    },
+    {
         path: '/profile-start',
         element: <ProfileStart />,
     },
@@ -28,10 +35,6 @@ const router = createBrowserRouter([
         path: '/account',
         element: <Account />,
     },
-    {
-    path: '/password-reset',
-    element: <PasswordReset />,
-}
 ]);
 
 export function AppRouter() {

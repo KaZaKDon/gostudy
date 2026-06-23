@@ -1,0 +1,348 @@
+.find-teacher-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    --find-teacher-accent: var(--color-student);
+}
+
+.find-teacher-section__header span,
+.find-teacher-filters span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.find-teacher-section__header h2 {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.find-teacher-filters {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.find-teacher-filters input {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+}
+
+.teacher-search-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.teacher-search-row {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1.3fr) minmax(0, 1fr) 100px 100px 110px;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    color: var(--color-text);
+    text-align: left;
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.teacher-search-row:hover {
+    border-color: var(--find-teacher-accent);
+    background: color-mix(
+        in srgb,
+        var(--find-teacher-accent) 6%,
+        transparent
+    );
+}
+
+.teacher-search-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.teacher-search-row__rating,
+.teacher-search-row__price,
+.teacher-search-row__action {
+    font-weight: 800;
+}
+
+.teacher-search-row__rating,
+.teacher-search-row__action {
+    color: var(--find-teacher-accent);
+}
+
+.teacher-search-row__subject,
+.teacher-search-row__experience {
+    color: var(--color-ink-muted);
+}
+
+.teacher-search-list__empty {
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    color: var(--color-ink-muted);
+    background: var(--color-surface-paper);
+}
+
+/* MODAL */
+
+.teacher-profile-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.teacher-profile-modal__overlay {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.teacher-profile-modal__panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(920px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-card);
+}
+
+.teacher-profile-modal__header {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr) 40px;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.teacher-profile-modal__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 86px;
+    height: 86px;
+    border-radius: var(--radius-lg);
+    color: var(--color-surface-paper);
+    background: var(--find-teacher-accent);
+    font-size: 1.6rem;
+    font-weight: 900;
+}
+
+.teacher-profile-modal__title span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.teacher-profile-modal__title h2 {
+    margin: 0 0 6px;
+    color: var(--color-text);
+}
+
+.teacher-profile-modal__title p {
+    margin: 0 0 8px;
+    color: var(--color-ink-muted);
+}
+
+.teacher-profile-modal__title strong {
+    display: block;
+    color: var(--find-teacher-accent);
+}
+
+.teacher-profile-modal__title em {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: 10px;
+    border-radius: var(--radius-pill);
+    padding: 7px 10px;
+    color: var(--color-text);
+    background: color-mix(
+        in srgb,
+        var(--find-teacher-accent) 14%,
+        transparent
+    );
+    font-style: normal;
+    font-weight: 800;
+}
+
+.teacher-profile-modal__close {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font-size: 1.4rem;
+}
+
+.teacher-profile-modal__content {
+    display: grid;
+    gap: 14px;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.teacher-profile-modal__content section {
+    border-radius: var(--radius-md);
+    padding: 16px;
+    background: var(--color-surface-strong);
+}
+
+.teacher-profile-modal__content h3 {
+    margin: 0 0 10px;
+    color: var(--color-text);
+}
+
+.teacher-profile-modal__content p,
+.teacher-profile-modal__content ul {
+    margin: 0;
+    color: var(--color-ink-muted);
+    line-height: 1.6;
+}
+
+.teacher-profile-modal__content ul {
+    padding-left: 18px;
+}
+
+.teacher-profile-modal__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.teacher-profile-modal__chips span {
+    border-radius: var(--radius-pill);
+    padding: 8px 12px;
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    font-weight: 800;
+}
+
+.teacher-profile-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.teacher-profile-modal__actions button {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 10px 18px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font-weight: 800;
+}
+
+.teacher-profile-modal__primary {
+    border-color: var(--find-teacher-accent) !important;
+    color: var(--color-surface-paper) !important;
+    background: var(--find-teacher-accent) !important;
+}
+
+.teacher-profile-modal__primary:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+    .teacher-search-row {
+        grid-template-columns: 80px minmax(0, 1fr) minmax(0, 1fr) 90px 100px;
+    }
+
+    .teacher-search-row__experience {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .teacher-search-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 12px;
+    }
+
+    .teacher-search-row__name {
+        grid-column: 1;
+        grid-row: 1;
+        font-weight: 800;
+    }
+
+    .teacher-search-row__rating {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+    }
+
+    .teacher-search-row__subject {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .teacher-search-row__price {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: end;
+    }
+
+    .teacher-search-row__action {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+
+    .teacher-profile-modal {
+        padding: 12px;
+    }
+
+    .teacher-profile-modal__panel {
+        max-height: calc(100vh - 24px);
+        border-radius: var(--radius-md);
+    }
+
+    .teacher-profile-modal__header {
+        grid-template-columns: 64px minmax(0, 1fr) 38px;
+    }
+
+    .teacher-profile-modal__avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: var(--radius-md);
+        font-size: 1.2rem;
+    }
+
+    .teacher-profile-modal__actions {
+        flex-direction: column;
+    }
+
+    .teacher-profile-modal__actions button {
+        width: 100%;
+    }
+}

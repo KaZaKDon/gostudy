@@ -10,18 +10,40 @@ import {
 } from './data/accountNavigation.js';
 
 import {
+    accountMaterials,
     studentDemoProfile,
     studentDemoStats,
+    studentScheduleWeek,
     studentTodayLessons,
     teacherDemoProfile,
     teacherDemoStats,
+    teacherHomework,
+    teacherScheduleWeek,
+    teacherStudents,
     teacherTodayLessons,
+    teacherJournal,
+    studentDiary,
+    teacherMessages,
+    studentMessages,
+    teacherReviews,
+    studentReviews,
+    teacherPayments,
+    studentPayments,
 } from './data/demoAccountData.js';
 
 import './Account.css';
 
 export function Account() {
     const [searchParams] = useSearchParams();
+
+    const [activeSection, setActiveSection] = useState('schedule');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const [teacherStudentsState, setTeacherStudentsState] =
+        useState(teacherStudents);
+
+    const [studentTeachersState, setStudentTeachersState] =
+        useState(studentReviews);
 
     const role =
         searchParams.get('role') === 'teacher'
@@ -48,8 +70,35 @@ export function Account() {
             ? teacherTodayLessons
             : studentTodayLessons;
 
-    const [activeSection, setActiveSection] = useState('classroom');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const scheduleWeek =
+        role === 'teacher'
+            ? teacherScheduleWeek
+            : studentScheduleWeek;
+
+    const homework =
+        role === 'teacher'
+            ? teacherHomework
+            : [];
+
+    const diary =
+        role === 'student'
+            ? studentDiary
+            : [];
+
+    const messages =
+        role === 'teacher'
+            ? teacherMessages
+            : studentMessages;
+
+    const reviews =
+        role === 'teacher'
+            ? teacherReviews
+            : studentTeachersState;
+
+    const payments =
+        role === 'teacher'
+            ? teacherPayments
+            : studentPayments;
 
     const activeNavigationItem =
         navigation.find((item) => item.id === activeSection) ?? navigation[0];
@@ -57,6 +106,90 @@ export function Account() {
     const handleSelectSection = (sectionId) => {
         setActiveSection(sectionId);
         setIsSidebarOpen(false);
+    };
+
+    const handleChangeTeacherStudentStatus = (studentId, nextStatus) => {
+        setTeacherStudentsState((currentStudents) =>
+            currentStudents.map((student) =>
+                student.id === studentId
+                    ? {
+                        ...student,
+                        status: nextStatus,
+                    }
+                    : student,
+            ),
+        );
+    };
+
+    const handleSendTeacherRequest = (teacher) => {
+        setStudentTeachersState((currentTeachers) => {
+            const alreadyExists = currentTeachers.some(
+                (item) => item.id === teacher.id,
+            );
+
+            if (alreadyExists) {
+                return currentTeachers;
+            }
+
+            return [
+                ...currentTeachers,
+                {
+                    id: teacher.id,
+                    teacherName: teacher.name,
+                    subject: teacher.subject,
+                    status: 'requests',
+                    requestStatus: 'Ожидает ответа преподавателя',
+                    rating: null,
+                    reviewText: '',
+                },
+            ];
+        });
+
+        setTeacherStudentsState((currentStudents) => {
+            const alreadyExists = currentStudents.some(
+                (student) => student.name === studentDemoProfile.firstName,
+            );
+
+            if (alreadyExists) {
+                return currentStudents;
+            }
+
+            return [
+                ...currentStudents,
+                {
+                    id: Date.now(),
+                    name: `${studentDemoProfile.firstName} ${studentDemoProfile.lastName}`,
+                    grade: '8 класс',
+                    subject: teacher.subject,
+                    status: 'requests',
+                    nextLesson: 'Не назначен',
+                    progress: 0,
+                    balance: 'оплата не начата',
+                    parent: {
+                        name: 'Елена Казакова',
+                        phone: '+7 900 000-00-00',
+                        email: 'parent@example.com',
+                    },
+                    summary: {
+                        goal: `Хочет начать обучение по предмету: ${teacher.subject}.`,
+                        format: 'Формат и расписание нужно согласовать',
+                        startedAt: 'Заявка создана сейчас',
+                        level: 'Нужно определить',
+                    },
+                    lessons: [],
+                    homework: [],
+                    program: ['Диагностика уровня', 'План обучения'],
+                    materials: [],
+                    payments: [],
+                    notes: [
+                        'Заявка создана учеником через публичную анкету преподавателя.',
+                    ],
+                    feedback: [],
+                },
+            ];
+        });
+
+        setActiveSection('teachers');
     };
 
     return (
@@ -102,6 +235,22 @@ export function Account() {
                     role={role}
                     activeSection={activeSection}
                     todayLessons={todayLessons}
+                    teacherStudents={teacherStudentsState}
+                    scheduleWeek={scheduleWeek}
+                    materials={accountMaterials}
+                    homework={homework}
+                    journal={teacherJournal}
+                    diary={diary}
+                    messages={messages}
+                    reviews={reviews}
+                    payments={payments}
+                    onAddLesson={
+                        role === 'student'
+                            ? () => setActiveSection('findTeacher')
+                            : undefined
+                    }
+                    onChangeTeacherStudentStatus={handleChangeTeacherStudentStatus}
+                    onSendTeacherRequest={handleSendTeacherRequest}
                 />
             </div>
         </main>

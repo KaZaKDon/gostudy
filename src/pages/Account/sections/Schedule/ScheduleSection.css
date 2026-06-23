@@ -1,0 +1,209 @@
+.schedule-section {
+    --schedule-accent: var(--color-student);
+}
+
+.account--teacher .schedule-section {
+    --schedule-accent: var(--color-teacher);
+}
+
+.schedule-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.schedule-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.schedule-section__header span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.schedule-section__header h2 {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.schedule-section__header button {
+    border: 0;
+    border-radius: var(--radius-pill);
+    padding: 12px 18px;
+    color: #fff;
+    background: var(--schedule-accent);
+    font-weight: 700;
+}
+
+.schedule-section__week {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.schedule-day {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-paper);
+    transition: all 0.2s ease;
+}
+
+.schedule-day--open {
+    border-color: var(--schedule-accent);
+    box-shadow: var(--shadow-card);
+}
+
+.schedule-day__summary {
+    display: grid;
+    grid-template-columns: 220px 180px 140px 120px;
+    align-items: center;
+    width: 100%;
+    padding: 18px 20px;
+    border: 0;
+    color: inherit;
+    text-align: left;
+    background: transparent;
+}
+
+.schedule-day__summary:not(:disabled):hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='dark'] .schedule-day__summary:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.schedule-day__summary:disabled {
+    cursor: default;
+}
+
+.schedule-day__name {
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.schedule-day__date,
+.schedule-day__count,
+.schedule-day__start {
+    color: var(--color-ink-muted);
+}
+
+.schedule-day__lessons {
+    border-top: 1px solid var(--color-border);
+}
+
+.schedule-lesson {
+    display: grid;
+    grid-template-columns: 80px 160px minmax(0, 1fr) 100px 300px;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+}
+
+.schedule-lesson__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.schedule-lesson__action {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 8px 11px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.schedule-lesson__action--primary {
+    border-color: var(--schedule-accent);
+    color: var(--color-surface-paper);
+    background: var(--schedule-accent);
+}
+
+.schedule-lesson__action--danger {
+    color: var(--color-accent-red);
+}
+
+.schedule-lesson__action:hover {
+    transform: translateY(-1px);
+}
+
+.schedule-lesson:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.schedule-lesson__time {
+    color: var(--schedule-accent);
+    font-weight: 700;
+}
+
+.schedule-lesson__person {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.schedule-lesson__info {
+    color: var(--color-ink-muted);
+}
+
+.schedule-lesson__duration {
+    text-align: right;
+    color: var(--color-ink-muted);
+}
+
+@media (max-width: 1024px) {
+    .schedule-day__summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .schedule-lesson {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .schedule-lesson__actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .schedule-lesson__action {
+        flex: 1;
+        min-width: 110px;
+    }
+
+    .schedule-lesson__duration {
+        text-align: left;
+    }
+}
+
+@media (max-width: 640px) {
+    .schedule-section__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .schedule-section__header button {
+        width: 100%;
+    }
+
+    .schedule-day__summary {
+        padding: 16px;
+    }
+
+    .schedule-lesson {
+        padding: 16px;
+    }
+}
