@@ -1,3 +1,7 @@
+import { Link } from 'react-router-dom';
+
+import { LEGAL_DOCUMENT_LINKS } from '../../data/legal/legalDocuments.js';
+
 import './Footer.css';
 
 export function Footer() {
@@ -6,22 +10,40 @@ export function Footer() {
     return (
         <footer className="footer">
             <div className="footer__container">
-                <div className="footer__left">
+                <div className="footer__brand">
                     <span>
                         © {currentYear} GoStudy / «Пошли учиться»
                     </span>
-                </div>
 
-                <div className="footer__center">
                     <span>
                         Онлайн-платформа для учеников и преподавателей
                     </span>
                 </div>
 
-                <div className="footer__right">
-                    <span>
+                <nav
+                    className="footer__links"
+                    aria-label="Документы платформы"
+                >
+                    {LEGAL_DOCUMENT_LINKS.map((link) => (
+                        <Link
+                            className="footer__link"
+                            key={link.id}
+                            to={link.path}
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
+
+                <div className="footer__studio">
+                    <a
+                        className="footer__studio-link"
+                        href="https://vkazakdon.ru/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         VKazakDon Studio
-                    </span>
+                    </a>
                 </div>
             </div>
         </footer>

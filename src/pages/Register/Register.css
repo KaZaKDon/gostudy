@@ -20,8 +20,8 @@
     border-left: 10px solid var(--color-brown-dark);
     border-radius: 24px;
 
-    background: rgba(255, 248, 235, 0.97);
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-card);
 }
 
 .auth-card__back,
@@ -47,11 +47,12 @@
 
 .auth-card__tabs button {
     padding: 12px 16px;
-    border: 1px solid rgba(92, 58, 28, 0.16);
-    border-radius: 999px;
-    background: rgba(255, 245, 224, 0.8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
     cursor: pointer;
     font-weight: 800;
+    color: var(--color-ink-strong);
 }
 
 .auth-card__tabs .is-active {
@@ -75,22 +76,68 @@
 .auth-card__form input {
     width: 100%;
     padding: 13px 15px;
-    border: 1px solid rgba(92, 58, 28, 0.18);
+    border: 1px solid var(--color-border);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.72);
+    background: var(--color-surface);
+    color: var(--color-ink-strong);
     font: inherit;
+}
+
+.auth-card__agreement {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: flex-start;
+    gap: 10px;
+
+    padding: 12px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    background: var(--color-surface);
+}
+
+.auth-card__agreement input {
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+
+    accent-color: var(--color-legal);
+}
+
+.auth-card__agreement span {
+    color: var(--color-ink-muted);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.55;
+}
+
+.auth-card__agreement a {
+    color: var(--color-ink-strong);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.auth-card__agreement a:hover {
+    text-decoration: underline;
 }
 
 .auth-card__form button {
     margin-top: 8px;
     padding: 14px 22px;
     border: 0;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     color: #fff8ec;
     background: var(--color-brown-dark);
     cursor: pointer;
     font-weight: 900;
 }
+
+.auth-card__form button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
 .auth-card__note {
     margin: 16px 0 0;
 
@@ -117,4 +164,16 @@
 
 .auth-card__bottom a:hover {
     text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .auth-card h1 {
+        text-align: center;
+        font-size: 30px;
+    }
+
+    .auth-card__back {
+        display: inline-block;
+        margin-bottom: 8px;
+    }
 }

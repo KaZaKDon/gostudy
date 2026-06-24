@@ -1,0 +1,12 @@
+User-agent: *
+
+Allow: /
+
+Disallow: /account
+Disallow: /account/
+Disallow: /classroom
+Disallow: /classroom/
+Disallow: /profile-start
+Disallow: /profile-start/
+
+Sitemap: https://gostudyonline.ru/sitemap.php

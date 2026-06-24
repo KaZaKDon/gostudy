@@ -21,10 +21,10 @@ export function ReviewsSection({ role, reviews }) {
     const filteredReviews = isTeacher
         ? reviews
         : reviews.filter((teacher) => {
-              const teacherStatus = teacher.status ?? 'active';
+            const teacherStatus = teacher.status ?? 'active';
 
-              return teacherStatus === activeStatus;
-          });
+            return teacherStatus === activeStatus;
+        });
 
     return (
         <section className="reviews-section">

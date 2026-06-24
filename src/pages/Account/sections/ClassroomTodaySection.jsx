@@ -9,11 +9,7 @@ export function ClassroomTodaySection({ role, lessons }) {
             <header className="account-section__header">
                 <div>
                     <h2>Класс</h2>
-                    <p>
-                        {isTeacher
-                            ? `Сегодня у вас ${lessons.length} урока`
-                            : `Сегодня у вас ${lessons.length} урока`}
-                    </p>
+                    <p>Сегодня у вас {lessons.length} урока</p>
                 </div>
             </header>
 
@@ -40,7 +36,6 @@ export function ClassroomTodaySection({ role, lessons }) {
                                 </td>
 
                                 <td data-label="Предмет">{lesson.subject}</td>
-
                                 <td data-label="Тема">{lesson.topic}</td>
 
                                 <td data-label="Статус">
@@ -53,7 +48,14 @@ export function ClassroomTodaySection({ role, lessons }) {
                                     <button
                                         type="button"
                                         className="account-table__action"
-                                        onClick={() => navigate('/classroom')}
+                                        onClick={() =>
+                                            navigate(`/classroom/${lesson.id}`, {
+                                                state: {
+                                                    role,
+                                                    lesson,
+                                                },
+                                            })
+                                        }
                                     >
                                         Войти в класс
                                     </button>

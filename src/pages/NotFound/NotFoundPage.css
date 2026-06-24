@@ -1,0 +1,71 @@
+.not-found-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    padding: 40px var(--page-padding);
+
+    color: var(--color-text);
+
+    background-image: url('/images/not-found/404go.webp');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.not-found-page__content {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+
+    width: min(620px, 100%);
+}
+
+.not-found-page__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 48px;
+    padding: 13px 22px;
+
+    border: 0;
+    border-radius: var(--radius-pill);
+
+    color: #fff8ec;
+    background: var(--color-brown-dark);
+
+    font-weight: 900;
+    text-decoration: none;
+
+    box-shadow: var(--shadow-card);
+}
+
+.not-found-page__button:hover {
+    filter: brightness(0.95);
+}
+
+.not-found-page__button--secondary {
+    color: var(--color-ink-strong);
+    background: var(--color-surface-paper);
+}
+
+@media (max-width: 760px) {
+    .not-found-page {
+        padding: 28px 18px;
+
+        background-image: url('/images/not-found/404go-mobil.webp');
+        background-position: center;
+    }
+
+    .not-found-page__content {
+        display: grid;
+        gap: 10px;
+    }
+
+    .not-found-page__button {
+        width: 100%;
+    }
+}

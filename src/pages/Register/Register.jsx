@@ -6,9 +6,7 @@ import { PasswordField } from '../../components/PasswordField/PasswordField.jsx'
 import './Register.css';
 
 export function Register() {
-
     const navigate = useNavigate();
-
     const [searchParams] = useSearchParams();
 
     const initialRole = searchParams.get('role') === 'teacher'
@@ -16,6 +14,15 @@ export function Register() {
         : 'student';
 
     const [role, setRole] = useState(initialRole);
+    const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
+
+    const handleRegister = () => {
+        if (!isAgreementAccepted) {
+            return;
+        }
+
+        navigate(`/profile-start?role=${role}`);
+    };
 
     return (
         <main className="auth-page">
@@ -67,9 +74,36 @@ export function Register() {
                         autoComplete="new-password"
                     />
 
+                    <label className="auth-card__agreement">
+                        <input
+                            type="checkbox"
+                            checked={isAgreementAccepted}
+                            onChange={(event) =>
+                                setIsAgreementAccepted(event.target.checked)
+                            }
+                        />
+
+                        <span>
+                            Я принимаю{' '}
+                            <Link to="/agreement">
+                                пользовательское соглашение
+                            </Link>
+                            ,{' '}
+                            <Link to="/privacy">
+                                политику конфиденциальности
+                            </Link>{' '}
+                            и{' '}
+                            <Link to="/rules">
+                                правила платформы
+                            </Link>
+                            .
+                        </span>
+                    </label>
+
                     <button
                         type="button"
-                        onClick={() => navigate(`/profile-start?role=${role}`)}
+                        disabled={!isAgreementAccepted}
+                        onClick={handleRegister}
                     >
                         {role === 'student'
                             ? 'Зарегистрироваться как ученик'

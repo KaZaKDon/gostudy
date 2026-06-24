@@ -21,12 +21,21 @@
   --color-student: #6f8f33;
   --color-teacher: #8b5e3c;
   --color-pricing: #c59a4b;
+  --color-legal: #9b5a6f;
 
   --color-accent-red: #c32516;
   --color-border: rgba(74, 45, 24, 0.22);
 
   --shadow-soft: 0 24px 80px rgba(48, 28, 12, 0.22);
   --shadow-card: 0 18px 44px rgba(39, 20, 9, 0.28);
+
+  --color-legal: #9b5a6f;
+  --color-legal-soft: rgba(155, 90, 111, 0.12);
+  --color-legal-border: rgba(155, 90, 111, 0.28);
+
+  --color-classroom: #7a5aa6;
+  --color-classroom-soft: rgba(122, 90, 166, 0.12);
+  --color-classroom-border: rgba(122, 90, 166, 0.3);
 
   --radius-lg: 24px;
   --radius-md: 16px;
@@ -58,9 +67,14 @@
   --color-student: #7db157;
   --color-teacher: #d0a36b;
   --color-pricing: #d8b15a;
+  --color-legal: #d08aa0;
 
   --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.45);
   --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  --color-legal: #d08aa0;
+  --color-legal-soft: rgba(208, 138, 160, 0.16);
+  --color-legal-border: rgba(208, 138, 160, 0.35);
 }
 
 * {

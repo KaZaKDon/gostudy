@@ -9,6 +9,9 @@ import { Register } from '../pages/Register/Register.jsx';
 import { PasswordReset } from '../pages/PasswordReset/PasswordReset.jsx';
 import { ProfileStart } from '../pages/ProfileStart/ProfileStart.jsx';
 import { Account } from '../pages/Account/Account.jsx';
+import { ClassroomPage } from '../pages/Classroom/ClassroomPage.jsx';
+import { LegalPage } from '../data/legal/LegalPage.jsx';
+import { NotFoundPage } from '../pages/NotFound/NotFoundPage.jsx';
 
 const router = createBrowserRouter([
     {
@@ -34,6 +37,26 @@ const router = createBrowserRouter([
     {
         path: '/account',
         element: <Account />,
+    },
+    {
+        path: '/classroom/:lessonId',
+        element: <ClassroomPage />,
+    },
+    {
+        path: '/agreement',
+        element: <LegalPage documentType="agreement" />,
+    },
+    {
+        path: '/privacy',
+        element: <LegalPage documentType="privacy" />,
+    },
+    {
+        path: '/rules',
+        element: <LegalPage documentType="rules" />,
+    },
+    {
+        path: '*',
+        element: <NotFoundPage />,
     },
 ]);
 
