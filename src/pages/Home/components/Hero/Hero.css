@@ -13,7 +13,7 @@
     margin: 0;
 
     font-family: var(--font-serif);
-    font-size: clamp(35px, 7vw, 75px);
+    font-size: clamp(35px, 7vw, 73px);
     font-weight: 900;
     line-height: 0.9;
     letter-spacing: 0.02em;

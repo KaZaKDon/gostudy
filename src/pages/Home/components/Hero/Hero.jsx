@@ -7,7 +7,7 @@ export function Hero() {
             aria-labelledby="home-title"
         >
             <h1 id="home-title">
-                ПОШЛИ УЧИТЬСЯ
+                ПОЙДЁМ УЧИТЬСЯ
             </h1>
 
             <p>

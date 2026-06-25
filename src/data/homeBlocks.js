@@ -5,7 +5,7 @@ export const HOME_BLOCKS = [
         title: 'О платформе',
         label: 'Брошюра',
 
-        asset: '/images/home/item-brochure.png',
+        asset: '/images/home/item-brochure.webp',
         className: 'desk-item--brochure',
 
         accentColor: '#B8894D',
@@ -13,7 +13,7 @@ export const HOME_BLOCKS = [
         modalTitle: 'О платформе GoStudy',
 
         modalLead:
-            'GoStudy / «Пошли учиться» — тёплое образовательное пространство для учеников, преподавателей и родителей.',
+            'GoStudy / «Пойдём учиться» — тёплое образовательное пространство для учеников, преподавателей и родителей.',
 
         modalText: [
             'Платформа помогает организовать обучение без хаоса: найти преподавателя, выбрать формат занятий, вести расписание и хранить важную информацию в одном месте.',
@@ -60,7 +60,7 @@ export const HOME_BLOCKS = [
         title: 'Ученикам',
         label: 'Тетрадь',
 
-        asset: '/images/home/item-student-notebook.png',
+        asset: '/images/home/item-student-notebook.webp',
         className: 'desk-item--students',
 
         accentColor: '#6E9A67',
@@ -89,7 +89,7 @@ export const HOME_BLOCKS = [
         title: 'Учителям',
         label: 'Классный журнал',
 
-        asset: '/images/home/item-teacher-journal.png',
+        asset: '/images/home/item-teacher-journal.webp',
         className: 'desk-item--teachers',
 
         accentColor: '#8B5E3C',
@@ -118,7 +118,7 @@ export const HOME_BLOCKS = [
         title: 'Тарифы',
         label: 'Квитанционная книжка',
 
-        asset: '/images/home/item-pricing-book.png',
+        asset: '/images/home/item-pricing-book.webp',
         className: 'desk-item--pricing',
 
         accentColor: '#C59A4B',
