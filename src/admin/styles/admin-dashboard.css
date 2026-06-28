@@ -1,0 +1,40 @@
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-stat-card {
+    display: grid;
+    gap: 14px;
+    min-height: 128px;
+    padding: 20px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-lg);
+    background: var(--admin-surface);
+    box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-stat-card__label {
+    color: var(--admin-text-muted);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.admin-stat-card__value {
+    align-self: end;
+    font-size: 34px;
+    line-height: 1;
+}
+
+@media (max-width: 1100px) {
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

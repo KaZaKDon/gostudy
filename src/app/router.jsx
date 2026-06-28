@@ -12,6 +12,7 @@ import { Account } from '../pages/Account/Account.jsx';
 import { ClassroomPage } from '../pages/Classroom/ClassroomPage.jsx';
 import { LegalPage } from '../data/legal/LegalPage.jsx';
 import { NotFoundPage } from '../pages/NotFound/NotFoundPage.jsx';
+import { AdminApp } from '../admin/AdminApp.jsx';
 
 const router = createBrowserRouter([
     {
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
     {
         path: '*',
         element: <NotFoundPage />,
+    },
+    {
+        path: '/admin/*',
+        element: <AdminApp />,
     },
 ]);
 

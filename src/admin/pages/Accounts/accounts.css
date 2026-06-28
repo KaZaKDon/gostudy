@@ -1,0 +1,61 @@
+.accounts-page {
+    min-height: 100%;
+}
+
+.account-view {
+    display: grid;
+    gap: var(--admin-gap-lg);
+}
+
+.account-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--admin-gap-md);
+}
+
+.account-view__head h3 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.account-view__head p {
+    margin: 4px 0 0;
+    color: var(--admin-text-muted);
+}
+
+.account-view__badges {
+    display: flex;
+    gap: var(--admin-gap-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.account-view__list {
+    display: grid;
+    gap: var(--admin-gap-sm);
+    margin: 0;
+}
+
+.account-view__list div {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: var(--admin-gap-md);
+    padding: var(--admin-gap-sm) 0;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.account-view__list dt {
+    color: var(--admin-text-muted);
+    font-weight: 800;
+}
+
+.account-view__list dd {
+    margin: 0;
+    color: var(--admin-text);
+}
+
+.account-view__role {
+    padding-top: var(--admin-gap-md);
+    border-top: 1px solid var(--admin-border);
+}

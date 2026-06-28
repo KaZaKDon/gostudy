@@ -1,0 +1,94 @@
+:root {
+    --admin-sidebar-width: 260px;
+    --admin-header-height: 74px;
+    --admin-page-padding: 28px;
+
+    --admin-gap-xs: 6px;
+    --admin-gap-sm: 10px;
+    --admin-gap-md: 16px;
+    --admin-gap-lg: 24px;
+    --admin-gap-xl: 32px;
+
+    --admin-table-row: 58px;
+
+    --admin-radius-sm: 10px;
+    --admin-radius-md: 14px;
+    --admin-radius-lg: 18px;
+    --admin-radius-xl: 24px;
+
+    --admin-transition: 0.2s ease;
+}
+
+:root[data-admin-theme='light'] {
+    --admin-bg: #f5f6f8;
+    --admin-surface: #ffffff;
+    --admin-surface-soft: #f9fafb;
+    --admin-surface-hover: #f1f3f5;
+
+    --admin-sidebar: #2f343b;
+    --admin-sidebar-hover: #3b4149;
+    --admin-sidebar-active: #4a515b;
+    --admin-sidebar-text: #f8fafc;
+    --admin-sidebar-muted: #cbd5e1;
+    --admin-sidebar-line: rgba(255, 255, 255, 0.12);
+
+    --admin-header: #ffffff;
+
+    --admin-text: #24292f;
+    --admin-text-muted: #69707a;
+    --admin-text-soft: #8a929d;
+
+    --admin-border: #e3e6ea;
+    --admin-border-strong: #cfd5dc;
+
+    --admin-primary: #6f8f33;
+    --admin-primary-hover: #5d7a2a;
+
+    --admin-secondary: #8b5e3c;
+    --admin-secondary-hover: #724b30;
+
+    --admin-success: #43a047;
+    --admin-warning: #d79b28;
+    --admin-danger: #c74646;
+    --admin-info: #6b7280;
+
+    --admin-shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
+    --admin-shadow-card: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-admin-theme='dark'] {
+    --admin-bg: #171b21;
+    --admin-surface: #222832;
+    --admin-surface-soft: #262d38;
+    --admin-surface-hover: #2d3541;
+
+    --admin-sidebar: #11161c;
+    --admin-sidebar-hover: #202733;
+    --admin-sidebar-active: #2f3a46;
+    --admin-sidebar-text: #f8fafc;
+    --admin-sidebar-muted: #b6c0cc;
+    --admin-sidebar-line: rgba(255, 255, 255, 0.1);
+
+    --admin-header: #202733;
+
+    --admin-text: #f5f7fa;
+    --admin-text-muted: #b6c0cc;
+    --admin-text-soft: #8d98a7;
+
+    --admin-border: #333d4a;
+    --admin-border-strong: #465263;
+
+    --admin-primary: #8aa84a;
+    --admin-primary-hover: #9ab95b;
+
+    --admin-secondary: #b88961;
+    --admin-secondary-hover: #c99a72;
+
+    --admin-success: #5bbf6a;
+    --admin-warning: #e1a93a;
+    --admin-danger: #e06464;
+    --admin-info: #9aa4b2;
+
+    --admin-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.22);
+    --admin-shadow-card: 0 12px 32px rgba(0, 0, 0, 0.28);
+}

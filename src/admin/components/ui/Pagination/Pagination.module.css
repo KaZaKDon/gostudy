@@ -1,0 +1,40 @@
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--admin-gap-md);
+    padding: var(--admin-gap-md) var(--admin-gap-lg);
+    border: 1px solid var(--pagination-border);
+    border-radius: var(--admin-radius-lg);
+    background: var(--pagination-bg);
+    color: var(--pagination-text);
+    font-weight: 800;
+    box-shadow: var(--admin-shadow-soft);
+}
+
+.total {
+    color: var(--pagination-text);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-gap-sm);
+}
+
+.counter {
+    min-width: 72px;
+    text-align: center;
+    color: var(--pagination-counter);
+}
+
+@media (max-width: 700px) {
+    .pagination {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions {
+        justify-content: space-between;
+    }
+}

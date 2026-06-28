@@ -1,0 +1,163 @@
+:root {
+    --button-primary-bg: var(--admin-primary);
+    --button-primary-hover-bg: var(--admin-primary-hover);
+    --button-primary-border: var(--admin-primary);
+    --button-primary-text: #ffffff;
+
+    --button-secondary-bg: var(--admin-surface);
+    --button-secondary-hover-bg: var(--admin-surface-hover);
+    --button-secondary-border: var(--admin-border-strong);
+    --button-secondary-hover-border: var(--admin-primary);
+    --button-secondary-text: var(--admin-text);
+
+    --button-danger-bg: var(--admin-danger);
+    --button-danger-hover-bg: var(--admin-danger);
+    --button-danger-border: var(--admin-danger);
+    --button-danger-text: #ffffff;
+
+    --button-ghost-bg: transparent;
+    --button-ghost-hover-bg: var(--admin-surface-hover);
+    --button-ghost-border: transparent;
+    --button-ghost-text: var(--admin-text-muted);
+    --button-ghost-hover-text: var(--admin-text);
+}
+
+/* ======================================================
+   INPUT
+====================================================== */
+
+:root {
+    --input-bg: var(--admin-surface);
+    --input-text: var(--admin-text);
+    --input-label: var(--admin-text);
+    --input-helper: var(--admin-text-muted);
+    --input-placeholder: var(--admin-text-soft);
+    --input-icon: var(--admin-text-muted);
+
+    --input-border: var(--admin-border);
+    --input-border-hover: var(--admin-border-strong);
+    --input-border-focus: var(--admin-primary);
+    --input-focus-ring: rgba(111, 143, 51, 0.18);
+
+    --input-required: var(--admin-danger);
+    --input-error-border: var(--admin-danger);
+    --input-error-ring: rgba(199, 70, 70, 0.18);
+    --input-error-text: var(--admin-danger);
+}
+
+/* ======================================================
+   SELECT
+====================================================== */
+
+:root {
+    --select-bg: var(--admin-surface);
+    --select-text: var(--admin-text);
+    --select-label: var(--admin-text);
+    --select-helper: var(--admin-text-muted);
+    --select-icon: var(--admin-text-muted);
+
+    --select-border: var(--admin-border);
+    --select-border-hover: var(--admin-border-strong);
+    --select-border-focus: var(--admin-primary);
+    --select-focus-ring: rgba(111, 143, 51, 0.18);
+
+    --select-required: var(--admin-danger);
+    --select-error-border: var(--admin-danger);
+    --select-error-ring: rgba(199, 70, 70, 0.18);
+    --select-error-text: var(--admin-danger);
+}
+
+/* ======================================================
+   BADGE
+====================================================== */
+
+:root {
+    --badge-default-bg: var(--admin-surface-soft);
+    --badge-default-border: var(--admin-border);
+    --badge-default-text: var(--admin-text-muted);
+
+    --badge-success-bg: rgba(67, 160, 71, 0.14);
+    --badge-success-border: rgba(67, 160, 71, 0.22);
+    --badge-success-text: var(--admin-success);
+
+    --badge-warning-bg: rgba(215, 155, 40, 0.14);
+    --badge-warning-border: rgba(215, 155, 40, 0.22);
+    --badge-warning-text: var(--admin-warning);
+
+    --badge-danger-bg: rgba(199, 70, 70, 0.14);
+    --badge-danger-border: rgba(199, 70, 70, 0.22);
+    --badge-danger-text: var(--admin-danger);
+
+    --badge-info-bg: rgba(107, 114, 128, 0.14);
+    --badge-info-border: rgba(107, 114, 128, 0.22);
+    --badge-info-text: var(--admin-info);
+}
+
+/* ======================================================
+   LOADER
+====================================================== */
+
+:root {
+    --loader-text: var(--admin-text-muted);
+    --loader-border: var(--admin-primary);
+}
+
+/* ======================================================
+   EMPTY STATE
+====================================================== */
+
+:root {
+    --empty-state-bg: var(--admin-surface);
+    --empty-state-border: var(--admin-border);
+    --empty-state-title: var(--admin-text);
+    --empty-state-text: var(--admin-text-muted);
+    --empty-state-icon-bg: var(--admin-surface-soft);
+    --empty-state-icon-text: var(--admin-text-muted);
+}
+
+/* ======================================================
+   PAGINATION
+====================================================== */
+
+:root {
+    --pagination-bg: var(--admin-surface);
+    --pagination-border: var(--admin-border);
+    --pagination-text: var(--admin-text-muted);
+    --pagination-counter: var(--admin-text);
+}
+
+/* ======================================================
+   TABLE
+====================================================== */
+
+:root {
+    --table-bg: var(--admin-surface);
+    --table-border: var(--admin-border);
+    --table-head-bg: var(--admin-surface-soft);
+    --table-head-text: var(--admin-text-muted);
+    --table-row-bg: var(--admin-surface);
+    --table-row-hover: var(--admin-surface-hover);
+    --table-strong-text: var(--admin-text);
+}
+
+/* ======================================================
+   TOOLBAR
+====================================================== */
+
+:root {
+    --toolbar-bg: var(--admin-surface);
+    --toolbar-border: var(--admin-border);
+}
+
+/* ======================================================
+   MODAL
+====================================================== */
+
+:root {
+    --modal-bg: var(--admin-surface);
+    --modal-text: var(--admin-text);
+    --modal-muted: var(--admin-text-muted);
+    --modal-border: var(--admin-border);
+    --modal-overlay: rgba(15, 23, 42, 0.58);
+    --modal-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}

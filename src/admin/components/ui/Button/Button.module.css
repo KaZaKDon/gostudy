@@ -1,0 +1,109 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--admin-gap-sm);
+    border: 1px solid transparent;
+    border-radius: var(--admin-radius-md);
+    font: inherit;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background var(--admin-transition),
+        border-color var(--admin-transition),
+        color var(--admin-transition),
+        opacity var(--admin-transition);
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.button--sm {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.button--md {
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 14px;
+}
+
+.button--lg {
+    min-height: 50px;
+    padding: 0 20px;
+    font-size: 15px;
+}
+
+.button--full {
+    width: 100%;
+}
+
+.button--primary {
+    background: var(--button-primary-bg);
+    border-color: var(--button-primary-border);
+    color: var(--button-primary-text);
+}
+
+.button--primary:hover:not(:disabled) {
+    background: var(--button-primary-hover-bg);
+    border-color: var(--button-primary-hover-bg);
+}
+
+.button--secondary {
+    background: var(--button-secondary-bg);
+    border-color: var(--button-secondary-border);
+    color: var(--button-secondary-text);
+}
+
+.button--secondary:hover:not(:disabled) {
+    background: var(--button-secondary-hover-bg);
+    border-color: var(--button-secondary-hover-border);
+}
+
+.button--danger {
+    background: var(--button-danger-bg);
+    border-color: var(--button-danger-border);
+    color: var(--button-danger-text);
+}
+
+.button--danger:hover:not(:disabled) {
+    background: var(--button-danger-hover-bg);
+    border-color: var(--button-danger-hover-bg);
+}
+
+.button--ghost {
+    background: var(--button-ghost-bg);
+    border-color: var(--button-ghost-border);
+    color: var(--button-ghost-text);
+}
+
+.button--ghost:hover:not(:disabled) {
+    background: var(--button-ghost-hover-bg);
+    color: var(--button-ghost-hover-text);
+}
+
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: button-spin 0.75s linear infinite;
+}
+
+@keyframes button-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
