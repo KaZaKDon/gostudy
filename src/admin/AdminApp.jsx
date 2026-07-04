@@ -8,6 +8,8 @@ import { AdminLayout } from './layout/AdminLayout.jsx';
 import { AccountsPage } from './pages/Accounts/AccountsPage.jsx';
 import { AdminDashboardPage } from './pages/Dashboard/AdminDashboardPage.jsx';
 import { AdminLoginPage } from './pages/Login/AdminLoginPage.jsx';
+import { StudentsPage } from './pages/Students/StudentsPage.jsx';
+import { TeachersPage } from './pages/Teachers/TeachersPage.jsx';
 
 export function AdminApp() {
     return (
@@ -18,6 +20,8 @@ export function AdminApp() {
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboardPage />} />
                 <Route path="accounts" element={<AccountsPage />} />
+                <Route path="students" element={<StudentsPage />} />
+                <Route path="teachers" element={<TeachersPage />} />
             </Route>
         </Routes>
     );
