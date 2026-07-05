@@ -78,9 +78,41 @@
     padding: 13px 15px;
     border: 1px solid var(--color-border);
     border-radius: 14px;
-    background: var(--color-surface);
+    background: #fff8eb;
     color: var(--color-ink-strong);
     font: inherit;
+}
+
+.auth-card__form input::placeholder {
+    color: var(--color-ink-muted);
+    opacity: 0.75;
+}
+
+.auth-card__form input:focus {
+    outline: 2px solid rgba(111, 143, 51, 0.35);
+    border-color: var(--color-student);
+}
+
+.auth-card__error,
+.auth-card__success {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.auth-card__error {
+    color: #7a1f1f;
+    background: rgba(180, 55, 55, 0.12);
+    border: 1px solid rgba(180, 55, 55, 0.28);
+}
+
+.auth-card__success {
+    color: #3f5f1f;
+    background: rgba(111, 143, 51, 0.14);
+    border: 1px solid rgba(111, 143, 51, 0.3);
 }
 
 .auth-card__agreement {

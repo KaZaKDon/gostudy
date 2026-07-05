@@ -1,0 +1,310 @@
+.verify-email-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 32px var(--page-padding);
+
+    background-image:
+        linear-gradient(rgba(68, 39, 18, 0.04), rgba(38, 21, 10, 0.12)),
+        url('/images/home/gostudy-background-desktop.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.verify-email-card {
+    width: min(860px, 100%);
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 36px;
+    align-items: center;
+
+    padding: 42px;
+
+    border-left: 10px solid var(--color-brown-dark);
+    border-radius: 28px;
+
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-card);
+}
+
+.verify-email-card__visual {
+    display: flex;
+    justify-content: center;
+}
+
+.verify-email-card__eyebrow {
+    margin: 0 0 10px;
+    color: var(--color-ink-muted);
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.verify-email-card h1 {
+    margin: 0 0 16px;
+    color: var(--color-ink-strong);
+    font-family: var(--font-serif);
+    font-size: 42px;
+    line-height: 1.05;
+}
+
+.verify-email-card__content > p:not(.verify-email-card__eyebrow) {
+    margin: 0;
+    max-width: 420px;
+    color: var(--color-ink-muted);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.65;
+}
+
+.verify-email-card__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 26px;
+    padding: 14px 28px;
+
+    border-radius: var(--radius-pill);
+
+    color: #fff8ec;
+    background: var(--color-brown-dark);
+
+    text-decoration: none;
+    font-weight: 900;
+}
+
+.verify-email-card__button:hover {
+    transform: translateY(-1px);
+}
+
+/* Envelope */
+
+.mail-envelope {
+    position: relative;
+    width: 260px;
+    height: 180px;
+}
+
+.mail-envelope__paper {
+    position: absolute;
+    left: 36px;
+    top: 10px;
+    z-index: 1;
+
+    width: 188px;
+    height: 130px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    padding-top: 20px;
+
+    border: 2px solid rgba(90, 52, 29, 0.28);
+    border-radius: 10px;
+
+    background: #fff8eb;
+    color: rgba(90, 52, 29, 0.42);
+
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.mail-envelope__back,
+.mail-envelope__body,
+.mail-envelope__flap {
+    position: absolute;
+    inset: 0;
+}
+
+.mail-envelope__back {
+    border: 3px solid var(--color-brown-dark);
+    border-radius: 18px;
+    background: #efe2cb;
+}
+
+.mail-envelope__body {
+    z-index: 3;
+    overflow: hidden;
+
+    border: 3px solid var(--color-brown-dark);
+    border-radius: 18px;
+
+    background:
+        linear-gradient(145deg, transparent 49%, rgba(90, 52, 29, 0.28) 50%, transparent 51%),
+        linear-gradient(35deg, transparent 49%, rgba(90, 52, 29, 0.28) 50%, transparent 51%),
+        #f4dfb8;
+}
+
+.mail-envelope__flap {
+    z-index: 4;
+
+    clip-path: polygon(0 0, 50% 58%, 100% 0);
+    border-radius: 18px 18px 0 0;
+
+    background: #e8cfa3;
+    transform-origin: top center;
+}
+
+.mail-envelope__seal {
+    position: absolute;
+    left: 50%;
+    top: 82px;
+    z-index: 5;
+
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 4px solid rgba(255, 248, 235, 0.6);
+    border-radius: 50%;
+
+    color: #fff8ec;
+    font-weight: 900;
+    transform: translateX(-50%);
+    box-shadow: 0 10px 24px rgba(50, 24, 13, 0.22);
+}
+
+.mail-envelope--success .mail-envelope__flap {
+    transform: rotateX(180deg);
+    z-index: 0;
+}
+
+.mail-envelope--success .mail-envelope__paper {
+    top: -18px;
+}
+
+.mail-envelope--success .mail-envelope__seal {
+    background: var(--color-student);
+}
+
+.mail-envelope--expired .mail-envelope__seal {
+    background: var(--color-pricing);
+}
+
+.mail-envelope--invalid .mail-envelope__seal {
+    background: #9b3f3f;
+}
+
+.mail-envelope--loading .mail-envelope__seal {
+    background: var(--color-brown-dark);
+}
+
+.verify-email-card__button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.verify-email-card__message {
+    margin: 14px 0 0;
+    color: #7a1f1f;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.mail-envelope--resent .mail-envelope__flap {
+    transform: rotateX(180deg);
+    z-index: 0;
+}
+
+.mail-envelope--resent .mail-envelope__paper {
+    top: -18px;
+}
+
+.mail-envelope--resent .mail-envelope__seal {
+    background: var(--color-student);
+}
+
+.verify-email-card__email {
+    margin: 14px 0 0;
+    color: var(--color-ink-strong);
+    font-size: 15px;
+    font-weight: 900;
+    word-break: break-word;
+}
+
+.verify-email-card__button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.verify-email-card__message {
+    margin: 14px 0 0;
+    color: #7a1f1f;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.mail-envelope--resent .mail-envelope__flap,
+.mail-envelope--success .mail-envelope__flap {
+    transform: rotateX(180deg);
+    z-index: 0;
+}
+
+.mail-envelope--resent .mail-envelope__paper,
+.mail-envelope--success .mail-envelope__paper {
+    top: -18px;
+}
+
+.mail-envelope--resent .mail-envelope__seal,
+.mail-envelope--success .mail-envelope__seal {
+    background: var(--color-student);
+}
+
+.mail-envelope--waiting .mail-envelope__seal {
+    background: var(--color-pricing);
+}
+
+/* Mobile */
+
+@media (max-width: 760px) {
+    .verify-email-card {
+        grid-template-columns: 1fr;
+        gap: 26px;
+
+        padding: 30px 22px;
+        text-align: center;
+    }
+
+    .verify-email-card h1 {
+        font-size: 30px;
+    }
+
+    .verify-email-card__content > p:not(.verify-email-card__eyebrow) {
+        margin: 0 auto;
+        font-size: 15px;
+    }
+
+    .verify-email-card__button {
+        width: 100%;
+    }
+
+    .mail-envelope {
+        width: 210px;
+        height: 146px;
+    }
+
+    .mail-envelope__paper {
+        left: 29px;
+        width: 152px;
+        height: 105px;
+        font-size: 17px;
+    }
+
+    .mail-envelope__seal {
+        top: 66px;
+        width: 48px;
+        height: 48px;
+        font-size: 14px;
+    }
+}

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { PasswordField } from '../../components/PasswordField/PasswordField.jsx';
-
 import './Register.css';
+
+const API_URL = 'https://gostudyonline.ru/api/auth/register.php';
 
 export function Register() {
     const navigate = useNavigate();
@@ -14,14 +14,70 @@ export function Register() {
         : 'student';
 
     const [role, setRole] = useState(initialRole);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [passwordRepeat, setPasswordRepeat] = useState('');
     const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
 
-    const handleRegister = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
+    const handleRegister = async (event) => {
+        event.preventDefault();
+
+        setErrorMessage('');
+        setSuccessMessage('');
+
         if (!isAgreementAccepted) {
+            setErrorMessage('Необходимо принять пользовательское соглашение.');
             return;
         }
 
-        navigate(`/profile-start?role=${role}`);
+        if (password !== passwordRepeat) {
+            setErrorMessage('Пароли не совпадают.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    role,
+                    email,
+                    password,
+                    full_name: email,
+                    phone: '',
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Ошибка регистрации');
+            }
+
+            setSuccessMessage(
+                result.message || 'Регистрация выполнена. Проверьте почту.'
+            );
+
+            setTimeout(() => {
+                navigate(`/profile-start?role=${role}`);
+            }, 1200);
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : 'Не удалось выполнить регистрацию'
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -51,28 +107,57 @@ export function Register() {
                     </button>
                 </div>
 
-                <form className="auth-card__form">
+                <form className="auth-card__form" onSubmit={handleRegister}>
                     <label>
                         <span>Почта</span>
 
                         <input
                             type="email"
+                            value={email}
+                            onChange={(event) => setEmail(event.target.value)}
                             placeholder="example@mail.ru"
                             autoComplete="email"
+                            required
                         />
                     </label>
 
-                    <PasswordField
-                        label="Пароль"
-                        placeholder="Введите пароль"
-                        autoComplete="new-password"
-                    />
+                    <label>
+                        <span>Пароль</span>
 
-                    <PasswordField
-                        label="Повторите пароль"
-                        placeholder="Повторите пароль"
-                        autoComplete="new-password"
-                    />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            placeholder="Введите пароль"
+                            autoComplete="new-password"
+                            required
+                        />
+                    </label>
+
+                    <label>
+                        <span>Повторите пароль</span>
+
+                        <input
+                            type="password"
+                            value={passwordRepeat}
+                            onChange={(event) => setPasswordRepeat(event.target.value)}
+                            placeholder="Повторите пароль"
+                            autoComplete="new-password"
+                            required
+                        />
+                    </label>
+
+                    {errorMessage && (
+                        <p className="auth-card__error">
+                            {errorMessage}
+                        </p>
+                    )}
+
+                    {successMessage && (
+                        <p className="auth-card__success">
+                            {successMessage}
+                        </p>
+                    )}
 
                     <label className="auth-card__agreement">
                         <input
@@ -85,42 +170,32 @@ export function Register() {
 
                         <span>
                             Я принимаю{' '}
-                            <Link to="/agreement">
-                                пользовательское соглашение
-                            </Link>
+                            <Link to="/agreement">пользовательское соглашение</Link>
                             ,{' '}
-                            <Link to="/privacy">
-                                политику конфиденциальности
-                            </Link>{' '}
+                            <Link to="/privacy">политику конфиденциальности</Link>{' '}
                             и{' '}
-                            <Link to="/rules">
-                                правила платформы
-                            </Link>
-                            .
+                            <Link to="/rules">правила платформы</Link>.
                         </span>
                     </label>
 
                     <button
-                        type="button"
-                        disabled={!isAgreementAccepted}
-                        onClick={handleRegister}
+                        type="submit"
+                        disabled={!isAgreementAccepted || isLoading}
                     >
-                        {role === 'student'
-                            ? 'Зарегистрироваться как ученик'
-                            : 'Зарегистрироваться как учитель'}
+                        {isLoading
+                            ? 'Регистрируем...'
+                            : role === 'student'
+                                ? 'Зарегистрироваться как ученик'
+                                : 'Зарегистрироваться как учитель'}
                     </button>
                 </form>
 
                 <p className="auth-card__note">
-                    После регистрации откроется анкета пользователя.
-                    Пока раздел находится в разработке.
+                    После регистрации проверьте почту и подтвердите email.
                 </p>
 
                 <p className="auth-card__bottom">
-                    Уже есть аккаунт?{' '}
-                    <Link to="/login">
-                        Войти
-                    </Link>
+                    Уже есть аккаунт? <Link to="/login">Войти</Link>
                 </p>
             </section>
         </main>

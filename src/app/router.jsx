@@ -13,6 +13,7 @@ import { ClassroomPage } from '../pages/Classroom/ClassroomPage.jsx';
 import { LegalPage } from '../data/legal/LegalPage.jsx';
 import { NotFoundPage } from '../pages/NotFound/NotFoundPage.jsx';
 import { AdminApp } from '../admin/AdminApp.jsx';
+import { VerifyEmail } from '../pages/VerifyEmail/VerifyEmail.jsx';
 
 const router = createBrowserRouter([
     {
@@ -63,6 +64,10 @@ const router = createBrowserRouter([
         path: '/admin/*',
         element: <AdminApp />,
     },
+    {
+        path: '/verify-email',
+        element: <VerifyEmail />,
+    }
 ]);
 
 export function AppRouter() {

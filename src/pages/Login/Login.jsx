@@ -1,11 +1,69 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-import { PasswordField } from '../../components/PasswordField/PasswordField.jsx';
 
 import './Login.css';
 
+const LOGIN_API_URL = 'https://gostudyonline.ru/api/auth/login.php';
+
 export function Login() {
     const navigate = useNavigate();
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const handleLogin = async (event) => {
+        event.preventDefault();
+
+        setErrorMessage('');
+        setIsLoading(true);
+
+        try {
+            const response = await fetch(LOGIN_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                if (result.status === 'email_not_verified') {
+                    navigate(
+                        `/verify-email?email=${encodeURIComponent(result.email || email)}`
+                    );
+                    return;
+                }
+
+                throw new Error(result.message || 'Ошибка входа');
+            }
+
+            const user = result.user;
+
+            localStorage.setItem('gostudy_user', JSON.stringify(user));
+
+            if (!user.profile_completed) {
+                navigate(`/profile-start?role=${user.role}`);
+                return;
+            }
+
+            navigate('/account');
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : 'Не удалось выполнить вход'
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <main className="auth-page">
@@ -16,28 +74,44 @@ export function Login() {
 
                 <h1>Вход</h1>
 
-                <form className="auth-card__form">
+                <form className="auth-card__form" onSubmit={handleLogin}>
                     <label>
                         <span>Почта</span>
 
                         <input
                             type="email"
+                            value={email}
+                            onChange={(event) => setEmail(event.target.value)}
                             placeholder="example@mail.ru"
                             autoComplete="email"
+                            required
                         />
                     </label>
 
-                    <PasswordField
-                        label="Пароль"
-                        placeholder="Введите пароль"
-                        autoComplete="current-password"
-                    />
+                    <label>
+                        <span>Пароль</span>
+
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            placeholder="Введите пароль"
+                            autoComplete="current-password"
+                            required
+                        />
+                    </label>
+
+                    {errorMessage && (
+                        <p className="auth-card__error">
+                            {errorMessage}
+                        </p>
+                    )}
 
                     <button
-                        type="button"
-                        onClick={() => navigate('/account')}
+                        type="submit"
+                        disabled={isLoading}
                     >
-                        Войти
+                        {isLoading ? 'Входим...' : 'Войти'}
                     </button>
                 </form>
 
