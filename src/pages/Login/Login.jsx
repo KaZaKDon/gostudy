@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import './Login.css';
+import { API } from '../../api/api.js';
+import { getRouteAfterLogin } from '../../utils/roleRoutes.js';
 
-const LOGIN_API_URL = 'https://gostudyonline.ru/api/auth/login.php';
+import './Login.css';
 
 export function Login() {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ export function Login() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(LOGIN_API_URL, {
+            const response = await fetch(API.login, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,14 +47,11 @@ export function Login() {
 
             const user = result.user;
 
-            localStorage.setItem('gostudy_user', JSON.stringify(user));
+            sessionStorage.setItem('gostudy_token', result.token);
+            sessionStorage.setItem('gostudy_user', JSON.stringify(user));
 
-            if (!user.profile_completed) {
-                navigate(`/profile-start?role=${user.role}`);
-                return;
-            }
-
-            navigate('/account');
+            navigate(getRouteAfterLogin(user));
+            
         } catch (error) {
             setErrorMessage(
                 error instanceof Error

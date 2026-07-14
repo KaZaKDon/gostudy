@@ -7,7 +7,10 @@ export function AccountSidebar({
     onSelectSection,
     isOpen,
 }) {
-    const initials = `${profile.firstName[0]}${profile.lastName[0]}`;
+    const avatarUrl = profile?.avatarUrl;
+
+    const initials =
+        `${profile?.firstName?.[0] ?? ''}${profile?.lastName?.[0] ?? ''}`.toUpperCase();
 
     return (
         <aside
@@ -19,7 +22,15 @@ export function AccountSidebar({
         >
             <div className="account-sidebar__profile">
                 <div className="account-sidebar__avatar">
-                    {initials}
+                    {avatarUrl ? (
+                        <img
+                            src={avatarUrl}
+                            alt={`${profile.firstName} ${profile.lastName}`}
+                            className="account-sidebar__avatar-image"
+                        />
+                    ) : (
+                        initials
+                    )}
                 </div>
 
                 <strong>

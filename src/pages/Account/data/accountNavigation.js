@@ -1,10 +1,10 @@
 export const STUDENT_NAVIGATION = [
     { id: 'schedule', title: 'Расписание' },
     { id: 'classroom', title: 'Класс' },
-    { id: 'homework', title: 'Домашние задания', count: 3 },
+    { id: 'homework', title: 'Домашние задания' },
     { id: 'diary', title: 'Дневник обучения' },
     { id: 'materials', title: 'Материалы' },
-    { id: 'messages', title: 'Сообщения', count: 1 },
+    { id: 'messages', title: 'Сообщения' },
     { id: 'payments', title: 'Оплата' },
     { id: 'teachers', title: 'Мои преподаватели' },
     { id: 'settings', title: 'Настройки' },

@@ -3,10 +3,15 @@ export function StepTeaching({
     onChange,
 }) {
     function handleChange(event) {
-        const { name, value } = event.target;
+        const {
+            name,
+            value,
+            type,
+            checked,
+        } = event.target;
 
         onChange({
-            [name]: value,
+            [name]: type === 'checkbox' ? checked : value,
         });
     }
 

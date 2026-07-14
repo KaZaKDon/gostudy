@@ -8,10 +8,31 @@ import './ProfileStart.css';
 export function ProfileStart() {
     const [searchParams] = useSearchParams();
 
-    const role =
-        searchParams.get('role') === 'teacher'
-            ? 'teacher'
-            : 'student';
+    const role = searchParams.get('role');
+
+    if (role !== 'student' && role !== 'teacher') {
+        return (
+            <main className="profile-start">
+                <section className="profile-start__card">
+                    <Link className="profile-start__back" to="/">
+                        ← На главную
+                    </Link>
+
+                    <header className="profile-start__header">
+                        <span className="profile-start__eyebrow">
+                            GoStudy
+                        </span>
+
+                        <h1>Анкета недоступна</h1>
+
+                        <p>
+                            Анкета доступна только для ученика или преподавателя.
+                        </p>
+                    </header>
+                </section>
+            </main>
+        );
+    }
 
     const isTeacher = role === 'teacher';
 

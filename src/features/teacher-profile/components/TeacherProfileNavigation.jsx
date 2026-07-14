@@ -1,15 +1,26 @@
 export function TeacherProfileNavigation({
     isFirst,
     isLast,
+    isSaving = false,
     onBack,
     onNext,
+    onSave,
 }) {
+    const handlePrimaryAction = () => {
+        if (isLast) {
+            onSave?.();
+            return;
+        }
+
+        onNext();
+    };
+
     return (
         <div className="teacher-profile-navigation">
             <button
                 type="button"
                 className="teacher-profile-button teacher-profile-button--secondary"
-                disabled={isFirst}
+                disabled={isFirst || isSaving}
                 onClick={onBack}
             >
                 Назад
@@ -18,9 +29,14 @@ export function TeacherProfileNavigation({
             <button
                 type="button"
                 className="teacher-profile-button teacher-profile-button--primary"
-                onClick={onNext}
+                disabled={isSaving}
+                onClick={handlePrimaryAction}
             >
-                {isLast ? 'Сохранить профиль' : 'Далее'}
+                {isSaving
+                    ? 'Сохраняем...'
+                    : isLast
+                        ? 'Сохранить профиль'
+                        : 'Далее'}
             </button>
         </div>
     );

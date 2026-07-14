@@ -510,6 +510,100 @@
     margin-top: -4px;
 }
 
+.teacher-education-list {
+    display: grid;
+    gap: 20px;
+}
+
+.teacher-education-card {
+    display: grid;
+    gap: 18px;
+
+    padding: 20px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface-strong);
+}
+
+.teacher-education-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.teacher-education-card__header span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: var(--color-ink-muted);
+
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.teacher-education-card__header h3 {
+    margin: 0;
+
+    color: var(--color-text);
+}
+
+.teacher-education-card__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.teacher-education-card__controls button {
+    min-width: 38px;
+    padding: 8px 10px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+
+    background: var(--color-surface-paper);
+    color: var(--color-text);
+
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.teacher-education-card__controls button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.teacher-education-card__controls
+.teacher-education-card__remove {
+    color: #8a2929;
+}
+
+.teacher-education-add {
+    justify-self: start;
+
+    padding: 12px 18px;
+
+    border: 1px solid var(--color-teacher);
+    border-radius: var(--radius-pill);
+
+    background: color-mix(
+        in srgb,
+        var(--color-teacher) 12%,
+        var(--color-surface-paper)
+    );
+
+    color: var(--color-text);
+
+    font-weight: 800;
+    cursor: pointer;
+}
+
 @media (max-width: 980px) {
     .teacher-profile-layout {
         grid-template-columns: 1fr;
@@ -566,6 +660,23 @@
     }
     .teacher-profile-view__info-grid {
         grid-template-columns: 1fr;
+    }
+
+    .teacher-education-card__header {
+        flex-direction: column;
+    }
+
+    .teacher-education-card__controls {
+        width: 100%;
+    }
+
+    .teacher-education-card__controls
+    .teacher-education-card__remove {
+        margin-left: auto;
+    }
+
+    .teacher-education-add {
+        width: 100%;
     }
 }
 

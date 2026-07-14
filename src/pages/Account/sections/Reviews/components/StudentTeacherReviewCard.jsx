@@ -2,18 +2,27 @@ import { getStars } from '../utils.js';
 
 function getTeacherStatusText(teacher, activeStatus) {
     if (activeStatus === 'requests') {
-        return teacher.requestStatus ?? 'Ожидает ответа преподавателя';
+        return (
+            teacher.requestStatus ||
+            'Ожидает ответа преподавателя'
+        );
     }
 
     if (activeStatus === 'archive') {
-        return teacher.archiveText ?? 'Обучение завершено';
+        return (
+            teacher.archiveText ||
+            'Обучение завершено'
+        );
     }
 
     if (teacher.rating) {
-        return teacher.reviewText;
+        return (
+            teacher.reviewText ||
+            'Отзыв оставлен'
+        );
     }
 
-    return 'Кликните, чтобы открыть карточку преподавателя';
+    return 'Можно оставить отзыв о преподавателе';
 }
 
 function getTeacherActionText(teacher, activeStatus) {
@@ -22,7 +31,7 @@ function getTeacherActionText(teacher, activeStatus) {
     }
 
     if (activeStatus === 'archive') {
-        return 'Возобновить обучение';
+        return 'В архиве';
     }
 
     if (teacher.rating) {
@@ -37,21 +46,41 @@ export function StudentTeacherReviewCard({
     activeStatus,
     onOpenReview,
 }) {
+    const canOpenReview = activeStatus === 'active';
+
     return (
         <button
             type="button"
             className="review-card"
-            onClick={() => onOpenReview(teacher)}
+            disabled={!canOpenReview}
+            onClick={() => {
+                if (canOpenReview) {
+                    onOpenReview(teacher);
+                }
+            }}
         >
             <span className="review-card__rating">
-                {getTeacherActionText(teacher, activeStatus)}
+                {getTeacherActionText(
+                    teacher,
+                    activeStatus,
+                )}
             </span>
 
             <span className="review-card__body">
-                <strong>{teacher.teacherName}</strong>
-                <small>{teacher.subject}</small>
+                <strong>
+                    {teacher.teacherName}
+                </strong>
 
-                <em>{getTeacherStatusText(teacher, activeStatus)}</em>
+                <small>
+                    {teacher.subject}
+                </small>
+
+                <em>
+                    {getTeacherStatusText(
+                        teacher,
+                        activeStatus,
+                    )}
+                </em>
             </span>
         </button>
     );

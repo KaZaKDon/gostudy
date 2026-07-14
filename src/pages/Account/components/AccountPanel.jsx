@@ -15,6 +15,8 @@ export function AccountPanel({
     title,
     stats,
     role,
+    user,
+    profile,
     activeSection,
     todayLessons,
     teacherStudents,
@@ -29,6 +31,7 @@ export function AccountPanel({
     onAddLesson,
     onChangeTeacherStudentStatus,
     onSendTeacherRequest,
+    onFindTeacher,
 }) {
     const isTeacherStudentsSection =
         role === 'teacher' && activeSection === 'students';
@@ -45,23 +48,47 @@ export function AccountPanel({
     const isSettingsSection = activeSection === 'settings';
     const isFindTeacherSection = activeSection === 'findTeacher';
 
+    const greeting = (() => {
+        const hour = new Date().getHours();
+
+        if (hour < 12) {
+            return 'Доброе утро';
+        }
+
+        if (hour < 18) {
+            return 'Добрый день';
+        }
+
+        return 'Добрый вечер';
+    })();
+
+    const fullName =
+        profile?.first_name && profile?.last_name
+            ? `${profile.first_name} ${profile.last_name}`
+            : '';
+
     return (
         <section className="account-panel">
             <header className="account-panel__header">
                 <div>
                     <span className="account-panel__eyebrow">
-                        Личный кабинет
+                        {greeting},
                     </span>
 
-                    <h1>{title}</h1>
+                    <h1>
+                        {fullName || title}
+                    </h1>
                 </div>
 
                 <span className="account-panel__role">
-                    {role === 'teacher' ? 'Преподаватель' : 'Ученик'}
+                    {role === 'teacher'
+                        ? 'Преподаватель'
+                        : 'Ученик'}
                 </span>
             </header>
 
-            {!isTeacherStudentsSection &&
+            {stats.length > 0 &&
+                !isTeacherStudentsSection &&
                 !isScheduleSection &&
                 !isMaterialsSection &&
                 !isHomeworkSection &&
@@ -107,11 +134,17 @@ export function AccountPanel({
                     materials={materials}
                 />
             ) : isHomeworkSection ? (
-                <HomeworkSection homework={homework} />
+                <HomeworkSection
+                    role={role}
+                    homework={homework}
+                />
             ) : isJournalSection ? (
                 <JournalSection journal={journal} />
             ) : isDiarySection ? (
-                <DiarySection diary={diary} />
+                <DiarySection
+                    role={role}
+                    diary={diary}
+                />
             ) : isMessagesSection ? (
                 <MessagesSection
                     role={role}
@@ -121,6 +154,7 @@ export function AccountPanel({
                 <ReviewsSection
                     role={role}
                     reviews={reviews}
+                    onFindTeacher={onFindTeacher}
                 />
             ) : isPaymentsSection ? (
                 <PaymentsSection
@@ -128,14 +162,19 @@ export function AccountPanel({
                     payments={payments}
                 />
             ) : isSettingsSection ? (
-                <SettingsSection role={role} />
+                <SettingsSection
+                    role={role}
+                    user={user}
+                    profile={profile}
+                />
             ) : isFindTeacherSection ? (
                 <FindTeacherSection
-        onSendTeacherRequest={onSendTeacherRequest}
-    />
+                    onSendTeacherRequest={onSendTeacherRequest}
+                />
             ) : (
                 <div className="account-panel__placeholder">
                     <h2>{title}</h2>
+
                     <p>
                         Раздел находится в разработке. Здесь будут отображаться
                         реальные данные пользователя.

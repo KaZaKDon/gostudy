@@ -67,7 +67,118 @@
 
 .profile-form {
     display: grid;
+    gap: 22px;
+}
+
+.profile-form__progress {
+    display: grid;
+    gap: 10px;
+
+    padding: 16px;
+
+    border: 1px solid rgba(111, 143, 51, 0.22);
+    border-radius: var(--radius-md);
+
+    background: rgba(111, 143, 51, 0.08);
+}
+
+.profile-start__card--teacher .profile-form__progress {
+    border-color: rgba(139, 94, 60, 0.24);
+    background: rgba(139, 94, 60, 0.08);
+}
+
+.profile-form__progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    color: var(--color-ink-strong);
+
+    font-weight: 800;
+}
+
+.profile-form__progress-line {
+    height: 10px;
+
+    overflow: hidden;
+
+    border-radius: var(--radius-pill);
+
+    background: rgba(50, 24, 13, 0.12);
+}
+
+.profile-form__progress-line span {
+    display: block;
+
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: var(--color-student);
+
+    transition: width 0.25s ease;
+}
+
+.profile-start__card--teacher .profile-form__progress-line span {
+    background: var(--color-teacher);
+}
+
+.profile-form__steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.profile-form__step {
+    padding: 10px 14px;
+
+    border: 1px solid rgba(50, 24, 13, 0.14);
+    border-radius: var(--radius-pill);
+
+    color: var(--color-ink-muted);
+    background: rgba(255, 255, 255, 0.62);
+
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.profile-form__step:hover {
+    transform: translateY(-1px);
+
+    color: var(--color-ink-strong);
+    border-color: rgba(50, 24, 13, 0.24);
+    background: #fff;
+}
+
+.profile-form__step--active {
+    color: #fff8ec;
+    border-color: transparent;
+    background: var(--color-student);
+}
+
+.profile-start__card--teacher .profile-form__step--active {
+    background: var(--color-teacher);
+}
+
+.profile-form__section {
+    display: grid;
     gap: 18px;
+}
+
+.profile-form__section h2 {
+    margin: 0;
+
+    font-size: 24px;
 }
 
 .profile-form__grid {
@@ -81,8 +192,8 @@
     gap: 8px;
 }
 
-.profile-form span {
-    font-weight: 700;
+.profile-form label > span {
+    font-weight: 800;
 }
 
 .profile-form input,
@@ -94,31 +205,105 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
 
+    color: var(--color-ink-strong);
     background: #fff;
 
     font: inherit;
 }
 
-.profile-form__submit {
-    margin-top: 8px;
+.profile-form input:focus,
+.profile-form textarea:focus {
+    outline: 3px solid rgba(111, 143, 51, 0.18);
+    border-color: var(--color-student);
+}
 
-    padding: 16px 24px;
+.profile-start__card--teacher .profile-form input:focus,
+.profile-start__card--teacher .profile-form textarea:focus {
+    outline-color: rgba(139, 94, 60, 0.18);
+    border-color: var(--color-teacher);
+}
+
+.profile-form__preview {
+    display: grid;
+    gap: 10px;
+
+    padding: 18px;
+
+    border: 1px solid rgba(50, 24, 13, 0.12);
+    border-radius: var(--radius-md);
+
+    background: rgba(255, 255, 255, 0.58);
+}
+
+.profile-form__preview h3,
+.profile-form__preview p {
+    margin: 0;
+}
+
+.profile-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding-top: 4px;
+}
+
+.profile-form__actions button {
+    padding: 14px 22px;
 
     border: 0;
     border-radius: var(--radius-pill);
 
+    font: inherit;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.profile-form__actions button:first-child {
+    color: var(--color-ink-muted);
+    background: rgba(50, 24, 13, 0.08);
+}
+
+.profile-form__actions button:first-child:not(:disabled):hover {
+    color: var(--color-ink-strong);
+    background: rgba(50, 24, 13, 0.14);
+}
+
+.profile-form__actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.profile-form__submit {
     color: #fff8ec;
     background: var(--color-brown-dark);
+}
 
-    font-weight: 800;
+.profile-form__submit:hover {
+    filter: brightness(1.06);
 }
 
 @media (max-width: 768px) {
-    .profile-form__grid {
-        grid-template-columns: 1fr;
+    .profile-start {
+        padding: 24px var(--page-padding);
     }
 
     .profile-start__card {
         padding: 24px;
+    }
+
+    .profile-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form__actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .profile-form__actions button {
+        width: 100%;
     }
 }

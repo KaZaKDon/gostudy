@@ -14,6 +14,10 @@ export function TeacherSearchRow({
 
             <span className="teacher-search-row__name">
                 {teacher.name}
+
+                {teacher.isVerified && (
+                    <small>Проверен GoStudy</small>
+                )}
             </span>
 
             <span className="teacher-search-row__subject">

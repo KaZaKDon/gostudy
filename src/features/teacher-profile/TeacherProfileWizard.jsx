@@ -14,6 +14,19 @@ import { StepDocuments } from './components/steps/StepDocuments.jsx';
 
 import "./teacher-profile.css";
 
+function createEducationItem(isPrimary = false) {
+    return {
+        id: crypto.randomUUID(),
+        institution: '',
+        faculty: '',
+        speciality: '',
+        qualification: '',
+        graduation_year: '',
+        description: '',
+        is_primary: isPrimary,
+    };
+}
+
 const INITIAL_PROFILE = {
     first_name: "",
     last_name: "",
@@ -32,10 +45,9 @@ const INITIAL_PROFILE = {
     first_lesson_description: "",
     student_gets: "",
 
-    education_institution: "",
-    education_speciality: "",
-    education_qualification: "",
-    education_graduation_year: "",
+    education: [
+        createEducationItem(true),
+    ],
     certificates: "",
 
     price_45: "",
@@ -65,6 +77,7 @@ export function TeacherProfileWizard() {
     const [profile, setProfile] = useState(INITIAL_PROFILE);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
+
     const currentStep = TEACHER_PROFILE_STEPS[currentStepIndex];
     const isPreviewStep = currentStep.id === "preview";
 
@@ -81,9 +94,12 @@ export function TeacherProfileWizard() {
             profile.lesson_format,
             profile.experience_years,
             profile.teaching_method,
-            profile.education_institution,
-            profile.education_speciality,
-            profile.education_graduation_year,
+            profile.education.some(
+                (item) =>
+                    item.institution.trim() &&
+                    item.speciality.trim() &&
+                    item.graduation_year,
+            ),
             profile.price_60,
             profile.schedule_description,
         ];

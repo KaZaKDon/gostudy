@@ -4,19 +4,21 @@ import { PayoutSettings } from './PayoutSettings.jsx';
 
 export function SettingsPanel({
     section,
+    onAction,
 }) {
+    if (!section) {
+        return null;
+    }
+
     if (section.type === 'documents') {
         return (
             <section className="settings-panel">
                 <header className="settings-panel__header">
                     <span>Настройки</span>
-
                     <h3>{section.title}</h3>
                 </header>
 
-                <DocumentsSettings
-                    section={section}
-                />
+                <DocumentsSettings section={section} />
             </section>
         );
     }
@@ -26,7 +28,6 @@ export function SettingsPanel({
             <section className="settings-panel">
                 <header className="settings-panel__header">
                     <span>Настройки</span>
-
                     <h3>{section.title}</h3>
                 </header>
 
@@ -39,12 +40,11 @@ export function SettingsPanel({
         <section className="settings-panel">
             <header className="settings-panel__header">
                 <span>Настройки</span>
-
                 <h3>{section.title}</h3>
             </header>
 
             <div className="settings-panel__fields">
-                {section.fields.map((field) => (
+                {(section.fields || []).map((field) => (
                     <SettingsField
                         key={field.label}
                         label={field.label}
@@ -53,14 +53,17 @@ export function SettingsPanel({
                 ))}
             </div>
 
-            <div className="settings-panel__actions">
-                <button
-                    type="button"
-                    className="settings-panel__save"
-                >
-                    Сохранить изменения
-                </button>
-            </div>
+            {section.actionLabel && (
+                <div className="settings-panel__actions">
+                    <button
+                        type="button"
+                        className="settings-panel__save"
+                        onClick={onAction}
+                    >
+                        {section.actionLabel}
+                    </button>
+                </div>
+            )}
         </section>
     );
 }

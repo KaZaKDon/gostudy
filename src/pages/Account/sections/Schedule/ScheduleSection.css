@@ -49,6 +49,33 @@
     gap: 12px;
 }
 
+.schedule-section__empty,
+.schedule-section__error {
+    padding: 32px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface-paper);
+
+    text-align: center;
+}
+
+.schedule-section__empty h3 {
+    margin: 0 0 10px;
+}
+
+.schedule-section__empty p {
+    margin: 0;
+
+    color: var(--color-ink-muted);
+}
+
+.schedule-section__error {
+    color: #7a1f1f;
+    background: rgba(180, 55, 55, 0.1);
+}
+
 .schedule-day {
     overflow: hidden;
     border: 1px solid var(--color-border);

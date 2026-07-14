@@ -304,6 +304,62 @@
     box-shadow: var(--shadow-soft);
 }
 
+.reviews-view__footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.reviews-view__find-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 240px;
+    padding: 12px 22px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+
+    background: var(--color-surface-paper);
+    color: var(--color-text);
+
+    font-size: 0.95rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.reviews-view__find-button:hover {
+    border-color: var(--color-student);
+    background: color-mix(
+        in srgb,
+        var(--color-student) 12%,
+        var(--color-surface-paper)
+    );
+
+    transform: translateY(-1px);
+}
+
+.reviews-view__find-button:active {
+    transform: translateY(0);
+}
+
+.account--teacher .reviews-view__find-button:hover {
+    border-color: var(--color-teacher);
+
+    background: color-mix(
+        in srgb,
+        var(--color-teacher) 12%,
+        var(--color-surface-paper)
+    );
+}
+
 @media (max-width: 640px) {
     .reviews-summary {
         grid-template-columns: 1fr;
