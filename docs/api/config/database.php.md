@@ -9,10 +9,10 @@ function getDatabaseConnection(): PDO
     }
 
     $host = 'localhost';
-    $dbname = 'vnuko1796_gostudy';
+    $dbname = '******';
 
-    $username = 'vnuko1796_nativeplaces_user';
-    $password = 'Richik@2026';
+    $username = '********';
+    $password = '*********';
 
     $pdo = new PDO(
         "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
