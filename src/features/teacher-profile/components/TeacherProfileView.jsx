@@ -8,13 +8,6 @@ function hasValue(value) {
     return Boolean(String(value || '').trim());
 }
 
-function hasEducation(profile) {
-    return hasValue(profile.education_institution)
-        || hasValue(profile.education_speciality)
-        || hasValue(profile.education_qualification)
-        || hasValue(profile.education_graduation_year);
-}
-
 function hasPricing(profile) {
     return hasValue(profile.price_45)
         || hasValue(profile.price_60)
@@ -47,10 +40,63 @@ function getStartPrice(profile) {
     return `от ${Math.min(...prices).toLocaleString('ru-RU')} ₽`;
 }
 
+function getTeachingSummary(profile, options) {
+    const subjectIds = new Set((profile.subject_ids || []).map(Number));
+    const ageGroupIds = new Set((profile.age_group_ids || []).map(Number));
+    const selectedPreparations = new Map(
+        (profile.subject_preparations || []).map((item) => [
+            Number(item.subject_id),
+            new Set((item.preparation_ids || []).map(Number)),
+        ]),
+    );
+    const subjects = [];
+    const preparations = [];
+
+    for (const group of options?.subject_groups || []) {
+        for (const subject of group.subjects || []) {
+            if (!subjectIds.has(Number(subject.id))) {
+                continue;
+            }
+
+            subjects.push(subject.name);
+
+            const selectedIds = selectedPreparations.get(Number(subject.id));
+
+            if (!selectedIds) {
+                continue;
+            }
+
+            const names = (subject.preparation_groups || [])
+                .flatMap((preparationGroup) => preparationGroup.preparations || [])
+                .filter((preparation) => selectedIds.has(Number(preparation.id)))
+                .map((preparation) => preparation.name);
+
+            if (names.length > 0) {
+                preparations.push(`${subject.name}: ${names.join(', ')}`);
+            }
+        }
+    }
+
+    const ageGroups = (options?.age_groups || [])
+        .filter((ageGroup) => ageGroupIds.has(Number(ageGroup.id)))
+        .map((ageGroup) => ageGroup.name);
+
+    return {
+        subjects,
+        preparations,
+        ageGroups,
+    };
+}
+
 export function TeacherProfileView({
     profile,
+    options,
 }) {
     const startPrice = getStartPrice(profile);
+    const teaching = getTeachingSummary(profile, options);
+    const education = Array.isArray(profile.education)
+        ? profile.education.filter((item) => hasValue(item.institution))
+        : [];
 
     return (
         <article className="teacher-profile-view">
@@ -72,9 +118,11 @@ export function TeacherProfileView({
 
                     <div className="teacher-profile-view__meta">
                         <span>★★★★★ 0.0</span>
-                        <span title="Профиль подтверждён">🟢</span>
-                        <span title="Образование подтверждено">🎓</span>
-                        <span title="Участвует в программе «Доступное образование GoStudy»">🌱</span>
+                        {profile.accessibility_enabled && (
+                            <span title="Участвует в программе «Доступное образование GoStudy»">
+                                🌱
+                            </span>
+                        )}
                     </div>
 
                     {(profile.city || startPrice) && (
@@ -93,46 +141,44 @@ export function TeacherProfileView({
                 </section>
             )}
 
-            {(hasValue(profile.subjects) || hasValue(profile.student_levels) || hasValue(profile.lesson_goals)) && (
+            {(teaching.subjects.length > 0
+                || teaching.ageGroups.length > 0
+                || teaching.preparations.length > 0
+                || hasValue(profile.experience_years)) && (
                 <section className="teacher-profile-view__section">
                     <h3>Преподавание</h3>
 
                     <div className="teacher-profile-view__info-grid">
-                        {hasValue(profile.subjects) && (
+                        {teaching.subjects.length > 0 && (
                             <div>
                                 <span>Предметы</span>
-                                <strong>{profile.subjects}</strong>
+                                <strong>{teaching.subjects.join(', ')}</strong>
                             </div>
                         )}
 
-                        {hasValue(profile.student_levels) && (
+                        {teaching.ageGroups.length > 0 && (
                             <div>
-                                <span>Для кого</span>
-                                <strong>{profile.student_levels}</strong>
-                            </div>
-                        )}
-
-                        {hasValue(profile.lesson_goals) && (
-                            <div>
-                                <span>Цели</span>
-                                <strong>{profile.lesson_goals}</strong>
-                            </div>
-                        )}
-
-                        {hasValue(profile.lesson_format) && (
-                            <div>
-                                <span>Формат</span>
-                                <strong>{profile.lesson_format}</strong>
+                                <span>Возраст учеников</span>
+                                <strong>{teaching.ageGroups.join(', ')}</strong>
                             </div>
                         )}
 
                         {hasValue(profile.experience_years) && (
                             <div>
                                 <span>Опыт</span>
-                                <strong>{profile.experience_years}</strong>
+                                <strong>{profile.experience_years} лет</strong>
                             </div>
                         )}
                     </div>
+
+                    {teaching.preparations.length > 0 && (
+                        <div className="teacher-profile-view__education">
+                            <strong>Направления подготовки</strong>
+                            {teaching.preparations.map((item) => (
+                                <p key={item}>{item}</p>
+                            ))}
+                        </div>
+                    )}
                 </section>
             )}
 
@@ -157,44 +203,30 @@ export function TeacherProfileView({
                 </section>
             )}
 
-            {hasEducation(profile) && (
+            {education.length > 0 && (
                 <section className="teacher-profile-view__section">
                     <h3>Образование</h3>
 
-                    <div className="teacher-profile-view__education">
-                        {hasValue(profile.education_institution) && (
-                            <strong>{profile.education_institution}</strong>
-                        )}
-
-                        {hasValue(profile.education_speciality) && (
-                            <p>
-                                Специальность: {profile.education_speciality}
-                            </p>
-                        )}
-
-                        {hasValue(profile.education_qualification) && (
-                            <p>
-                                Квалификация: {profile.education_qualification}
-                            </p>
-                        )}
-
-                        {hasValue(profile.education_graduation_year) && (
-                            <p>
-                                Год окончания: {profile.education_graduation_year}
-                            </p>
-                        )}
-
-                        <span>
-                            🎓 Образование будет подтверждено GoStudy после проверки документов
-                        </span>
+                    <div className="teacher-profile-view__education-list">
+                        {education.map((item, index) => (
+                            <div
+                                key={item.id || `${item.institution}-${index}`}
+                                className="teacher-profile-view__education"
+                            >
+                                <strong>{item.institution}</strong>
+                                {hasValue(item.faculty) && <p>{item.faculty}</p>}
+                                {hasValue(item.speciality) && (
+                                    <p>Специальность: {item.speciality}</p>
+                                )}
+                                {hasValue(item.qualification) && (
+                                    <p>Квалификация: {item.qualification}</p>
+                                )}
+                                {hasValue(item.graduation_year) && (
+                                    <p>Год окончания: {item.graduation_year}</p>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                </section>
-            )}
-
-            {hasValue(profile.certificates) && (
-                <section className="teacher-profile-view__section">
-                    <h3>Курсы и сертификаты</h3>
-                    <p>{profile.certificates}</p>
                 </section>
             )}
 
@@ -241,6 +273,20 @@ export function TeacherProfileView({
                 <section className="teacher-profile-view__section">
                     <h3>Расписание</h3>
                     <p>{profile.schedule_description}</p>
+                </section>
+            )}
+
+            {hasValue(profile.intro_video_url) && (
+                <section className="teacher-profile-view__section">
+                    <h3>Видеовизитка</h3>
+                    <video
+                        className="teacher-profile-upload-card__video"
+                        src={profile.intro_video_url}
+                        controls
+                        preload="metadata"
+                    >
+                        Ваш браузер не поддерживает видео.
+                    </video>
                 </section>
             )}
         </article>

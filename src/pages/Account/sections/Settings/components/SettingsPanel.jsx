@@ -5,6 +5,8 @@ import { PayoutSettings } from './PayoutSettings.jsx';
 export function SettingsPanel({
     section,
     onAction,
+    documents,
+    profile,
 }) {
     if (!section) {
         return null;
@@ -18,7 +20,11 @@ export function SettingsPanel({
                     <h3>{section.title}</h3>
                 </header>
 
-                <DocumentsSettings section={section} />
+                <DocumentsSettings
+                    documents={documents}
+                    profile={profile}
+                    onManage={onAction}
+                />
             </section>
         );
     }
@@ -31,7 +37,7 @@ export function SettingsPanel({
                     <h3>{section.title}</h3>
                 </header>
 
-                <PayoutSettings section={section} />
+                <PayoutSettings />
             </section>
         );
     }

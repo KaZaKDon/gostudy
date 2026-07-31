@@ -1,5 +1,11 @@
 import { getStudentInitials } from '../utils.js';
 
+const STUDENT_STATUS_LABELS = {
+    active: 'Активный',
+    requests: 'Заявка',
+    archive: 'Архив',
+};
+
 export function TeacherStudentsSidebar({
     students,
     totalStudents,
@@ -70,12 +76,12 @@ export function TeacherStudentsSidebar({
 
                             <span
                                 className={
-                                    student.status === 'Активный'
+                                    student.status === 'active'
                                         ? 'teacher-student-card__status teacher-student-card__status--active'
                                         : 'teacher-student-card__status'
                                 }
                             >
-                                {student.status}
+                                {STUDENT_STATUS_LABELS[student.status] || student.status}
                             </span>
                         </button>
                     ))

@@ -1,123 +1,47 @@
 import {
-    useEffect,
     useMemo,
     useState,
 } from 'react';
 
-import {
-    API,
-    getAuthHeaders,
-} from '../../../../api/api.js';
+import { useNavigate } from 'react-router-dom';
 
+import { useCurrentTime } from '../../../../hooks/useCurrentTime.js';
 import { ScheduleDayRow } from './components/ScheduleDayRow.jsx';
+import { LessonChangeModal } from '../Lessons/LessonChangeModal.jsx';
+
+import { useSchedule } from '../../hooks/useSchedule.js';
+
+import {
+    createScheduleWeek,
+    getScheduleWeekLabel,
+    isCurrentScheduleWeek,
+    parseLessonDate,
+    shiftScheduleWeek,
+} from '../../utils/schedule.js';
 
 import './ScheduleSection.css';
 
-const DAY_NAMES = [
-    'Воскресенье',
-    'Понедельник',
-    'Вторник',
-    'Среда',
-    'Четверг',
-    'Пятница',
-    'Суббота',
-];
-
-function getStartOfWeek(date = new Date()) {
-    const result = new Date(date);
-    const day = result.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-
-    result.setDate(result.getDate() + diff);
-    result.setHours(0, 0, 0, 0);
-
-    return result;
-}
-
-function formatDate(date) {
-    return new Intl.DateTimeFormat('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-    }).format(date);
-}
-
-function parseLessonDate(dateValue) {
-    if (!dateValue) {
-        return null;
-    }
-
-    const date = new Date(String(dateValue).replace(' ', 'T'));
-
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function formatTime(dateValue) {
-    const date = parseLessonDate(dateValue);
-
-    if (!date) {
-        return '';
-    }
-
-    return new Intl.DateTimeFormat('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
-
-function createStudentWeek(schedule) {
-    const startOfWeek = getStartOfWeek();
-
-    return Array.from({ length: 7 }, (_, index) => {
-        const currentDate = new Date(startOfWeek);
-
-        currentDate.setDate(startOfWeek.getDate() + index);
-
-        const year = currentDate.getFullYear();
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-        const day = String(currentDate.getDate()).padStart(2, '0');
-        const dateKey = `${year}-${month}-${day}`;
-
-        const lessons = schedule
-            .filter((lesson) =>
-                String(lesson.lesson_date || '').startsWith(dateKey),
-            )
-            .map((lesson) => ({
-                id: lesson.id,
-                time: formatTime(lesson.lesson_date),
-                teacherName:
-                    lesson.teacher_name || 'Преподаватель',
-                subject:
-                    lesson.subject_name ||
-                    lesson.title ||
-                    'Предмет не указан',
-                topic:
-                    lesson.lesson_topic ||
-                    lesson.title ||
-                    'Тема не указана',
-                duration: `${lesson.duration_minutes || 0} минут`,
-                status: lesson.status,
-            }));
-
-        return {
-            id: dateKey,
-            dayName: DAY_NAMES[currentDate.getDay()],
-            date: formatDate(currentDate),
-            startTime: lessons[0]?.time || null,
-            lessons,
-        };
-    });
-}
-
 export function ScheduleSection({
     role,
-    week = [],
     onAddLesson,
+    refreshKey,
+    initialDate,
 }) {
-    const [studentSchedule, setStudentSchedule] = useState([]);
-    const [requestStatus, setRequestStatus] = useState(
-        role === 'student' ? 'loading' : 'success',
+    const navigate = useNavigate();
+    const currentTime = useCurrentTime();
+
+    const [displayedDate, setDisplayedDate] = useState(
+        () => parseLessonDate(initialDate) || new Date(),
     );
-    const [errorMessage, setErrorMessage] = useState('');
+    const [localRevision, setLocalRevision] = useState(0);
+    const [changeDialog, setChangeDialog] = useState(null);
+    const [noticeMessage, setNoticeMessage] = useState('');
+
+    const {
+        schedule,
+        requestStatus,
+        errorMessage,
+    } = useSchedule(displayedDate, refreshKey + localRevision);
 
     /*
      * undefined — пользователь ещё не открывал и не закрывал дни;
@@ -126,64 +50,13 @@ export function ScheduleSection({
      */
     const [openedDayId, setOpenedDayId] = useState(undefined);
 
-    useEffect(() => {
-        if (role !== 'student') {
-            return undefined;
-        }
-
-        const controller = new AbortController();
-
-        async function loadSchedule() {
-            try {
-                const response = await fetch(API.studentSchedule, {
-                    method: 'GET',
-                    headers: getAuthHeaders(),
-                    signal: controller.signal,
-                });
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(
-                        result.message ||
-                            'Не удалось загрузить расписание',
-                    );
-                }
-
-                setStudentSchedule(
-                    Array.isArray(result.schedule)
-                        ? result.schedule
-                        : [],
-                );
-                setRequestStatus('success');
-            } catch (error) {
-                if (error instanceof DOMException && error.name === 'AbortError') {
-                    return;
-                }
-
-                setErrorMessage(
-                    error instanceof Error
-                        ? error.message
-                        : 'Не удалось загрузить расписание',
-                );
-                setRequestStatus('error');
-            }
-        }
-
-        loadSchedule();
-
-        return () => {
-            controller.abort();
-        };
-    }, [role]);
-
     const displayedWeek = useMemo(
-        () =>
-            role === 'student'
-                ? createStudentWeek(studentSchedule)
-                : week,
-        [role, studentSchedule, week],
+        () => createScheduleWeek(schedule, displayedDate),
+        [displayedDate, schedule],
     );
+
+    const weekLabel = getScheduleWeekLabel(displayedDate);
+    const isCurrentWeek = isCurrentScheduleWeek(displayedDate);
 
     const firstActiveDayId = useMemo(
         () =>
@@ -215,6 +88,42 @@ export function ScheduleSection({
         });
     };
 
+    const handleEnterClass = (lesson) => {
+        navigate(`/classroom/${lesson.id}`);
+    };
+
+    const handleShiftWeek = (direction) => {
+        setDisplayedDate((currentDate) =>
+            shiftScheduleWeek(currentDate, direction),
+        );
+        setOpenedDayId(undefined);
+    };
+
+    const handleShowCurrentWeek = () => {
+        setDisplayedDate(new Date());
+        setOpenedDayId(undefined);
+    };
+
+    const handleOpenChange = (lesson, action) => {
+        setNoticeMessage('');
+        setChangeDialog({
+            action,
+            lesson: {
+                ...lesson,
+                personName:
+                    role === 'teacher'
+                        ? lesson.studentName
+                        : lesson.teacherName,
+            },
+        });
+    };
+
+    const handleChangeCompleted = (message) => {
+        setChangeDialog(null);
+        setNoticeMessage(message || 'Расписание обновлено');
+        setLocalRevision((revision) => revision + 1);
+    };
+
     return (
         <section className="schedule-section">
             <header className="schedule-section__header">
@@ -223,17 +132,59 @@ export function ScheduleSection({
                     <h2>Неделя занятий</h2>
                 </div>
 
-                {onAddLesson && (
+                <div className="schedule-section__header-actions">
+                    {onAddLesson && (
+                        <button
+                            type="button"
+                            className="schedule-section__add"
+                            onClick={() => onAddLesson()}
+                        >
+                            {role === 'teacher'
+                                ? 'Добавить урок'
+                                : 'Найти преподавателя'}
+                        </button>
+                    )}
+                </div>
+            </header>
+
+            <nav
+                className="schedule-section__navigation"
+                aria-label="Навигация по неделям"
+            >
+                <button
+                    type="button"
+                    aria-label="Предыдущая неделя"
+                    onClick={() => handleShiftWeek(-1)}
+                >
+                    ←
+                </button>
+
+                <strong>{weekLabel}</strong>
+
+                <button
+                    type="button"
+                    aria-label="Следующая неделя"
+                    onClick={() => handleShiftWeek(1)}
+                >
+                    →
+                </button>
+
+                {!isCurrentWeek && (
                     <button
                         type="button"
-                        onClick={onAddLesson}
+                        className="schedule-section__today"
+                        onClick={handleShowCurrentWeek}
                     >
-                        {role === 'teacher'
-                            ? 'Добавить урок'
-                            : 'Найти преподавателя'}
+                        Текущая неделя
                     </button>
                 )}
-            </header>
+            </nav>
+
+            {noticeMessage && (
+                <p className="schedule-section__notice">
+                    {noticeMessage}
+                </p>
+            )}
 
             {requestStatus === 'loading' ? (
                 <div className="schedule-section__empty">
@@ -250,8 +201,9 @@ export function ScheduleSection({
                     </h3>
 
                     <p>
-                        Когда преподаватель назначит первый урок,
-                        расписание появится здесь.
+                        {role === 'teacher'
+                            ? 'Когда будет назначен первый урок, расписание появится здесь.'
+                            : 'Когда преподаватель назначит первый урок, расписание появится здесь.'}
                     </p>
                 </div>
             ) : (
@@ -262,12 +214,24 @@ export function ScheduleSection({
                             role={role}
                             day={day}
                             isOpen={activeOpenedDayId === day.id}
+                            onEnterClass={handleEnterClass}
+                            onOpenChange={handleOpenChange}
+                            currentTime={currentTime}
                             onToggle={() =>
                                 handleToggleDay(day.id)
                             }
                         />
                     ))}
                 </div>
+            )}
+
+            {changeDialog && (
+                <LessonChangeModal
+                    lesson={changeDialog.lesson}
+                    action={changeDialog.action}
+                    onClose={() => setChangeDialog(null)}
+                    onCompleted={handleChangeCompleted}
+                />
             )}
         </section>
     );

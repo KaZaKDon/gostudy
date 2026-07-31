@@ -1,16 +1,13 @@
 import { AccountThemeSwitcher } from './AccountThemeSwitcher.jsx';
 
 export function AccountSidebar({
-    profile,
+    identity,
     navigation,
     activeSection,
     onSelectSection,
     isOpen,
 }) {
-    const avatarUrl = profile?.avatarUrl;
-
-    const initials =
-        `${profile?.firstName?.[0] ?? ''}${profile?.lastName?.[0] ?? ''}`.toUpperCase();
+    const avatarUrl = identity?.avatarUrl;
 
     return (
         <aside
@@ -25,21 +22,17 @@ export function AccountSidebar({
                     {avatarUrl ? (
                         <img
                             src={avatarUrl}
-                            alt={`${profile.firstName} ${profile.lastName}`}
+                            alt={identity.displayName}
                             className="account-sidebar__avatar-image"
                         />
                     ) : (
-                        initials
+                        identity.initials
                     )}
                 </div>
 
                 <strong>
-                    {profile.firstName} {profile.lastName}
+                    {identity.displayName}
                 </strong>
-
-                <span>
-                    {profile.roleTitle}
-                </span>
             </div>
 
             <nav className="account-sidebar__nav">

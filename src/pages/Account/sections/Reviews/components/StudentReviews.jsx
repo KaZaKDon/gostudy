@@ -1,27 +1,20 @@
 import { StudentTeacherReviewCard } from './StudentTeacherReviewCard.jsx';
 
 function getReviewsTitle(activeStatus) {
-    switch (activeStatus) {
-        case 'requests':
-            return 'Заявки преподавателям';
-
-        case 'archive':
-            return 'Архив преподавателей';
-
-        default:
-            return 'Активные преподаватели';
-    }
+    return activeStatus === 'archived'
+        ? 'Завершённое обучение'
+        : 'Текущие преподаватели';
 }
 
 export function StudentReviews({
-    teachers,
+    relations,
     activeStatus,
     onOpenReview,
     onFindTeacher,
 }) {
     const isActive = activeStatus === 'active';
 
-    if (!teachers.length) {
+    if (!relations.length) {
         return (
             <div className="reviews-view">
                 <div className="reviews-list__empty">
@@ -54,11 +47,10 @@ export function StudentReviews({
             </header>
 
             <div className="reviews-list">
-                {teachers.map((teacher) => (
+                {relations.map((relation) => (
                     <StudentTeacherReviewCard
-                        key={teacher.id}
-                        teacher={teacher}
-                        activeStatus={activeStatus}
+                        key={relation.relation_id}
+                        relation={relation}
                         onOpenReview={onOpenReview}
                     />
                 ))}

@@ -2,6 +2,7 @@ export function TeacherProfileNavigation({
     isFirst,
     isLast,
     isSaving = false,
+    isDisabled = false,
     onBack,
     onNext,
     onSave,
@@ -20,7 +21,7 @@ export function TeacherProfileNavigation({
             <button
                 type="button"
                 className="teacher-profile-button teacher-profile-button--secondary"
-                disabled={isFirst || isSaving}
+                disabled={isFirst || isSaving || isDisabled}
                 onClick={onBack}
             >
                 Назад
@@ -29,7 +30,7 @@ export function TeacherProfileNavigation({
             <button
                 type="button"
                 className="teacher-profile-button teacher-profile-button--primary"
-                disabled={isSaving}
+                disabled={isSaving || isDisabled}
                 onClick={handlePrimaryAction}
             >
                 {isSaving

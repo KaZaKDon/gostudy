@@ -20,9 +20,14 @@ try {
         SELECT
             td.id,
             td.teacher_id,
+            td.education_id,
             td.type,
-            td.file_url,
+            td.document_title,
+            td.institution,
+            td.document_year,
             td.original_name,
+            td.mime_type,
+            td.file_size,
             td.status,
             td.reject_reason,
             td.checked_by,
@@ -60,6 +65,9 @@ try {
             'message' => 'Документ не найден',
         ], 404);
     }
+
+    $document['download_url'] =
+        '/api/admin/teacher-documents/download.php?id=' . (int) $document['id'];
 
     adminJsonResponse([
         'success' => true,

@@ -111,9 +111,7 @@ try {
             LEAST(
                 COALESCE(NULLIF(teacher_profiles.price_45, 0), 999999999),
                 COALESCE(NULLIF(teacher_profiles.price_60, 0), 999999999),
-                COALESCE(NULLIF(teacher_profiles.price_90, 0), 999999999),
-                COALESCE(NULLIF(teacher_profiles.price_per_lesson, 0), 999999999),
-                COALESCE(NULLIF(teacher_profiles.price_per_hour, 0), 999999999)
+                COALESCE(NULLIF(teacher_profiles.price_90, 0), 999999999)
             ) AS calculated_price_from,
 
             GROUP_CONCAT(
@@ -151,8 +149,6 @@ try {
             teacher_profiles.price_45,
             teacher_profiles.price_60,
             teacher_profiles.price_90,
-            teacher_profiles.price_per_lesson,
-            teacher_profiles.price_per_hour,
             teacher_profiles.created_at
 
         ORDER BY

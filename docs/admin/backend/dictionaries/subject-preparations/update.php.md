@@ -10,7 +10,6 @@ requireAdminRequestMethod('POST');
 
 $auth = requireAdmin();
 $pdo = $auth['pdo'];
-
 $data = getAdminJsonInput();
 
 $subjectId = requireAdminPositiveId(
@@ -18,13 +17,10 @@ $subjectId = requireAdminPositiveId(
     'ID предмета'
 );
 
-$preparations =
-    $data['preparations'] ?? null;
+$preparations = $data['preparations'] ?? null;
 
 if (!is_array($preparations)) {
-    adminValidationResponse(
-        'Поле preparations должно быть массивом'
-    );
+    adminValidationResponse('Поле preparations должно быть массивом');
 }
 
 $normalizedPreparations = [];
@@ -32,9 +28,7 @@ $usedPreparationIds = [];
 
 foreach ($preparations as $index => $item) {
     if (!is_array($item)) {
-        adminValidationResponse(
-            'Некорректная структура направления подготовки'
-        );
+        adminValidationResponse('Некорректная структура направления подготовки');
     }
 
     $preparationId = requireAdminPositiveId(
@@ -43,105 +37,103 @@ foreach ($preparations as $index => $item) {
     );
 
     if (isset($usedPreparationIds[$preparationId])) {
-        adminValidationResponse(
-            'Одно направление подготовки нельзя указать несколько раз'
-        );
+        adminValidationResponse('Одно направление подготовки нельзя указать несколько раз');
     }
 
     $usedPreparationIds[$preparationId] = true;
 
-    $sortOrder = getAdminSortOrder(
-        $item['sort_order'] ?? (($index + 1) * 10)
-    );
-
     $normalizedPreparations[] = [
         'id' => $preparationId,
-        'sort_order' => $sortOrder,
+        'sort_order' => getAdminSortOrder(
+            $item['sort_order'] ?? (($index + 1) * 10)
+        ),
     ];
 }
 
 try {
     $subjectStmt = $pdo->prepare("
-        SELECT
-            id,
-            name
+        SELECT id, name
         FROM subjects
         WHERE id = :id
         LIMIT 1
     ");
-
-    $subjectStmt->execute([
-        'id' => $subjectId,
-    ]);
-
-    $subject =
-        $subjectStmt->fetch(PDO::FETCH_ASSOC);
+    $subjectStmt->execute(['id' => $subjectId]);
+    $subject = $subjectStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$subject) {
-        adminNotFoundResponse(
-            'Предмет не найден'
-        );
+        adminNotFoundResponse('Предмет не найден');
     }
 
-    if ($normalizedPreparations) {
-        $placeholders = implode(
-            ', ',
-            array_fill(
-                0,
-                count($normalizedPreparations),
-                '?'
-            )
-        );
+    $preparationIds = array_map(
+        static fn (array $item): int => $item['id'],
+        $normalizedPreparations
+    );
 
-        $preparationIds = array_map(
-            static fn (array $item): int =>
-                $item['id'],
-            $normalizedPreparations
-        );
-
+    if ($preparationIds !== []) {
+        $placeholders = implode(',', array_fill(0, count($preparationIds), '?'));
         $preparationStmt = $pdo->prepare("
             SELECT id
             FROM preparations
             WHERE id IN ($placeholders)
         ");
-
-        $preparationStmt->execute(
-            $preparationIds
-        );
-
+        $preparationStmt->execute($preparationIds);
         $existingPreparationIds = array_map(
             'intval',
-            $preparationStmt->fetchAll(
-                PDO::FETCH_COLUMN
-            )
+            $preparationStmt->fetchAll(PDO::FETCH_COLUMN)
         );
 
-        sort($preparationIds);
+        $sortedPreparationIds = $preparationIds;
+        sort($sortedPreparationIds);
         sort($existingPreparationIds);
 
-        if (
-            $preparationIds
-            !== $existingPreparationIds
-        ) {
-            adminValidationResponse(
-                'Одно или несколько направлений подготовки не найдены'
-            );
+        if ($sortedPreparationIds !== $existingPreparationIds) {
+            adminValidationResponse('Одно или несколько направлений подготовки не найдены');
         }
     }
 
     $pdo->beginTransaction();
 
-    $deleteStmt = $pdo->prepare("
+    $removalSql = "
+        SELECT DISTINCT tsp.preparation_id
+        FROM teacher_subject_preparations tsp
+        WHERE tsp.subject_id = ?
+    ";
+    $removalParams = [$subjectId];
+
+    if ($preparationIds !== []) {
+        $removalPlaceholders = implode(',', array_fill(0, count($preparationIds), '?'));
+        $removalSql .= " AND tsp.preparation_id NOT IN ($removalPlaceholders)";
+        $removalParams = [...$removalParams, ...$preparationIds];
+    }
+
+    $inUseStmt = $pdo->prepare($removalSql);
+    $inUseStmt->execute($removalParams);
+    $inUsePreparationIds = $inUseStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    if ($inUsePreparationIds !== []) {
+        $pdo->rollBack();
+        adminValidationResponse(
+            'Нельзя удалить связь: направление уже выбрано в анкетах преподавателей'
+        );
+    }
+
+    $deleteSql = "
         DELETE FROM subject_preparations
-        WHERE subject_id = :subject_id
-    ");
+        WHERE subject_id = ?
+    ";
+    $deleteParams = [$subjectId];
 
-    $deleteStmt->execute([
-        'subject_id' => $subjectId,
-    ]);
+    if ($preparationIds !== []) {
+        $deletePlaceholders = implode(',', array_fill(0, count($preparationIds), '?'));
+        $deleteSql .= " AND preparation_id NOT IN ($deletePlaceholders)";
+        $deleteParams = [...$deleteParams, ...$preparationIds];
+    }
 
-    if ($normalizedPreparations) {
-        $insertStmt = $pdo->prepare("
+    $deleteStmt = $pdo->prepare($deleteSql);
+    $deleteStmt->execute($deleteParams);
+
+    if ($normalizedPreparations !== []) {
+        $saveStmt = $pdo->prepare("
             INSERT INTO subject_preparations (
                 subject_id,
                 preparation_id,
@@ -151,18 +143,15 @@ try {
                 :preparation_id,
                 :sort_order
             )
+            ON DUPLICATE KEY UPDATE
+                sort_order = VALUES(sort_order)
         ");
 
-        foreach (
-            $normalizedPreparations
-            as $preparation
-        ) {
-            $insertStmt->execute([
+        foreach ($normalizedPreparations as $preparation) {
+            $saveStmt->execute([
                 'subject_id' => $subjectId,
-                'preparation_id' =>
-                    $preparation['id'],
-                'sort_order' =>
-                    $preparation['sort_order'],
+                'preparation_id' => $preparation['id'],
+                'sort_order' => $preparation['sort_order'],
             ]);
         }
     }
@@ -172,8 +161,7 @@ try {
     adminSuccessResponse(
         [
             'subject_id' => $subjectId,
-            'preparations_total' =>
-                count($normalizedPreparations),
+            'preparations_total' => count($normalizedPreparations),
         ],
         'Направления подготовки для предмета сохранены'
     );

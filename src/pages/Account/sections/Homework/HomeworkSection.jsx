@@ -5,173 +5,140 @@ import {
 } from 'react';
 
 import {
-    API,
-    getAuthHeaders,
-} from '../../../../api/api.js';
-
-import { HOMEWORK_STATUSES } from './constants.js';
-import { getHomeworkByStatus } from './utils.js';
-
-import { HomeworkStatusTabs } from './components/HomeworkStatusTabs.jsx';
+    HOMEWORK_STATUSES,
+    HOMEWORK_STATUS_LABELS,
+} from './constants.js';
+import {
+    formatHomeworkDate,
+    getHomeworkByStatus,
+} from './utils.js';
+import { CreateHomeworkModal } from './components/CreateHomeworkModal.jsx';
 import { HomeworkList } from './components/HomeworkList.jsx';
 import { HomeworkReviewModal } from './components/HomeworkReviewModal.jsx';
-import { StudentHomeworkList } from './components/StudentHomeworkList.jsx';
+import { HomeworkStatusTabs } from './components/HomeworkStatusTabs.jsx';
 
 import './HomeworkSection.css';
 
 export function HomeworkSection({
     role,
-    homework = [],
+    controller,
+    targetHomeworkId,
+    createRelationId,
+    createLessonId,
+    onCloseCreate,
 }) {
     const isTeacher = role === 'teacher';
-
     const [activeStatus, setActiveStatus] = useState(
-        HOMEWORK_STATUSES[0].id,
+        isTeacher ? HOMEWORK_STATUSES[0].id : 'progress',
     );
-
-    const [selectedHomework, setSelectedHomework] = useState(null);
-    const [selectedGrade, setSelectedGrade] = useState('');
-    const [comment, setComment] = useState('');
-
-    const [studentHomework, setStudentHomework] = useState([]);
-    const [requestStatus, setRequestStatus] = useState(
-        isTeacher ? 'success' : 'loading',
+    const [isCreateOpen, setIsCreateOpen] = useState(
+        () => isTeacher && Boolean(
+            createRelationId || createLessonId,
+        ),
     );
-    const [errorMessage, setErrorMessage] = useState('');
+    const [detailsError, setDetailsError] = useState('');
+    const { loadDetails } = controller;
 
-    useEffect(() => {
-        if (isTeacher) {
-            return undefined;
-        }
-
-        const controller = new AbortController();
-
-        async function loadStudentHomework() {
-            try {
-                const response = await fetch(API.studentHomework, {
-                    method: 'GET',
-                    headers: getAuthHeaders(),
-                    signal: controller.signal,
-                });
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(
-                        result.message ||
-                            'Не удалось загрузить домашние задания',
-                    );
-                }
-
-                setStudentHomework(
-                    Array.isArray(result.homework)
-                        ? result.homework
-                        : [],
-                );
-
-                setRequestStatus('success');
-            } catch (error) {
-                if (
-                    error instanceof DOMException &&
-                    error.name === 'AbortError'
-                ) {
-                    return;
-                }
-
-                setErrorMessage(
-                    error instanceof Error
-                        ? error.message
-                        : 'Не удалось загрузить домашние задания',
-                );
-
-                setRequestStatus('error');
-            }
-        }
-
-        loadStudentHomework();
-
-        return () => {
-            controller.abort();
-        };
-    }, [isTeacher]);
+    const decoratedHomework = useMemo(() => controller.homework.map((item) => ({
+        ...item,
+        display_status_label:
+            HOMEWORK_STATUS_LABELS[item.display_status] || item.display_status,
+        due_date_label: formatHomeworkDate(item.due_date),
+    })), [controller.homework]);
 
     const filteredHomework = useMemo(
-        () =>
-            isTeacher
-                ? getHomeworkByStatus(homework, activeStatus)
-                : [],
-        [activeStatus, homework, isTeacher],
+        () => getHomeworkByStatus(decoratedHomework, activeStatus),
+        [activeStatus, decoratedHomework],
     );
 
-    const handleOpenHomework = (item) => {
-        setSelectedHomework(item);
-        setSelectedGrade('');
-        setComment('');
+    useEffect(() => {
+        if (!targetHomeworkId) {
+            return;
+        }
+
+        loadDetails(targetHomeworkId).catch((error) => {
+            setDetailsError(error.message);
+        });
+    }, [loadDetails, targetHomeworkId]);
+
+    const closeCreate = () => {
+        setIsCreateOpen(false);
+        onCloseCreate?.();
     };
 
-    const handleCloseModal = () => {
-        setSelectedHomework(null);
-        setSelectedGrade('');
-        setComment('');
+    const openHomework = (item) => {
+        setDetailsError('');
+        loadDetails(item.id).catch((error) => {
+            setDetailsError(error.message);
+        });
     };
-
-    if (!isTeacher) {
-        return (
-            <section className="homework-section">
-                <header className="homework-section__header">
-                    <div>
-                        <span>Домашние задания</span>
-                        <h2>Мои задания</h2>
-                    </div>
-                </header>
-
-                {requestStatus === 'loading' ? (
-                    <div className="homework-list__empty">
-                        Загружаем домашние задания...
-                    </div>
-                ) : requestStatus === 'error' ? (
-                    <div className="homework-list__empty">
-                        {errorMessage}
-                    </div>
-                ) : (
-                    <StudentHomeworkList
-                        homework={studentHomework}
-                    />
-                )}
-            </section>
-        );
-    }
 
     return (
         <section className="homework-section">
-            <header className="homework-section__header">
+            <header className="homework-section__header homework-section__header--actions">
                 <div>
                     <span>Домашние работы</span>
-                    <h2>Проверка заданий</h2>
+                    <h2>{isTeacher ? 'Задания учеников' : 'Мои задания'}</h2>
                 </div>
+
+                {isTeacher && (
+                    <button
+                        type="button"
+                        className="homework-section__create"
+                        onClick={() => setIsCreateOpen(true)}
+                    >
+                        Выдать задание
+                    </button>
+                )}
             </header>
 
-            <div className="homework-section__layout">
-                <HomeworkStatusTabs
-                    homework={homework}
-                    activeStatus={activeStatus}
-                    onChangeStatus={setActiveStatus}
-                />
+            {(controller.errorMessage || detailsError) && (
+                <p className="homework-form__error">
+                    {detailsError || controller.errorMessage}
+                </p>
+            )}
 
-                <HomeworkList
-                    homework={filteredHomework}
-                    onOpenHomework={handleOpenHomework}
-                />
-            </div>
+            {controller.status === 'loading' && controller.homework.length === 0 ? (
+                <div className="homework-list__empty">Загружаем домашние задания...</div>
+            ) : (
+                <div className="homework-section__layout">
+                    <HomeworkStatusTabs
+                        homework={decoratedHomework}
+                        activeStatus={activeStatus}
+                        onChangeStatus={setActiveStatus}
+                    />
+
+                    <HomeworkList
+                        homework={filteredHomework}
+                        role={role}
+                        onOpenHomework={openHomework}
+                    />
+                </div>
+            )}
 
             <HomeworkReviewModal
-                homework={selectedHomework}
-                selectedGrade={selectedGrade}
-                comment={comment}
-                onSelectGrade={setSelectedGrade}
-                onCommentChange={setComment}
-                onClose={handleCloseModal}
+                role={role}
+                homework={controller.selectedHomework}
+                isSaving={controller.isSaving}
+                uploadLimits={controller.uploadLimits}
+                onSubmit={controller.submitHomework}
+                onReview={controller.reviewHomework}
+                onCancelHomework={controller.cancelHomework}
+                onClose={controller.closeDetails}
             />
+
+            {isCreateOpen && (
+                <CreateHomeworkModal
+                    options={controller.options}
+                    isSaving={controller.isSaving}
+                    uploadLimits={controller.uploadLimits}
+                    initialRelationId={createRelationId}
+                    initialLessonId={createLessonId}
+                    onLoadOptions={controller.loadOptions}
+                    onCreate={controller.createHomework}
+                    onClose={closeCreate}
+                />
+            )}
         </section>
     );
 }

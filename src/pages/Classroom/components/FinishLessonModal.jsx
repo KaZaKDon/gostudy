@@ -1,6 +1,9 @@
-export function FinishLessonModal({ role, onClose, onSave }) {
-    const isTeacher = role === 'teacher';
-
+export function FinishLessonModal({
+    isSaving,
+    errorMessage,
+    onClose,
+    onFinish,
+}) {
     return (
         <div className="finish-lesson">
             <button
@@ -10,41 +13,25 @@ export function FinishLessonModal({ role, onClose, onSave }) {
                 onClick={onClose}
             />
 
-            <section className="finish-lesson__modal">
+            <section
+                className="finish-lesson__modal"
+                role="dialog"
+                aria-modal="true"
+            >
                 <header>
                     <span>Завершение урока</span>
-                    <h2>Итоги занятия</h2>
+                    <h2>Завершить занятие?</h2>
                 </header>
 
-                {isTeacher ? (
-                    <form className="finish-lesson__form">
-                        <label>
-                            <span>Домашнее задание</span>
-                            <textarea
-                                rows="4"
-                                placeholder="Что ученик должен выполнить после урока"
-                            />
-                        </label>
+                <p className="finish-lesson__text">
+                    Урок станет завершённым у преподавателя и ученика.
+                    После этого можно заполнить существующий журнал и
+                    при необходимости выдать домашнее задание.
+                </p>
 
-                        <label>
-                            <span>Комментарий ученику</span>
-                            <textarea
-                                rows="3"
-                                placeholder="Что увидит ученик после завершения урока"
-                            />
-                        </label>
-
-                        <label>
-                            <span>Личная заметка</span>
-                            <textarea
-                                rows="3"
-                                placeholder="Внутренняя заметка преподавателя"
-                            />
-                        </label>
-                    </form>
-                ) : (
-                    <p className="finish-lesson__text">
-                        Урок будет завершён. После завершения вы вернётесь в личный кабинет.
+                {errorMessage && (
+                    <p className="classroom-inline-error" role="alert">
+                        {errorMessage}
                     </p>
                 )}
 
@@ -52,17 +39,19 @@ export function FinishLessonModal({ role, onClose, onSave }) {
                     <button
                         type="button"
                         className="finish-lesson__secondary"
+                        disabled={isSaving}
                         onClick={onClose}
                     >
-                        Отмена
+                        Продолжить урок
                     </button>
 
                     <button
                         type="button"
                         className="finish-lesson__primary"
-                        onClick={onSave}
+                        disabled={isSaving}
+                        onClick={onFinish}
                     >
-                        Сохранить и выйти
+                        {isSaving ? 'Завершаем...' : 'Завершить урок'}
                     </button>
                 </div>
             </section>

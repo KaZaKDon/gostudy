@@ -11,3 +11,11 @@
     background-size: cover;
     background-position: center;
 }
+
+.app__route-loading {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    color: var(--color-text);
+    font-weight: 700;
+}

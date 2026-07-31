@@ -1,3 +1,9 @@
+import {
+    useEffect,
+    useMemo,
+    useRef,
+} from 'react';
+
 import { MessageBubble } from './MessageBubble.jsx';
 import { MessageComposer } from './MessageComposer.jsx';
 
@@ -5,11 +11,48 @@ export function ConversationModal({
     role,
     activeTab,
     conversation,
+    messages,
+    threadStatus,
+    errorMessage,
+    hasMore,
+    sendStatus,
     draft,
     onDraftChange,
     onSend,
+    onLoadOlder,
     onClose,
 }) {
+    const messagesContainerRef = useRef(null);
+
+    const lastMessageId = useMemo(
+        () => messages.at(-1)?.id ?? null,
+        [messages],
+    );
+
+    useEffect(() => {
+        if (!conversation) {
+            return undefined;
+        }
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [conversation, onClose]);
+
+    useEffect(() => {
+        const container = messagesContainerRef.current;
+
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }, [conversation?.key, lastMessageId]);
+
     if (!conversation) return null;
 
     return (
@@ -43,8 +86,36 @@ export function ConversationModal({
                     </button>
                 </header>
 
-                <div className="conversation-modal__messages">
-                    {conversation.messages.map((message) => (
+                <div
+                    ref={messagesContainerRef}
+                    className="conversation-modal__messages"
+                >
+                    {hasMore && (
+                        <button
+                            type="button"
+                            className="conversation-modal__older"
+                            disabled={threadStatus === 'loading-more'}
+                            onClick={onLoadOlder}
+                        >
+                            {threadStatus === 'loading-more'
+                                ? 'Загружаем...'
+                                : 'Показать предыдущие сообщения'}
+                        </button>
+                    )}
+
+                    {threadStatus === 'loading' && (
+                        <p className="conversation-modal__state">
+                            Загружаем переписку...
+                        </p>
+                    )}
+
+                    {threadStatus !== 'loading' && !messages.length && !errorMessage && (
+                        <p className="conversation-modal__state">
+                            Сообщений пока нет. Начните переписку.
+                        </p>
+                    )}
+
+                    {messages.map((message) => (
                         <MessageBubble
                             key={message.id}
                             role={role}
@@ -52,13 +123,26 @@ export function ConversationModal({
                             message={message}
                         />
                     ))}
+
+                    {errorMessage && (
+                        <p className="conversation-modal__error">
+                            {errorMessage}
+                        </p>
+                    )}
                 </div>
 
-                <MessageComposer
-                    value={draft}
-                    onChange={onDraftChange}
-                    onSend={onSend}
-                />
+                {conversation.canSend ? (
+                    <MessageComposer
+                        value={draft}
+                        isSending={sendStatus === 'loading'}
+                        onChange={onDraftChange}
+                        onSend={onSend}
+                    />
+                ) : (
+                    <p className="conversation-modal__readonly">
+                        Переписка доступна только для просмотра.
+                    </p>
+                )}
             </section>
         </div>
     );

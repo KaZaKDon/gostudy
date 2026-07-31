@@ -1,64 +1,88 @@
+import {
+    DOCUMENT_STATUS_LABELS,
+    DOCUMENT_TYPE_LABELS,
+    VERIFICATION_LABELS,
+} from '../constants.js';
+
 export function DocumentsSettings({
-    section,
+    documents = [],
+    profile,
+    onManage,
 }) {
     return (
         <div className="settings-documents">
             <section className="settings-documents__block">
-                <h4>Диплом</h4>
+                <div className="settings-documents__heading">
+                    <div>
+                        <h4>Документы преподавателя</h4>
+                        <p>
+                            Файлы доступны только преподавателю и модераторам.
+                            Ученики видят лишь подтверждённые сведения.
+                        </p>
+                    </div>
 
-                <p>
-                    {section.diploma.fileName ??
-                        'Не загружен'}
-                </p>
-
-                <div className="settings-documents__actions">
-                    <button type="button">
-                        Загрузить диплом
+                    <button
+                        type="button"
+                        className="settings-panel__secondary"
+                        onClick={onManage}
+                    >
+                        Управлять документами
                     </button>
                 </div>
-            </section>
 
-            <section className="settings-documents__block">
-                <h4>Сертификаты</h4>
+                {documents.length === 0 ? (
+                    <p>Документы пока не загружены.</p>
+                ) : (
+                    <div className="settings-documents__list">
+                        {documents.map((document) => (
+                            <article
+                                key={document.id}
+                                className="settings-documents__certificate"
+                            >
+                                <div>
+                                    <strong>
+                                        {document.document_title
+                                            || document.original_name
+                                            || DOCUMENT_TYPE_LABELS[document.type]
+                                            || 'Документ'}
+                                    </strong>
 
-                {section.certificates.map(
-                    (certificate) => (
-                        <div
-                            key={certificate.id}
-                            className="settings-documents__certificate"
-                        >
-                            <span>
-                                {certificate.name}
-                            </span>
+                                    <small>
+                                        {DOCUMENT_TYPE_LABELS[document.type]
+                                            || document.type}
+                                    </small>
+                                </div>
 
-                            <div className="settings-documents__actions">
-                                <button type="button">
-                                    Просмотреть
-                                </button>
-
-                                <button type="button">
-                                    Удалить
-                                </button>
-                            </div>
-                        </div>
-                    ),
+                                <span
+                                    className={
+                                        document.status === 'approved'
+                                            ? 'settings-status settings-status--success'
+                                            : document.status === 'rejected'
+                                                ? 'settings-status settings-status--error'
+                                                : 'settings-status'
+                                    }
+                                >
+                                    {DOCUMENT_STATUS_LABELS[document.status]
+                                        || document.status}
+                                </span>
+                            </article>
+                        ))}
+                    </div>
                 )}
-
-                <div className="settings-documents__actions">
-                    <button type="button">
-                        Добавить сертификат
-                    </button>
-                </div>
             </section>
 
             <section className="settings-documents__block">
-                <h4>
-                    Статус проверки
-                </h4>
+                <h4>Проверка анкеты</h4>
 
                 <p className="settings-documents__status">
-                    🟡 {section.verificationStatus}
+                    {VERIFICATION_LABELS[profile?.verification_status]
+                        || profile?.verification_status
+                        || 'Не отправлена'}
                 </p>
+
+                {profile?.verification_comment && (
+                    <p>{profile.verification_comment}</p>
+                )}
             </section>
         </div>
     );

@@ -1,29 +1,45 @@
 import { useEffect, useState } from 'react';
 
-function formatLessonTime(totalSeconds) {
-    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-    const seconds = String(totalSeconds % 60).padStart(2, '0');
+import {
+    formatLessonTimer,
+    getClassroomStatusLabel,
+} from '../utils/classroom.js';
 
-    return `${hours}:${minutes}:${seconds}`;
-}
-
-export function ClassroomHeader({ lesson, role, onBack, onFinish }) {
-    const [seconds, setSeconds] = useState(0);
+export function ClassroomHeader({
+    lesson,
+    session,
+    access,
+    role,
+    isSaving,
+    onBack,
+    onStart,
+    onFinish,
+}) {
+    const [elapsedSeconds, setElapsedSeconds] = useState(
+        Number(session.elapsed_seconds) || 0,
+    );
 
     useEffect(() => {
+        if (session.status !== 'active') {
+            return undefined;
+        }
+
         const timerId = window.setInterval(() => {
-            setSeconds((currentSeconds) => currentSeconds + 1);
+            setElapsedSeconds((seconds) => seconds + 1);
         }, 1000);
 
         return () => window.clearInterval(timerId);
-    }, []);
+    }, [session.status]);
 
-    const personLabel = role === 'teacher' ? 'Ученик' : 'Преподаватель';
-    const personName = role === 'teacher' ? lesson.student : lesson.teacher;
+    const participantLabel = role === 'teacher'
+        ? 'Ученик'
+        : 'Преподаватель';
+    const participantName = role === 'teacher'
+        ? lesson.student.name
+        : lesson.teacher.name;
 
     return (
-        <header className="classroom-header">
+        <header className={`classroom-header classroom-header--${role}`}>
             <div className="classroom-header__main">
                 <button
                     type="button"
@@ -35,13 +51,15 @@ export function ClassroomHeader({ lesson, role, onBack, onFinish }) {
 
                 <div>
                     <span className="classroom-header__eyebrow">
-                        {lesson.subject}
+                        Урок №{lesson.id} · {lesson.subject_name}
                     </span>
 
                     <h1>{lesson.topic}</h1>
 
                     <p>
-                        {personLabel}: <strong>{personName}</strong>
+                        {participantLabel}: <strong>{participantName}</strong>
+                        {' · '}
+                        <span>{getClassroomStatusLabel(session.status)}</span>
                     </p>
                 </div>
             </div>
@@ -49,16 +67,30 @@ export function ClassroomHeader({ lesson, role, onBack, onFinish }) {
             <div className="classroom-header__actions">
                 <div className="classroom-header__timer">
                     <span>Время урока</span>
-                    <strong>{formatLessonTime(seconds)}</strong>
+                    <strong>{formatLessonTimer(elapsedSeconds)}</strong>
                 </div>
 
-                <button
-                    type="button"
-                    className="classroom-header__finish"
-                    onClick={onFinish}
-                >
-                    Завершить урок
-                </button>
+                {role === 'teacher' && access.can_start && (
+                    <button
+                        type="button"
+                        className="classroom-header__start"
+                        disabled={isSaving}
+                        onClick={onStart}
+                    >
+                        {isSaving ? 'Запускаем...' : 'Начать урок'}
+                    </button>
+                )}
+
+                {role === 'teacher' && access.can_finish && (
+                    <button
+                        type="button"
+                        className="classroom-header__finish"
+                        disabled={isSaving}
+                        onClick={onFinish}
+                    >
+                        Завершить урок
+                    </button>
+                )}
             </div>
         </header>
     );

@@ -101,8 +101,13 @@ export function StudentProfileForm() {
     const [searchParams] = useSearchParams();
 
     const isEditMode = searchParams.get('mode') === 'edit';
+    const requestedStep = searchParams.get('step');
+    const initialStepIndex = Math.max(
+        0,
+        STEPS.findIndex((step) => step.id === requestedStep),
+    );
 
-    const [activeStepIndex, setActiveStepIndex] = useState(0);
+    const [activeStepIndex, setActiveStepIndex] = useState(initialStepIndex);
     const [profile, setProfile] = useState(INITIAL_STUDENT_PROFILE);
 
     const [isLoading, setIsLoading] = useState(isEditMode);
@@ -284,9 +289,14 @@ export function StudentProfileForm() {
                 JSON.stringify(result.user),
             );
 
-            navigate('/account', {
-                replace: true,
-            });
+            navigate(
+                isEditMode
+                    ? '/account?section=settings'
+                    : '/account',
+                {
+                    replace: true,
+                },
+            );
         } catch (error) {
             setErrorMessage(
                 error instanceof Error

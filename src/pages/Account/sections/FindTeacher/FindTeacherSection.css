@@ -150,6 +150,13 @@
     background: var(--find-teacher-accent);
     font-size: 1.6rem;
     font-weight: 900;
+    overflow: hidden;
+}
+
+.teacher-profile-modal__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .teacher-profile-modal__title span {
@@ -244,6 +251,43 @@
     color: var(--color-text);
     background: var(--color-surface-paper);
     font-weight: 800;
+}
+
+.teacher-profile-modal__request {
+    display: grid;
+    gap: 14px;
+}
+
+.teacher-profile-modal__request label {
+    display: grid;
+    gap: 7px;
+}
+
+.teacher-profile-modal__request label > span {
+    color: var(--color-text);
+    font-weight: 800;
+}
+
+.teacher-profile-modal__request select,
+.teacher-profile-modal__request textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 11px 13px;
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    font: inherit;
+}
+
+.teacher-profile-modal__request textarea {
+    min-height: 92px;
+    resize: vertical;
+}
+
+.teacher-profile-modal__request select:focus,
+.teacher-profile-modal__request textarea:focus {
+    border-color: var(--find-teacher-accent);
+    outline: none;
 }
 
 .teacher-profile-modal__actions {
@@ -345,4 +389,13 @@
     .teacher-profile-modal__actions button {
         width: 100%;
     }
+}
+.teacher-profile-modal__review-reply {
+    margin-top: 10px;
+    border-left: 3px solid var(--color-student);
+    padding-left: 12px;
+}
+
+.teacher-profile-modal__review-reply p {
+    margin: 4px 0 0;
 }

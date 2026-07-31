@@ -1,10 +1,14 @@
 import { JournalRow } from './JournalRow.jsx';
 
 export function JournalTable({
-    student,
+    course,
+    lessons,
+    status,
+    hasMore,
+    onLoadMore,
     onOpenLesson,
 }) {
-    if (!student) {
+    if (!course) {
         return (
             <div className="journal-table__empty">
                 Ученик не выбран.
@@ -17,13 +21,10 @@ export function JournalTable({
             <header className="journal-table__header">
                 <div>
                     <span>Журнал ученика</span>
-
-                    <h2>
-                        {student.studentName}
-                    </h2>
-
+                    <h2>{course.studentName}</h2>
                     <p>
-                        {student.subject}
+                        {course.subjectName}
+                        {course.classLevel ? ` · ${course.classLevel}` : ''}
                     </p>
                 </div>
             </header>
@@ -31,23 +32,44 @@ export function JournalTable({
             <div className="journal-table__head">
                 <span>Дата</span>
                 <span>Тема</span>
+                <span>Посещение</span>
                 <span>ДЗ</span>
                 <span>Оценка</span>
+                <span>Запись</span>
             </div>
 
             <div className="journal-table__body">
-                {student.lessons.map(
-                    (lesson) => (
+                {status === 'loading' ? (
+                    <div className="journal-table__loading">
+                        Загружаем занятия...
+                    </div>
+                ) : lessons.length ? (
+                    lessons.map((lesson) => (
                         <JournalRow
                             key={lesson.id}
                             lesson={lesson}
-                            onOpenLesson={
-                                onOpenLesson
-                            }
+                            onOpenLesson={onOpenLesson}
                         />
-                    ),
+                    ))
+                ) : (
+                    <div className="journal-table__loading">
+                        Прошедших занятий по предмету пока нет.
+                    </div>
                 )}
             </div>
+
+            {hasMore && (
+                <button
+                    type="button"
+                    className="journal-table__more"
+                    disabled={status === 'loading-more'}
+                    onClick={onLoadMore}
+                >
+                    {status === 'loading-more'
+                        ? 'Загружаем...'
+                        : 'Показать ещё'}
+                </button>
+            )}
         </div>
     );
 }

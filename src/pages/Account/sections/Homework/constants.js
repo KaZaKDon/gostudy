@@ -17,6 +17,14 @@ export const HOMEWORK_STATUSES = [
     },
 ];
 
+export const HOMEWORK_STATUS_LABELS = {
+    review: 'На проверке',
+    late: 'Просрочено',
+    progress: 'В работе',
+    completed: 'Проверено',
+    cancelled: 'Отменено',
+};
+
 export const HOMEWORK_GRADES = [
     '5',
     '4',

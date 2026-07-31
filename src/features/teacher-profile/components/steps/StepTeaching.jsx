@@ -1,7 +1,27 @@
+function toNumber(value) {
+    return Number(value);
+}
+
 export function StepTeaching({
     profile,
+    options,
     onChange,
 }) {
+    const subjectIds = Array.isArray(profile.subject_ids)
+        ? profile.subject_ids.map(toNumber)
+        : [];
+
+    const ageGroupIds = Array.isArray(profile.age_group_ids)
+        ? profile.age_group_ids.map(toNumber)
+        : [];
+
+    const subjectPreparations = Array.isArray(profile.subject_preparations)
+        ? profile.subject_preparations
+        : [];
+
+    const subjectGroups = options?.subject_groups || [];
+    const ageGroups = options?.age_groups || [];
+
     function handleChange(event) {
         const {
             name,
@@ -15,72 +35,202 @@ export function StepTeaching({
         });
     }
 
+    function toggleSubject(subjectId) {
+        const normalizedId = Number(subjectId);
+        const isSelected = subjectIds.includes(normalizedId);
+
+        onChange({
+            subject_ids: isSelected
+                ? subjectIds.filter((id) => id !== normalizedId)
+                : [...subjectIds, normalizedId],
+            subject_preparations: isSelected
+                ? subjectPreparations.filter(
+                    (item) => Number(item.subject_id) !== normalizedId,
+                )
+                : subjectPreparations,
+        });
+    }
+
+    function togglePreparation(subjectId, preparationId) {
+        const normalizedSubjectId = Number(subjectId);
+        const normalizedPreparationId = Number(preparationId);
+        const currentItem = subjectPreparations.find(
+            (item) => Number(item.subject_id) === normalizedSubjectId,
+        );
+        const currentIds = Array.isArray(currentItem?.preparation_ids)
+            ? currentItem.preparation_ids.map(toNumber)
+            : [];
+        const isSelected = currentIds.includes(normalizedPreparationId);
+        const nextIds = isSelected
+            ? currentIds.filter((id) => id !== normalizedPreparationId)
+            : [...currentIds, normalizedPreparationId];
+        const otherItems = subjectPreparations.filter(
+            (item) => Number(item.subject_id) !== normalizedSubjectId,
+        );
+
+        onChange({
+            subject_preparations: nextIds.length > 0
+                ? [
+                    ...otherItems,
+                    {
+                        subject_id: normalizedSubjectId,
+                        preparation_ids: nextIds,
+                    },
+                ]
+                : otherItems,
+        });
+    }
+
+    function toggleAgeGroup(ageGroupId) {
+        const normalizedId = Number(ageGroupId);
+        const isSelected = ageGroupIds.includes(normalizedId);
+
+        onChange({
+            age_group_ids: isSelected
+                ? ageGroupIds.filter((id) => id !== normalizedId)
+                : [...ageGroupIds, normalizedId],
+        });
+    }
+
+    const selectedSubjects = subjectGroups
+        .flatMap((group) => group.subjects || [])
+        .filter((subject) => subjectIds.includes(Number(subject.id)));
+
     return (
         <div className="teacher-profile-step">
             <div className="teacher-profile-step__head">
                 <h2>Преподавание</h2>
                 <p>
-                    Расскажите, кому вы помогаете, с какими целями работаете
-                    и как проходят ваши занятия.
+                    Выберите предметы, направления подготовки и возраст учеников.
+                    Список формируется из справочников GoStudy.
                 </p>
             </div>
 
+            <fieldset className="teacher-profile-choice-section">
+                <legend>Предметы</legend>
+
+                <div className="teacher-profile-choice-groups">
+                    {subjectGroups.map((group) => (
+                        <section
+                            key={group.id}
+                            className="teacher-profile-choice-group"
+                        >
+                            <h3>{group.name}</h3>
+
+                            <div className="teacher-profile-choice-list">
+                                {(group.subjects || []).map((subject) => (
+                                    <label
+                                        key={subject.id}
+                                        className="teacher-profile-choice"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={subjectIds.includes(Number(subject.id))}
+                                            onChange={() => toggleSubject(subject.id)}
+                                        />
+                                        <span>{subject.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </section>
+                    ))}
+                </div>
+            </fieldset>
+
+            {selectedSubjects.length > 0 && (
+                <fieldset className="teacher-profile-choice-section">
+                    <legend>Направления подготовки</legend>
+                    <p className="teacher-profile-choice-section__hint">
+                        Для каждого предмета отметьте направления, с которыми работаете.
+                    </p>
+
+                    <div className="teacher-profile-preparations">
+                        {selectedSubjects.map((subject) => {
+                            const selectedPreparationIds = subjectPreparations
+                                .find(
+                                    (item) => Number(item.subject_id) === Number(subject.id),
+                                )
+                                ?.preparation_ids
+                                ?.map(toNumber) || [];
+
+                            return (
+                                <section
+                                    key={subject.id}
+                                    className="teacher-profile-preparation-card"
+                                >
+                                    <h3>{subject.name}</h3>
+
+                                    {(subject.preparation_groups || []).length === 0 ? (
+                                        <p>Для предмета направления пока не заданы.</p>
+                                    ) : (
+                                        (subject.preparation_groups || []).map((group) => (
+                                            <div
+                                                key={group.id}
+                                                className="teacher-profile-preparation-group"
+                                            >
+                                                <h4>{group.name}</h4>
+
+                                                <div className="teacher-profile-choice-list">
+                                                    {(group.preparations || []).map((preparation) => (
+                                                        <label
+                                                            key={preparation.id}
+                                                            className="teacher-profile-choice"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedPreparationIds.includes(Number(preparation.id))}
+                                                                onChange={() => togglePreparation(
+                                                                    subject.id,
+                                                                    preparation.id,
+                                                                )}
+                                                            />
+                                                            <span>{preparation.name}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </section>
+                            );
+                        })}
+                    </div>
+                </fieldset>
+            )}
+
+            <fieldset className="teacher-profile-choice-section">
+                <legend>Возраст учеников</legend>
+
+                <div className="teacher-profile-choice-list">
+                    {ageGroups.map((ageGroup) => (
+                        <label
+                            key={ageGroup.id}
+                            className="teacher-profile-choice"
+                        >
+                            <input
+                                type="checkbox"
+                                checked={ageGroupIds.includes(Number(ageGroup.id))}
+                                onChange={() => toggleAgeGroup(ageGroup.id)}
+                            />
+                            <span>{ageGroup.name}</span>
+                        </label>
+                    ))}
+                </div>
+            </fieldset>
+
             <label className="teacher-profile-field">
-                <span>Предметы</span>
+                <span>Опыт преподавания, лет</span>
                 <input
-                    type="text"
-                    name="subjects"
-                    value={profile.subjects}
-                    placeholder="Математика, физика, английский язык"
+                    type="number"
+                    name="experience_years"
+                    value={profile.experience_years}
+                    min="0"
+                    max="80"
+                    inputMode="numeric"
+                    placeholder="Например: 7"
                     onChange={handleChange}
                 />
             </label>
-
-            <label className="teacher-profile-field">
-                <span>Для кого проводите занятия</span>
-                <input
-                    type="text"
-                    name="student_levels"
-                    value={profile.student_levels}
-                    placeholder="Начальная школа, 5–9 класс, ЕГЭ, ОГЭ, взрослые"
-                    onChange={handleChange}
-                />
-            </label>
-
-            <label className="teacher-profile-field">
-                <span>Цели обучения</span>
-                <input
-                    type="text"
-                    name="lesson_goals"
-                    value={profile.lesson_goals}
-                    placeholder="Подготовка к экзаменам, подтянуть школьную программу, контрольные"
-                    onChange={handleChange}
-                />
-            </label>
-
-            <div className="teacher-profile-form-grid">
-                <label className="teacher-profile-field">
-                    <span>Формат уроков</span>
-                    <input
-                        type="text"
-                        name="lesson_format"
-                        value={profile.lesson_format}
-                        placeholder="Онлайн, индивидуально, мини-группы"
-                        onChange={handleChange}
-                    />
-                </label>
-
-                <label className="teacher-profile-field">
-                    <span>Опыт преподавания</span>
-                    <input
-                        type="text"
-                        name="experience_years"
-                        value={profile.experience_years}
-                        placeholder="Например: 7 лет"
-                        onChange={handleChange}
-                    />
-                </label>
-            </div>
 
             <label className="teacher-profile-field">
                 <span>Как проходят занятия</span>

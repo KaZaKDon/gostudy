@@ -9,11 +9,18 @@ export function ConversationItem({
             onClick={() => onOpenConversation(conversation)}
         >
             <span className="conversation-item__avatar">
-                {conversation.name
-                    .split(' ')
-                    .map((part) => part[0])
-                    .join('')
-                    .slice(0, 2)}
+                {conversation.avatarUrl ? (
+                    <img
+                        src={conversation.avatarUrl}
+                        alt=""
+                    />
+                ) : (
+                    conversation.name
+                        .split(' ')
+                        .map((part) => part[0])
+                        .join('')
+                        .slice(0, 2)
+                )}
             </span>
 
             <span className="conversation-item__body">

@@ -59,7 +59,7 @@ try {
         errorResponse('Аккаунт заблокирован. Обратитесь в поддержку.', 403);
     }
 
-    if ($user['status'] === 'archived' || $user['status'] === 'deleted') {
+    if ($user['status'] === 'deleted') {
         errorResponse('Аккаунт архивирован. Обратитесь в поддержку.', 403);
     }
 

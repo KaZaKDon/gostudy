@@ -98,8 +98,6 @@ try {
             tp.price_45,
             tp.price_60,
             tp.price_90,
-            tp.price_per_lesson,
-            tp.price_per_hour,
             tp.is_verified,
             tp.is_visible,
             tp.rating,

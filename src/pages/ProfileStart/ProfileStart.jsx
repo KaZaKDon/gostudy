@@ -9,6 +9,7 @@ export function ProfileStart() {
     const [searchParams] = useSearchParams();
 
     const role = searchParams.get('role');
+    const isEditMode = searchParams.get('mode') === 'edit';
 
     if (role !== 'student' && role !== 'teacher') {
         return (
@@ -45,8 +46,11 @@ export function ProfileStart() {
                         : 'profile-start__card profile-start__card--student'
                 }
             >
-                <Link className="profile-start__back" to="/">
-                    ← На главную
+                <Link
+                    className="profile-start__back"
+                    to={isEditMode ? '/account?section=settings' : '/'}
+                >
+                    {isEditMode ? '← В настройки' : '← На главную'}
                 </Link>
 
                 <header className="profile-start__header">

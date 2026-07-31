@@ -2,6 +2,7 @@ import { HomeworkRow } from './HomeworkRow.jsx';
 
 export function HomeworkList({
     homework,
+    role,
     onOpenHomework,
 }) {
     if (!homework.length) {
@@ -15,8 +16,9 @@ export function HomeworkList({
     return (
         <div className="homework-list">
             <div className="homework-list__head">
-                <span>Ученик</span>
+                <span>{role === 'teacher' ? 'Ученик' : 'Преподаватель'}</span>
                 <span>Задание</span>
+                <span>Статус</span>
                 <span>Срок</span>
             </div>
 
@@ -24,6 +26,7 @@ export function HomeworkList({
                 <HomeworkRow
                     key={item.id}
                     homework={item}
+                    role={role}
                     onOpen={onOpenHomework}
                 />
             ))}

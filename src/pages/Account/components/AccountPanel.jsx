@@ -10,6 +10,7 @@ import { ReviewsSection } from '../sections/Reviews/ReviewsSection.jsx';
 import { PaymentsSection } from '../sections/Payments/PaymentsSection.jsx';
 import { SettingsSection } from '../sections/Settings/SettingsSection.jsx';
 import { FindTeacherSection } from '../sections/FindTeacher/FindTeacherSection.jsx';
+import { NotificationsMenu } from '../sections/Notifications/NotificationsMenu.jsx';
 
 export function AccountPanel({
     title,
@@ -17,21 +18,35 @@ export function AccountPanel({
     role,
     user,
     profile,
+    subjects,
+    documents,
+    identity,
     activeSection,
-    todayLessons,
-    teacherStudents,
-    scheduleWeek,
     materials,
-    homework,
-    journal,
-    diary,
-    messages,
-    reviews,
+    homeworkController,
+    targetHomeworkId,
+    createHomeworkRelationId,
+    createHomeworkLessonId,
+    targetDiaryLessonId,
+    targetJournalLessonId,
+    targetJournalStudentId,
+    targetJournalSubjectId,
+    messagesController,
+    notificationsController,
+    messageTarget,
+    teacherStudentsView,
     payments,
+    scheduleRevision,
+    scheduleFocusDate,
     onAddLesson,
-    onChangeTeacherStudentStatus,
-    onSendTeacherRequest,
+    onTeacherRequestSent,
     onFindTeacher,
+    onOpenHomework,
+    onOpenStudentMessage,
+    onCreateStudentHomework,
+    onOpenStudentJournal,
+    onCloseHomeworkCreate,
+    onOpenNotification,
 }) {
     const isTeacherStudentsSection =
         role === 'teacher' && activeSection === 'students';
@@ -62,11 +77,6 @@ export function AccountPanel({
         return 'Добрый вечер';
     })();
 
-    const fullName =
-        profile?.first_name && profile?.last_name
-            ? `${profile.first_name} ${profile.last_name}`
-            : '';
-
     return (
         <section className="account-panel">
             <header className="account-panel__header">
@@ -76,15 +86,22 @@ export function AccountPanel({
                     </span>
 
                     <h1>
-                        {fullName || title}
+                        {identity?.displayName || title}
                     </h1>
                 </div>
 
-                <span className="account-panel__role">
-                    {role === 'teacher'
-                        ? 'Преподаватель'
-                        : 'Ученик'}
-                </span>
+                <div className="account-panel__header-actions">
+                    <NotificationsMenu
+                        controller={notificationsController}
+                        onOpenNotification={onOpenNotification}
+                    />
+
+                    <span className="account-panel__role">
+                        {role === 'teacher'
+                            ? 'Преподаватель'
+                            : 'Ученик'}
+                    </span>
+                </div>
             </header>
 
             {stats.length > 0 &&
@@ -115,18 +132,23 @@ export function AccountPanel({
             {activeSection === 'classroom' ? (
                 <ClassroomTodaySection
                     role={role}
-                    lessons={todayLessons}
                 />
             ) : isTeacherStudentsSection ? (
                 <TeacherStudentsSection
-                    students={teacherStudents}
-                    onChangeStudentStatus={onChangeTeacherStudentStatus}
+                    key={teacherStudentsView}
+                    initialView={teacherStudentsView}
+                    onAddLesson={onAddLesson}
+                    onOpenMessage={onOpenStudentMessage}
+                    onCreateHomework={onCreateStudentHomework}
+                    onOpenJournal={onOpenStudentJournal}
                 />
             ) : isScheduleSection ? (
                 <ScheduleSection
+                    key={`${scheduleRevision}:${scheduleFocusDate || ''}`}
                     role={role}
-                    week={scheduleWeek}
                     onAddLesson={onAddLesson}
+                    refreshKey={scheduleRevision}
+                    initialDate={scheduleFocusDate}
                 />
             ) : isMaterialsSection ? (
                 <MaterialsSection
@@ -136,24 +158,32 @@ export function AccountPanel({
             ) : isHomeworkSection ? (
                 <HomeworkSection
                     role={role}
-                    homework={homework}
+                    controller={homeworkController}
+                    targetHomeworkId={targetHomeworkId}
+                    createRelationId={createHomeworkRelationId}
+                    createLessonId={createHomeworkLessonId}
+                    onCloseCreate={onCloseHomeworkCreate}
                 />
             ) : isJournalSection ? (
-                <JournalSection journal={journal} />
+                <JournalSection
+                    targetLessonId={targetJournalLessonId}
+                    initialStudentId={targetJournalStudentId}
+                    initialSubjectId={targetJournalSubjectId}
+                />
             ) : isDiarySection ? (
                 <DiarySection
-                    role={role}
-                    diary={diary}
+                    targetLessonId={targetDiaryLessonId}
+                    onOpenHomework={onOpenHomework}
                 />
             ) : isMessagesSection ? (
                 <MessagesSection
                     role={role}
-                    messages={messages}
+                    messagesController={messagesController}
+                    messageTarget={messageTarget}
                 />
             ) : isReviewsSection ? (
                 <ReviewsSection
                     role={role}
-                    reviews={reviews}
                     onFindTeacher={onFindTeacher}
                 />
             ) : isPaymentsSection ? (
@@ -166,10 +196,12 @@ export function AccountPanel({
                     role={role}
                     user={user}
                     profile={profile}
+                    subjects={subjects}
+                    documents={documents}
                 />
             ) : isFindTeacherSection ? (
                 <FindTeacherSection
-                    onSendTeacherRequest={onSendTeacherRequest}
+                    onRequestSent={onTeacherRequestSent}
                 />
             ) : (
                 <div className="account-panel__placeholder">

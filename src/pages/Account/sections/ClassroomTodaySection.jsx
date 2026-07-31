@@ -1,171 +1,41 @@
 import {
-    useEffect,
     useMemo,
-    useState,
 } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { useCurrentTime } from '../../../hooks/useCurrentTime.js';
+import { useSchedule } from '../hooks/useSchedule.js';
+
 import {
-    API,
-    getAuthHeaders,
-} from '../../../api/api.js';
-
-const STATUS_LABELS = {
-    planned: 'Запланирован',
-    active: 'Идёт сейчас',
-    completed: 'Завершён',
-    cancelled: 'Отменён',
-    rescheduled: 'Перенесён',
-};
-
-function getLocalDateKey(date = new Date()) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-}
-
-function formatLessonTime(dateValue) {
-    if (!dateValue) {
-        return '';
-    }
-
-    const date = new Date(
-        String(dateValue).replace(' ', 'T'),
-    );
-
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-
-    return new Intl.DateTimeFormat('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
-
-function mapStudentLesson(lesson) {
-    return {
-        id: lesson.id,
-        time: formatLessonTime(lesson.lesson_date),
-        teacher:
-            lesson.teacher_name || 'Преподаватель',
-        subject:
-            lesson.subject_name ||
-            lesson.title ||
-            'Предмет не указан',
-        topic:
-            lesson.lesson_topic ||
-            lesson.title ||
-            'Тема не указана',
-        status:
-            STATUS_LABELS[lesson.status] ||
-            lesson.status ||
-            'Не указан',
-        rawData: lesson,
-    };
-}
+    canEnterLesson,
+    getClassButtonLabel,
+    getLessonCountLabel,
+    getTodayLessons,
+} from '../utils/schedule.js';
 
 export function ClassroomTodaySection({
     role,
-    lessons = [],
 }) {
     const navigate = useNavigate();
+    const currentTime = useCurrentTime();
 
     const isTeacher = role === 'teacher';
 
-    const [studentLessons, setStudentLessons] = useState([]);
-    const [requestStatus, setRequestStatus] = useState(
-        isTeacher ? 'success' : 'loading',
-    );
-    const [errorMessage, setErrorMessage] = useState('');
-
-    useEffect(() => {
-        if (isTeacher) {
-            return undefined;
-        }
-
-        const controller = new AbortController();
-
-        async function loadTodayLessons() {
-            try {
-                const response = await fetch(
-                    API.studentSchedule,
-                    {
-                        method: 'GET',
-                        headers: getAuthHeaders(),
-                        signal: controller.signal,
-                    },
-                );
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(
-                        result.message ||
-                            'Не удалось загрузить уроки',
-                    );
-                }
-
-                const todayKey = getLocalDateKey();
-
-                const todayLessons = (
-                    Array.isArray(result.schedule)
-                        ? result.schedule
-                        : []
-                )
-                    .filter((lesson) =>
-                        String(
-                            lesson.lesson_date || '',
-                        ).startsWith(todayKey),
-                    )
-                    .map(mapStudentLesson);
-
-                setStudentLessons(todayLessons);
-                setRequestStatus('success');
-            } catch (error) {
-                if (
-                    error instanceof DOMException &&
-                    error.name === 'AbortError'
-                ) {
-                    return;
-                }
-
-                setErrorMessage(
-                    error instanceof Error
-                        ? error.message
-                        : 'Не удалось загрузить уроки',
-                );
-
-                setRequestStatus('error');
-            }
-        }
-
-        loadTodayLessons();
-
-        return () => {
-            controller.abort();
-        };
-    }, [isTeacher]);
+    const {
+        schedule,
+        requestStatus,
+        errorMessage,
+    } = useSchedule();
 
     const displayedLessons = useMemo(
-        () => (
-            isTeacher
-                ? lessons
-                : studentLessons
-        ),
-        [isTeacher, lessons, studentLessons],
+        () => getTodayLessons(schedule),
+        [schedule],
     );
 
-    const lessonCountText =
-        displayedLessons.length === 1
-            ? '1 урок'
-            : displayedLessons.length >= 2 &&
-                displayedLessons.length <= 4
-              ? `${displayedLessons.length} урока`
-              : `${displayedLessons.length} уроков`;
+    const lessonCountText = displayedLessons.length > 0
+        ? `Сегодня у вас ${getLessonCountLabel(displayedLessons.length)}`
+        : 'Сегодня занятий нет';
 
     return (
         <section className="account-section">
@@ -173,9 +43,7 @@ export function ClassroomTodaySection({
                 <div>
                     <h2>Класс</h2>
 
-                    <p>
-                        Сегодня у вас {lessonCountText}
-                    </p>
+                    <p>{lessonCountText}</p>
                 </div>
             </header>
 
@@ -245,7 +113,7 @@ export function ClassroomTodaySection({
 
                                     <td data-label="Статус">
                                         <span className="account-table__status">
-                                            {lesson.status}
+                                            {lesson.statusLabel}
                                         </span>
                                     </td>
 
@@ -253,19 +121,21 @@ export function ClassroomTodaySection({
                                         <button
                                             type="button"
                                             className="account-table__action"
-                                            onClick={() =>
-                                                navigate(
-                                                    `/classroom/${lesson.id}`,
-                                                    {
-                                                        state: {
-                                                            role,
-                                                            lesson,
-                                                        },
-                                                    },
+                                            disabled={
+                                                !canEnterLesson(
+                                                    lesson,
+                                                    currentTime,
                                                 )
                                             }
+                                            onClick={() =>
+                                                navigate(`/classroom/${lesson.id}`)
+                                            }
                                         >
-                                            Войти в класс
+                                            {getClassButtonLabel(
+                                                lesson,
+                                                role,
+                                                currentTime,
+                                            )}
                                         </button>
                                     </td>
                                 </tr>

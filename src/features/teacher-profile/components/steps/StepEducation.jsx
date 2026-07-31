@@ -296,23 +296,6 @@ export function StepEducation({
                 Добавить ещё одно образование
             </button>
 
-            <label className="teacher-profile-field">
-                <span>
-                    Курсы, сертификаты и повышение квалификации
-                </span>
-
-                <textarea
-                    name="certificates"
-                    rows="5"
-                    value={profile.certificates}
-                    placeholder="Перечислите курсы и сертификаты. Файлы загрузим на шаге «Документы»."
-                    onChange={(event) =>
-                        onChange({
-                            certificates: event.target.value,
-                        })
-                    }
-                />
-            </label>
         </div>
     );
 }

@@ -37,6 +37,11 @@ export function PasswordField({
     label = 'Пароль',
     placeholder = 'Введите пароль',
     autoComplete = 'current-password',
+    value,
+    onChange,
+    name,
+    required = false,
+    disabled = false,
 }) {
     const [isVisible, setIsVisible] = useState(false);
 
@@ -49,12 +54,18 @@ export function PasswordField({
                     type={isVisible ? 'text' : 'password'}
                     placeholder={placeholder}
                     autoComplete={autoComplete}
+                    value={value}
+                    onChange={onChange}
+                    name={name}
+                    required={required}
+                    disabled={disabled}
                 />
 
                 <button
                     type="button"
                     className="password-field__toggle"
                     aria-label={isVisible ? 'Скрыть пароль' : 'Показать пароль'}
+                    disabled={disabled}
                     onClick={() => setIsVisible((value) => !value)}
                 >
                     <EyeIcon opened={isVisible} />

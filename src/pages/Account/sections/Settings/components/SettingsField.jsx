@@ -1,6 +1,7 @@
 export function SettingsField({
     label,
     value,
+    hint,
 }) {
     return (
         <div className="settings-field">
@@ -8,11 +9,15 @@ export function SettingsField({
                 {label}
             </span>
 
-            <input
-                type="text"
-                value={value}
-                readOnly
-            />
+            <div className="settings-field__value">
+                {value}
+            </div>
+
+            {hint && (
+                <small className="settings-field__hint">
+                    {hint}
+                </small>
+            )}
         </div>
     );
 }

@@ -6,8 +6,8 @@ import {
 
 import {
     API,
-    getAuthHeaders,
 } from '../../../../api/api.js';
+import { apiRequest } from '../../../../api/apiRequest.js';
 
 import { TeacherSearchFilters } from './components/TeacherSearchFilters.jsx';
 import { TeacherSearchList } from './components/TeacherSearchList.jsx';
@@ -44,7 +44,7 @@ function mapTeacherFromApi(teacher) {
 }
 
 export function FindTeacherSection({
-    onSendTeacherRequest,
+    onRequestSent,
 }) {
     const [searchValue, setSearchValue] = useState('');
     const [teachers, setTeachers] = useState([]);
@@ -67,23 +67,12 @@ export function FindTeacherSection({
                     params.set('search', searchValue.trim());
                 }
 
-                const response = await fetch(
+                const result = await apiRequest(
                     `${API.findTeachers}?${params.toString()}`,
                     {
-                        method: 'GET',
-                        headers: getAuthHeaders(),
                         signal: controller.signal,
                     },
                 );
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(
-                        result.message ||
-                            'Не удалось загрузить преподавателей',
-                    );
-                }
 
                 setTeachers(
                     Array.isArray(result.teachers)
@@ -158,7 +147,7 @@ export function FindTeacherSection({
             <TeacherProfileModal
                 key={selectedTeacher?.id ?? 'closed'}
                 teacher={selectedTeacher}
-                onSendTeacherRequest={onSendTeacherRequest}
+                onRequestSent={onRequestSent}
                 onClose={() => setSelectedTeacher(null)}
             />
         </section>

@@ -1,4 +1,9 @@
-import { useMemo, useState } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 
 import {
     getConversationsByTab,
@@ -14,8 +19,26 @@ import './MessagesSection.css';
 
 export function MessagesSection({
     role,
-    messages,
+    messagesController,
+    messageTarget,
 }) {
+    const {
+        dialogs,
+        dialogsStatus,
+        dialogsError,
+        selectedConversation,
+        threadMessages,
+        threadStatus,
+        threadError,
+        hasMore,
+        sendStatus,
+        reloadDialogs,
+        openConversation,
+        closeConversation,
+        loadOlderMessages,
+        sendMessage,
+    } = messagesController;
+
     const tabs = useMemo(
         () => getMessageTabsByRole(role),
         [role],
@@ -25,46 +48,76 @@ export function MessagesSection({
         getFirstMessageTab(role),
     );
 
-    const [selectedConversation, setSelectedConversation] =
-        useState(null);
-
     const [draft, setDraft] = useState('');
+    const openedTargetRef = useRef(null);
 
     const conversations = useMemo(
         () =>
             getConversationsByTab(
-                messages,
+                dialogs,
                 activeTab,
             ),
-        [messages, activeTab],
+        [dialogs, activeTab],
     );
+
+    useEffect(() => {
+        if (
+            !messageTarget
+            || openedTargetRef.current === messageTarget.requestId
+        ) {
+            return;
+        }
+
+        const conversation = dialogs.find((dialog) => {
+            if (messageTarget.dialogId) {
+                return dialog.id === Number(messageTarget.dialogId);
+            }
+
+            return (
+                dialog.studentId === Number(messageTarget.studentId)
+                && dialog.channelType === messageTarget.channelType
+            );
+        });
+
+        if (!conversation) {
+            return;
+        }
+
+        const openId = window.setTimeout(() => {
+            openedTargetRef.current = messageTarget.requestId;
+            setActiveTab(conversation.tabId);
+            setDraft('');
+            openConversation(conversation);
+        }, 0);
+
+        return () => window.clearTimeout(openId);
+    }, [dialogs, messageTarget, openConversation]);
 
     const handleOpenConversation = (
         conversation,
     ) => {
-        setSelectedConversation(
-            conversation,
-        );
+        setDraft('');
+        openConversation(conversation);
     };
 
     const handleCloseConversation =
         () => {
-            setSelectedConversation(
-                null,
-            );
+            setDraft('');
+            closeConversation();
         };
 
-    const handleSendMessage = () => {
-        if (!draft.trim()) {
+    const handleSendMessage = async () => {
+        const messageText = draft.trim();
+
+        if (!messageText) {
             return;
         }
 
-        console.log(
-            'send message:',
-            draft,
-        );
+        const isSent = await sendMessage(messageText);
 
-        setDraft('');
+        if (isSent) {
+            setDraft('');
+        }
     };
 
     return (
@@ -91,18 +144,27 @@ export function MessagesSection({
                 conversations={
                     conversations
                 }
+                status={dialogsStatus}
+                errorMessage={dialogsError}
                 onOpenConversation={
                     handleOpenConversation
                 }
+                onRetry={reloadDialogs}
             />
 
             <ConversationModal
                 role={role}
                 activeTab={activeTab}
                 conversation={selectedConversation}
+                messages={threadMessages}
+                threadStatus={threadStatus}
+                errorMessage={threadError}
+                hasMore={hasMore}
+                sendStatus={sendStatus}
                 draft={draft}
                 onDraftChange={setDraft}
                 onSend={handleSendMessage}
+                onLoadOlder={loadOlderMessages}
                 onClose={handleCloseConversation}
             />
         </section>

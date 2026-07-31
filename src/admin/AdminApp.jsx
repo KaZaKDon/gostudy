@@ -52,6 +52,10 @@ import {
     TeachersPage,
 } from './pages/Teachers/TeachersPage.jsx';
 
+import {
+    ReviewsPage,
+} from './pages/Reviews/ReviewsPage.jsx';
+
 export function AdminApp() {
     return (
         <Routes>
@@ -89,6 +93,11 @@ export function AdminApp() {
                 <Route
                     path="teachers"
                     element={<TeachersPage />}
+                />
+
+                <Route
+                    path="reviews"
+                    element={<ReviewsPage />}
                 />
 
                 <Route

@@ -1,185 +1,58 @@
-import {
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import { useMemo, useState } from 'react';
 
-import {
-    API,
-    getAuthHeaders,
-} from '../../../../api/api.js';
-
+import { ReviewModal } from './components/ReviewModal.jsx';
 import { StudentReviews } from './components/StudentReviews.jsx';
 import { TeacherReviews } from './components/TeacherReviews.jsx';
-import { ReviewModal } from './components/ReviewModal.jsx';
+import { useReviews } from './useReviews.js';
 
 import './ReviewsSection.css';
 
-const TEACHER_STATUS_TABS = [
+const RELATION_STATUS_TABS = [
     {
         id: 'active',
         label: 'Активные',
     },
     {
-        id: 'requests',
-        label: 'Заявки',
-    },
-    {
-        id: 'archive',
-        label: 'Архив',
+        id: 'archived',
+        label: 'Завершённые',
     },
 ];
 
-function mapActiveTeacher(teacher) {
-    return {
-        id: `active-${teacher.id}`,
-        relationId: teacher.id,
-        teacherId: teacher.teacher_id,
-        teacherName: teacher.teacher_name || 'Преподаватель',
-        subject: teacher.subject || 'Предмет не указан',
-        status: 'active',
-        headline: teacher.headline || '',
-        city: teacher.city || '',
-        experienceYears: teacher.experience_years,
-        startedAt: teacher.started_at,
-        rating: null,
-        reviewText: '',
-    };
-}
-
-function mapArchivedTeacher(teacher) {
-    return {
-        id: `archive-${teacher.id}`,
-        relationId: teacher.id,
-        teacherId: teacher.teacher_id,
-        teacherName: teacher.teacher_name || 'Преподаватель',
-        subject: teacher.subject || 'Предмет не указан',
-        status: 'archive',
-        archiveText: 'Обучение завершено',
-    };
-}
-
-function mapTeacherRequest(request) {
-    return {
-        id: `request-${request.id}`,
-        requestId: request.id,
-        teacherId: request.teacher_id,
-        teacherName: request.teacher_name || 'Преподаватель',
-        subject: request.subject || 'Предмет не указан',
-        status: 'requests',
-        requestStatus: 'Ожидает ответа преподавателя',
-        createdAt: request.created_at,
-    };
-}
-
 export function ReviewsSection({
     role,
-    reviews = [],
     onFindTeacher,
 }) {
     const isTeacher = role === 'teacher';
-
     const [activeStatus, setActiveStatus] = useState('active');
     const [selectedReview, setSelectedReview] = useState(null);
+    const controller = useReviews(role);
 
-    const [studentTeachers, setStudentTeachers] = useState({
-        active: [],
-        requests: [],
-        archive: [],
-    });
-
-    const [requestStatus, setRequestStatus] = useState(
-        isTeacher ? 'success' : 'loading',
+    const relations = useMemo(
+        () => controller.items.filter(
+            (item) => item.relation_status === activeStatus,
+        ),
+        [activeStatus, controller.items],
     );
 
-    const [errorMessage, setErrorMessage] = useState('');
+    async function handleSubmit(payload) {
+        const saved = isTeacher
+            ? await controller.saveReply(payload)
+            : await controller.saveReview(payload);
 
-    useEffect(() => {
-        if (isTeacher) {
-            return undefined;
+        if (saved) {
+            setSelectedReview(null);
         }
+    }
 
-        const controller = new AbortController();
+    function handleOpenReview(review) {
+        controller.clearMessages();
+        setSelectedReview(review);
+    }
 
-        async function loadTeachers() {
-            try {
-                const response = await fetch(API.studentTeachers, {
-                    method: 'GET',
-                    headers: getAuthHeaders(),
-                    signal: controller.signal,
-                });
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(
-                        result.message ||
-                            'Не удалось загрузить преподавателей',
-                    );
-                }
-
-                const teachers = result.teachers || {};
-
-                setStudentTeachers({
-                    active: Array.isArray(teachers.active)
-                        ? teachers.active.map(mapActiveTeacher)
-                        : [],
-
-                    requests: Array.isArray(teachers.requests)
-                        ? teachers.requests.map(mapTeacherRequest)
-                        : [],
-
-                    archive: Array.isArray(teachers.archive)
-                        ? teachers.archive.map(mapArchivedTeacher)
-                        : [],
-                });
-
-                setRequestStatus('success');
-            } catch (error) {
-                if (
-                    error instanceof DOMException &&
-                    error.name === 'AbortError'
-                ) {
-                    return;
-                }
-
-                setErrorMessage(
-                    error instanceof Error
-                        ? error.message
-                        : 'Не удалось загрузить преподавателей',
-                );
-
-                setRequestStatus('error');
-            }
-        }
-
-        loadTeachers();
-
-        return () => {
-            controller.abort();
-        };
-    }, [isTeacher]);
-
-    const displayedReviews = useMemo(() => {
-        if (isTeacher) {
-            return reviews;
-        }
-
-        return studentTeachers[activeStatus] || [];
-    }, [
-        activeStatus,
-        isTeacher,
-        reviews,
-        studentTeachers,
-    ]);
-
-    const handleOpenReview = (teacher) => {
-        if (activeStatus !== 'active') {
-            return;
-        }
-
-        setSelectedReview(teacher);
-    };
+    function handleCloseReview() {
+        controller.clearMessages();
+        setSelectedReview(null);
+    }
 
     return (
         <section className="reviews-section">
@@ -194,13 +67,13 @@ export function ReviewsSection({
                     <h2>
                         {isTeacher
                             ? 'Отзывы учеников'
-                            : 'Преподаватели и заявки'}
+                            : 'Преподаватели и отзывы'}
                     </h2>
                 </div>
 
                 {!isTeacher && (
                     <div className="reviews-section__status-tabs">
-                        {TEACHER_STATUS_TABS.map((tab) => (
+                        {RELATION_STATUS_TABS.map((tab) => (
                             <button
                                 key={tab.id}
                                 type="button"
@@ -221,22 +94,41 @@ export function ReviewsSection({
                 )}
             </header>
 
-            {!isTeacher && requestStatus === 'loading' ? (
-                <div className="reviews-list__empty">
-                    Загружаем преподавателей...
+            {controller.successMessage && (
+                <div className="reviews-section__alert reviews-section__alert--success">
+                    {controller.successMessage}
                 </div>
-            ) : !isTeacher && requestStatus === 'error' ? (
+            )}
+
+            {controller.errorMessage && !selectedReview && (
+                <div className="reviews-section__alert reviews-section__alert--error">
+                    {controller.errorMessage}
+                </div>
+            )}
+
+            {controller.status === 'loading' ? (
                 <div className="reviews-list__empty">
-                    {errorMessage}
+                    Загружаем отзывы...
+                </div>
+            ) : controller.status === 'error' ? (
+                <div className="reviews-list__empty">
+                    Не удалось загрузить раздел. Обновите страницу.
                 </div>
             ) : isTeacher ? (
                 <TeacherReviews
-                    reviews={displayedReviews}
-                    onOpenReview={setSelectedReview}
+                    reviews={controller.items}
+                    summary={controller.summary}
+                    onOpenReview={handleOpenReview}
+                    hasMore={
+                        controller.pagination.page
+                        < controller.pagination.pages
+                    }
+                    isLoadingMore={controller.isLoadingMore}
+                    onLoadMore={controller.loadMore}
                 />
             ) : (
                 <StudentReviews
-                    teachers={displayedReviews}
+                    relations={relations}
                     activeStatus={activeStatus}
                     onOpenReview={handleOpenReview}
                     onFindTeacher={onFindTeacher}
@@ -244,10 +136,15 @@ export function ReviewsSection({
             )}
 
             <ReviewModal
-                key={selectedReview?.id ?? 'closed'}
+                key={selectedReview?.id
+                    ?? selectedReview?.relation_id
+                    ?? 'closed'}
                 role={role}
                 review={selectedReview}
-                onClose={() => setSelectedReview(null)}
+                isSaving={controller.isSaving}
+                errorMessage={controller.errorMessage}
+                onClose={handleCloseReview}
+                onSubmit={handleSubmit}
             />
         </section>
     );

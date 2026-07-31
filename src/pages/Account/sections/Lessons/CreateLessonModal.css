@@ -1,0 +1,214 @@
+.create-lesson-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.create-lesson-modal__overlay {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: var(--color-overlay);
+}
+
+.create-lesson-modal__panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(760px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-card);
+}
+
+.create-lesson-modal__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.create-lesson-modal__header span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.create-lesson-modal__header h2 {
+    margin: 0;
+}
+
+.create-lesson-modal__header p {
+    margin: 6px 0 0;
+    color: var(--color-ink-muted);
+}
+
+.create-lesson-modal__close {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    font-size: 1.5rem;
+    line-height: 1;
+    background: var(--color-surface-strong);
+    cursor: pointer;
+}
+
+.create-lesson-modal__form {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.create-lesson-modal__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 22px;
+}
+
+.create-lesson-modal__field {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+}
+
+.create-lesson-modal__field--wide {
+    grid-column: 1 / -1;
+}
+
+.create-lesson-modal__field > span {
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.create-lesson-modal__field small {
+    color: var(--color-ink-muted);
+}
+
+.create-lesson-modal__field input,
+.create-lesson-modal__field select,
+.create-lesson-modal__field textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-text);
+    font: inherit;
+    background: var(--color-surface-strong);
+    outline: none;
+}
+
+.create-lesson-modal__field textarea {
+    resize: vertical;
+}
+
+.create-lesson-modal__field input:focus,
+.create-lesson-modal__field select:focus,
+.create-lesson-modal__field textarea:focus {
+    border-color: var(--color-teacher);
+}
+
+.create-lesson-modal__state {
+    padding: 28px 22px;
+    color: var(--color-ink-muted);
+}
+
+.create-lesson-modal__state h3 {
+    margin: 0 0 8px;
+    color: var(--color-text);
+}
+
+.create-lesson-modal__state p {
+    margin: 0;
+}
+
+.create-lesson-modal__state--error,
+.create-lesson-modal__error {
+    color: var(--color-accent-red);
+}
+
+.create-lesson-modal__error {
+    margin: 0 22px 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-accent-red);
+    border-radius: var(--radius-md);
+    background: color-mix(
+        in srgb,
+        var(--color-accent-red) 9%,
+        transparent
+    );
+}
+
+.create-lesson-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 22px;
+    border-top: 1px solid var(--color-border);
+}
+
+.create-lesson-modal__actions button {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 11px 18px;
+    color: var(--color-text);
+    font-weight: 800;
+    background: var(--color-surface-strong);
+    cursor: pointer;
+}
+
+.create-lesson-modal__actions .create-lesson-modal__submit {
+    border-color: var(--color-teacher);
+    color: var(--color-surface-paper);
+    background: var(--color-teacher);
+}
+
+.create-lesson-modal button:disabled,
+.create-lesson-modal input:disabled,
+.create-lesson-modal select:disabled,
+.create-lesson-modal textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+@media (max-width: 640px) {
+    .create-lesson-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .create-lesson-modal__panel {
+        max-height: 94vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .create-lesson-modal__fields {
+        grid-template-columns: 1fr;
+    }
+
+    .create-lesson-modal__field--wide {
+        grid-column: auto;
+    }
+
+    .create-lesson-modal__actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}

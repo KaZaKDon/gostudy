@@ -1,19 +1,17 @@
 import { useState } from 'react';
 
 export function JournalStudentSidebar({
-    students,
-    activeStudentId,
-    onSelectStudent,
+    courses,
+    activeCourseId,
+    onSelectCourse,
 }) {
     const [isOpen, setIsOpen] = useState(false);
+    const activeCourse = courses.find(
+        (course) => course.id === activeCourseId,
+    ) ?? courses[0];
 
-    const activeStudent =
-        students.find(
-            (student) => student.id === activeStudentId,
-        ) ?? students[0];
-
-    const handleSelectStudent = (studentId) => {
-        onSelectStudent(studentId);
+    const handleSelectCourse = (courseId) => {
+        onSelectCourse(courseId);
         setIsOpen(false);
     };
 
@@ -30,36 +28,34 @@ export function JournalStudentSidebar({
                 className="journal-students__toggle"
                 onClick={() => setIsOpen((value) => !value)}
             >
-                <span>Ученик</span>
-
-                <strong>
-                    {activeStudent?.studentName}
-                </strong>
+                <span>Ученик и предмет</span>
+                <strong>{activeCourse?.studentName}</strong>
             </button>
 
             <div className="journal-students__list">
-                {students.map((student) => (
+                {courses.map((course) => (
                     <button
-                        key={student.id}
+                        key={course.id}
                         type="button"
                         className={
-                            activeStudentId === student.id
+                            activeCourseId === course.id
                                 ? 'journal-students__button journal-students__button--active'
                                 : 'journal-students__button'
                         }
-                        onClick={() =>
-                            handleSelectStudent(
-                                student.id,
-                            )
-                        }
+                        onClick={() => handleSelectCourse(course.id)}
                     >
-                        <strong>
-                            {student.studentName}
-                        </strong>
-
+                        <strong>{course.studentName}</strong>
                         <span>
-                            {student.grade}
+                            {course.subjectName}
+                            {course.classLevel
+                                ? ` · ${course.classLevel}`
+                                : ''}
                         </span>
+                        {course.pendingResultsCount > 0 && (
+                            <em>
+                                Не заполнено: {course.pendingResultsCount}
+                            </em>
+                        )}
                     </button>
                 ))}
             </div>

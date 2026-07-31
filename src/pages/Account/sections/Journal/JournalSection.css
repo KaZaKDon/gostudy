@@ -77,6 +77,13 @@
     font-size: 0.85rem;
 }
 
+.journal-students__button em {
+    color: var(--color-teacher);
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 800;
+}
+
 .journal-students__button:hover,
 .journal-students__button--active {
     border-color: var(--color-teacher);
@@ -131,7 +138,7 @@
 .journal-table__head,
 .journal-row {
     display: grid;
-    grid-template-columns: 160px minmax(0, 1fr) 90px 100px;
+    grid-template-columns: 145px minmax(180px, 1fr) 115px 55px 90px 105px;
     gap: 16px;
     align-items: center;
 }
@@ -177,6 +184,14 @@
     );
 }
 
+.journal-row--pending {
+    background: color-mix(
+        in srgb,
+        var(--color-teacher) 7%,
+        transparent
+    );
+}
+
 .journal-row__date {
     color: var(--color-ink-muted);
 }
@@ -194,6 +209,29 @@
     font-weight: 800;
 }
 
+.journal-row__result-status {
+    color: var(--color-teacher);
+    font-size: 0.85rem;
+    font-weight: 850;
+}
+
+.journal-table__loading {
+    padding: 28px 20px;
+    color: var(--color-ink-muted);
+    text-align: center;
+}
+
+.journal-table__more {
+    display: block;
+    margin: 14px auto;
+    padding: 9px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-teacher);
+    background: transparent;
+    font-weight: 800;
+}
+
 .journal-table__empty {
     padding: 20px;
 
@@ -202,6 +240,20 @@
     color: var(--color-ink-muted);
 
     background: var(--color-surface-paper);
+}
+
+.journal-table__empty h3,
+.journal-table__empty p {
+    margin-top: 0;
+}
+
+.journal-table__empty button {
+    padding: 9px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-teacher);
+    background: transparent;
+    font-weight: 800;
 }
 
 /* MODAL */
@@ -307,7 +359,7 @@
     background: var(--color-surface-strong);
 }
 
-.journal-modal__content {
+.journal-modal__form {
     display: grid;
     gap: 14px;
 
@@ -316,33 +368,79 @@
     padding: 20px;
 }
 
-.journal-modal__content section {
-    padding: 16px;
+.journal-modal__fields-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.journal-modal__form label {
+    display: grid;
+    gap: 8px;
+}
+
+.journal-modal__form label > span {
+    color: var(--color-text);
+    font-weight: 800;
+}
+
+.journal-modal__form select,
+.journal-modal__form textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font: inherit;
+}
+
+.journal-modal__form textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.journal-modal__form select:focus,
+.journal-modal__form textarea:focus {
+    border-color: var(--color-teacher);
+    outline: 2px solid color-mix(
+        in srgb,
+        var(--color-teacher) 20%,
+        transparent
+    );
+}
+
+.journal-modal__form small {
+    color: var(--color-ink-muted);
+}
+
+.journal-modal__error {
+    margin: 0;
+    padding: 12px 14px;
 
     border-radius: var(--radius-md);
-
-    background: var(--color-surface-strong);
-}
-
-.journal-modal__content h3 {
-    margin: 0 0 10px;
-}
-
-.journal-modal__content p {
-    margin: 0;
-
-    color: var(--color-ink-muted);
-
-    line-height: 1.6;
+    color: var(--color-error, var(--color-teacher));
+    background: color-mix(
+        in srgb,
+        var(--color-error, var(--color-teacher)) 10%,
+        transparent
+    );
 }
 
 .journal-modal__actions {
     display: flex;
     justify-content: flex-end;
+    gap: 10px;
 
     padding: 16px 20px;
 
     border-top: 1px solid var(--color-border);
+}
+
+.journal-modal__actions .journal-modal__save {
+    color: var(--color-surface-paper);
+    border-color: var(--color-teacher);
+    background: var(--color-teacher);
 }
 
 .journal-modal__actions button {
@@ -401,6 +499,26 @@
         gap: 6px;
     }
 
+    .journal-row__date::before {
+        content: 'Дата: ';
+        color: var(--color-ink-muted);
+    }
+
+    .journal-row__attendance::before {
+        content: 'Посещение: ';
+        color: var(--color-ink-muted);
+    }
+
+    .journal-row__homework::before {
+        content: 'Домашняя работа: ';
+        color: var(--color-ink-muted);
+    }
+
+    .journal-row__grade::before {
+        content: 'Оценка: ';
+        color: var(--color-ink-muted);
+    }
+
     .journal-modal {
         padding: 12px;
     }
@@ -409,7 +527,12 @@
         grid-template-columns: 1fr;
     }
 
+    .journal-modal__fields-row {
+        grid-template-columns: 1fr;
+    }
+
     .journal-modal__actions {
+        flex-direction: column-reverse;
         justify-content: stretch;
     }
 

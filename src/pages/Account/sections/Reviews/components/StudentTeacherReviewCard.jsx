@@ -1,52 +1,42 @@
-import { getStars } from '../utils.js';
+import {
+    getReviewStatusText,
+    getStars,
+} from '../utils.js';
 
-function getTeacherStatusText(teacher, activeStatus) {
-    if (activeStatus === 'requests') {
-        return (
-            teacher.requestStatus ||
-            'Ожидает ответа преподавателя'
-        );
+function getTeacherStatusText(relation) {
+    if (!relation.can_review) {
+        return 'Отзыв станет доступен после первого проведённого урока';
     }
 
-    if (activeStatus === 'archive') {
-        return (
-            teacher.archiveText ||
-            'Обучение завершено'
-        );
-    }
-
-    if (teacher.rating) {
-        return (
-            teacher.reviewText ||
-            'Отзыв оставлен'
-        );
-    }
-
-    return 'Можно оставить отзыв о преподавателе';
+    return getReviewStatusText(relation.review);
 }
 
-function getTeacherActionText(teacher, activeStatus) {
-    if (activeStatus === 'requests') {
-        return 'Заявка отправлена';
+function getTeacherActionText(relation) {
+    const review = relation.review;
+
+    if (!relation.can_review) {
+        return 'После урока';
     }
 
-    if (activeStatus === 'archive') {
-        return 'В архиве';
+    if (!review) {
+        return 'Оставить отзыв';
     }
 
-    if (teacher.rating) {
-        return getStars(teacher.rating);
+    if (review.status === 'rejected') {
+        return 'Исправить отзыв';
     }
 
-    return 'Оставить отзыв';
+    return getStars(
+        review.published_rating
+        || review.rating,
+    );
 }
 
 export function StudentTeacherReviewCard({
-    teacher,
-    activeStatus,
+    relation,
     onOpenReview,
 }) {
-    const canOpenReview = activeStatus === 'active';
+    const canOpenReview = relation.can_review;
 
     return (
         <button
@@ -55,31 +45,28 @@ export function StudentTeacherReviewCard({
             disabled={!canOpenReview}
             onClick={() => {
                 if (canOpenReview) {
-                    onOpenReview(teacher);
+                    onOpenReview(relation);
                 }
             }}
         >
             <span className="review-card__rating">
-                {getTeacherActionText(
-                    teacher,
-                    activeStatus,
-                )}
+                {getTeacherActionText(relation)}
             </span>
 
             <span className="review-card__body">
                 <strong>
-                    {teacher.teacherName}
+                    {relation.teacher_name}
                 </strong>
 
                 <small>
-                    {teacher.subject}
+                    {relation.subject_name}
+                    {' · '}
+                    {relation.completed_lessons_count}
+                    {' проведённых уроков'}
                 </small>
 
                 <em>
-                    {getTeacherStatusText(
-                        teacher,
-                        activeStatus,
-                    )}
+                    {getTeacherStatusText(relation)}
                 </em>
             </span>
         </button>

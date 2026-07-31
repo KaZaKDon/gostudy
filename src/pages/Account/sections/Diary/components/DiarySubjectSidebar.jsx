@@ -6,12 +6,9 @@ export function DiarySubjectSidebar({
     onSelectSubject,
 }) {
     const [isOpen, setIsOpen] = useState(false);
-
-    const activeSubject =
-        subjects.find(
-            (subject) =>
-                subject.id === activeSubjectId,
-        ) ?? subjects[0];
+    const activeSubject = subjects.find(
+        (subject) => subject.id === activeSubjectId,
+    ) ?? subjects[0];
 
     const handleSelectSubject = (subjectId) => {
         onSelectSubject(subjectId);
@@ -32,10 +29,7 @@ export function DiarySubjectSidebar({
                 onClick={() => setIsOpen((value) => !value)}
             >
                 <span>Предмет</span>
-
-                <strong>
-                    {activeSubject?.subject}
-                </strong>
+                <strong>{activeSubject?.name}</strong>
             </button>
 
             <div className="diary-subjects__list">
@@ -44,26 +38,17 @@ export function DiarySubjectSidebar({
                         key={subject.id}
                         type="button"
                         className={
-                            activeSubjectId ===
-                            subject.id
+                            activeSubjectId === subject.id
                                 ? 'diary-subjects__button diary-subjects__button--active'
                                 : 'diary-subjects__button'
                         }
-                        onClick={() =>
-                            handleSelectSubject(
-                                subject.id,
-                            )
-                        }
+                        onClick={() => handleSelectSubject(subject.id)}
                     >
-                        <strong>
-                            {subject.subject}
-                        </strong>
-
+                        <strong>{subject.name}</strong>
                         <span>
-                            Средний балл:{' '}
-                            {
-                                subject.averageGrade
-                            }
+                            {subject.averageGrade
+                                ? `Средний балл: ${subject.averageGrade}`
+                                : 'Без оценок'}
                         </span>
                     </button>
                 ))}

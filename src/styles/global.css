@@ -20,11 +20,16 @@
   --color-green: #6f8f33;
   --color-student: #6f8f33;
   --color-teacher: #8b5e3c;
+  --color-student-soft: rgba(111, 143, 51, 0.14);
+  --color-student-border: rgba(111, 143, 51, 0.34);
+  --color-teacher-soft: rgba(139, 94, 60, 0.14);
+  --color-teacher-border: rgba(139, 94, 60, 0.34);
   --color-pricing: #c59a4b;
   --color-legal: #9b5a6f;
 
   --color-accent-red: #c32516;
   --color-border: rgba(74, 45, 24, 0.22);
+  --color-overlay: rgba(24, 14, 8, 0.58);
 
   --shadow-soft: 0 24px 80px rgba(48, 28, 12, 0.22);
   --shadow-card: 0 18px 44px rgba(39, 20, 9, 0.28);
@@ -33,9 +38,14 @@
   --color-legal-soft: rgba(155, 90, 111, 0.12);
   --color-legal-border: rgba(155, 90, 111, 0.28);
 
-  --color-classroom: #7a5aa6;
-  --color-classroom-soft: rgba(122, 90, 166, 0.12);
-  --color-classroom-border: rgba(122, 90, 166, 0.3);
+  --color-classroom: var(--color-teacher);
+  --color-classroom-soft: var(--color-teacher-soft);
+  --color-classroom-border: var(--color-teacher-border);
+  --color-success: #557825;
+  --color-success-soft: rgba(85, 120, 37, 0.13);
+  --color-danger: #a52d24;
+  --color-danger-soft: rgba(165, 45, 36, 0.12);
+  --color-on-accent: #fff8ec;
 
   --radius-lg: 24px;
   --radius-md: 16px;
@@ -63,9 +73,14 @@
   --color-surface-paper: #161d27;
 
   --color-border: rgba(255, 255, 255, 0.08);
+  --color-overlay: rgba(0, 0, 0, 0.72);
 
   --color-student: #7db157;
   --color-teacher: #d0a36b;
+  --color-student-soft: rgba(125, 177, 87, 0.16);
+  --color-student-border: rgba(125, 177, 87, 0.38);
+  --color-teacher-soft: rgba(208, 163, 107, 0.16);
+  --color-teacher-border: rgba(208, 163, 107, 0.38);
   --color-pricing: #d8b15a;
   --color-legal: #d08aa0;
 
@@ -75,6 +90,11 @@
   --color-legal: #d08aa0;
   --color-legal-soft: rgba(208, 138, 160, 0.16);
   --color-legal-border: rgba(208, 138, 160, 0.35);
+  --color-success: #8fbd62;
+  --color-success-soft: rgba(143, 189, 98, 0.16);
+  --color-danger: #ef7d72;
+  --color-danger-soft: rgba(239, 125, 114, 0.15);
+  --color-on-accent: #17110c;
 }
 
 * {

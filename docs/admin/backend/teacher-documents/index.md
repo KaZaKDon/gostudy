@@ -51,9 +51,14 @@ try {
         SELECT
             td.id,
             td.teacher_id,
+            td.education_id,
             td.type,
-            td.file_url,
+            td.document_title,
+            td.institution,
+            td.document_year,
             td.original_name,
+            td.mime_type,
+            td.file_size,
             td.status,
             td.reject_reason,
             td.checked_at,
@@ -84,6 +89,13 @@ try {
     $stmt->execute();
 
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($items as &$item) {
+        $item['download_url'] =
+            '/api/admin/teacher-documents/download.php?id=' . (int) $item['id'];
+    }
+
+    unset($item);
 
     adminJsonResponse([
         'success' => true,

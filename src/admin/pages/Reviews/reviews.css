@@ -1,0 +1,74 @@
+.reviews-admin-page {
+    min-height: 100%;
+}
+
+.reviews-admin-page__success {
+    border-color: var(--admin-success);
+    color: var(--admin-success);
+}
+
+.review-moderation {
+    display: grid;
+    gap: var(--admin-gap-lg);
+}
+
+.review-moderation__meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--admin-gap-sm);
+}
+
+.review-moderation__meta div,
+.review-moderation__section {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    padding: var(--admin-gap-md);
+    background: var(--admin-surface-soft);
+}
+
+.review-moderation__meta span {
+    color: var(--admin-text-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.review-moderation__meta strong {
+    overflow-wrap: anywhere;
+}
+
+.review-moderation__section h3 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 16px;
+}
+
+.review-moderation__section p {
+    margin: 0;
+    color: var(--admin-text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.review-moderation__rating {
+    color: var(--admin-secondary);
+}
+
+.review-moderation__form {
+    display: grid;
+    gap: var(--admin-gap-md);
+}
+
+.review-moderation__muted {
+    margin: 0;
+    color: var(--admin-text-muted);
+}
+
+@media (max-width: 760px) {
+    .review-moderation__meta {
+        grid-template-columns: 1fr;
+    }
+}

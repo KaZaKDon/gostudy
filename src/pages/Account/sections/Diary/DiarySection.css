@@ -144,7 +144,7 @@
 .diary-table__head,
 .diary-row {
     display: grid;
-    grid-template-columns: 160px minmax(0, 1fr) 100px;
+    grid-template-columns: 150px minmax(180px, 1fr) 125px 100px;
     gap: 16px;
     align-items: center;
 }
@@ -198,11 +198,42 @@
     font-weight: 800;
 }
 
+.diary-table__loading {
+    padding: 28px 20px;
+    color: var(--color-ink-muted);
+    text-align: center;
+}
+
+.diary-table__more {
+    display: block;
+    margin: 14px auto;
+    padding: 9px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-student);
+    background: transparent;
+    font-weight: 800;
+}
+
 .diary-table__empty {
     padding: 20px;
     border-radius: var(--radius-lg);
     color: var(--color-ink-muted);
     background: var(--color-surface-paper);
+}
+
+.diary-table__empty h3,
+.diary-table__empty p {
+    margin-top: 0;
+}
+
+.diary-table__empty button {
+    padding: 9px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-student);
+    background: transparent;
+    font-weight: 800;
 }
 
 /* MODAL */
@@ -271,7 +302,7 @@
 
 .diary-modal__meta {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     padding: 16px 20px;
     border-bottom: 1px solid var(--color-border);
@@ -311,6 +342,7 @@
 .diary-modal__actions {
     display: flex;
     justify-content: flex-end;
+    gap: 10px;
     padding: 16px 20px;
     border-top: 1px solid var(--color-border);
 }
@@ -322,6 +354,30 @@
     color: var(--color-text);
     background: var(--color-surface-strong);
     font-weight: 800;
+}
+
+.diary-modal__panel,
+.diary-modal__header > div,
+.diary-modal__meta span,
+.diary-modal__content,
+.diary-modal__content section {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.diary-modal__content {
+    overflow-x: hidden;
+}
+
+.diary-modal__header h2,
+.diary-modal__meta span,
+.diary-modal__content p {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.diary-modal__content p {
+    white-space: pre-wrap;
 }
 
 /* ADAPTIVE */
@@ -391,6 +447,11 @@
         color: var(--color-ink-muted);
     }
 
+    .diary-row__attendance::before {
+        content: 'Посещение: ';
+        color: var(--color-ink-muted);
+    }
+
     .diary-modal {
         padding: 12px;
     }
@@ -405,6 +466,7 @@
     }
 
     .diary-modal__actions {
+        flex-direction: column-reverse;
         justify-content: stretch;
     }
 

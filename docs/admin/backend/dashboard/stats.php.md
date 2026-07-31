@@ -65,7 +65,7 @@ try {
         ->query("
             SELECT COUNT(*)
             FROM lessons
-            WHERE status = 'planned'
+            WHERE status IN ('scheduled', 'rescheduled')
         ")
         ->fetchColumn();
 
@@ -94,6 +94,7 @@ try {
             SELECT COUNT(*)
             FROM reviews
             WHERE status = 'pending'
+               OR reply_status = 'pending'
         ")
         ->fetchColumn();
 

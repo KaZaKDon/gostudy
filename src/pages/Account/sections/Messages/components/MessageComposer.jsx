@@ -1,5 +1,6 @@
 export function MessageComposer({
     value,
+    isSending,
     onChange,
     onSend,
 }) {
@@ -14,12 +15,17 @@ export function MessageComposer({
             <textarea
                 value={value}
                 rows="3"
+                maxLength="10000"
                 placeholder="Введите сообщение"
+                disabled={isSending}
                 onChange={(event) => onChange(event.target.value)}
             />
 
-            <button type="submit">
-                Отправить
+            <button
+                type="submit"
+                disabled={isSending || !value.trim()}
+            >
+                {isSending ? 'Отправляем...' : 'Отправить'}
             </button>
         </form>
     );

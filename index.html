@@ -13,6 +13,7 @@
 
     <meta name="author" content="GoStudy" />
     <meta name="robots" content="index, follow" />
+    <meta name="format-detection" content="telephone=no" />
 
     <link rel="canonical" href="https://gostudyonline.ru/" />
 
@@ -24,16 +25,20 @@
       content="Платформа для онлайн-занятий с преподавателями: уроки, материалы, домашние задания, сообщения и контроль обучения в одном месте."
     />
     <meta property="og:url" content="https://gostudyonline.ru/" />
-    <meta property="og:image" content="https://gostudyonline.ru/images/branding/logo-gostudy.svg" />
+    <meta property="og:image" content="https://gostudyonline.ru/favicon/android-chrome-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="GoStudy" />
     <meta property="og:locale" content="ru_RU" />
 
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="GoStudy — Пошли учиться онлайн" />
     <meta
       name="twitter:description"
       content="Онлайн-платформа для учеников, родителей и преподавателей."
     />
-    <meta name="twitter:image" content="https://gostudyonline.ru/images/branding/logo-gostudy.svg" />
+    <meta name="twitter:image" content="https://gostudyonline.ru/favicon/android-chrome-512x512.png" />
+    <meta name="twitter:image:alt" content="GoStudy" />
 
     <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
@@ -42,10 +47,38 @@
     <link rel="manifest" href="/favicon/site.webmanifest" />
 
     <meta name="theme-color" content="#6f4a23" />
+
+    <script id="gostudy-structured-data" type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://gostudyonline.ru/#organization",
+            "name": "GoStudy",
+            "url": "https://gostudyonline.ru/",
+            "logo": "https://gostudyonline.ru/favicon/android-chrome-512x512.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://gostudyonline.ru/#website",
+            "url": "https://gostudyonline.ru/",
+            "name": "GoStudy",
+            "inLanguage": "ru-RU",
+            "publisher": {
+              "@id": "https://gostudyonline.ru/#organization"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
 
   <body>
     <div id="root"></div>
+    <noscript>
+      Для работы GoStudy необходимо включить JavaScript в браузере.
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,63 +1,20 @@
-export function PayoutSettings({ section }) {
+export function PayoutSettings() {
     return (
         <div className="settings-payouts">
             <section className="settings-payouts__block">
-                <h4>Способ выплат</h4>
-
-                <div className="settings-payouts__methods">
-                    {section.methods.map((method) => (
-                        <span
-                            key={method}
-                            className={
-                                section.payoutMethod === method
-                                    ? 'settings-payouts__method settings-payouts__method--active'
-                                    : 'settings-payouts__method'
-                            }
-                        >
-                            {section.payoutMethod === method ? '●' : '○'}{' '}
-                            {method}
-                        </span>
-                    ))}
-                </div>
-
-                <div className="settings-payouts__actions">
-                    <button type="button">
-                        Изменить реквизиты
-                    </button>
-                </div>
-            </section>
-
-            <section className="settings-payouts__block">
-                <h4>Статус проверки</h4>
-
-                <p className="settings-payouts__status">
-                    🟡 {section.verificationStatus}
-                </p>
-            </section>
-
-            <section className="settings-payouts__block">
-                <h4>Последняя выплата</h4>
+                <h4>Платёжные данные пока не заполняются</h4>
 
                 <p>
-                    {section.lastPayout.date} · {section.lastPayout.amount}
+                    Способ приёма оплаты, статус преподавателя и порядок
+                    выплат будут добавлены после утверждения юридической
+                    модели платформы.
                 </p>
-            </section>
 
-            <section className="settings-payouts__block">
-                <h4>История выплат</h4>
-
-                <div className="settings-payouts__history">
-                    {section.payoutsHistory.map((item) => (
-                        <div
-                            key={item.id}
-                            className="settings-payouts__history-row"
-                        >
-                            <span>{item.date}</span>
-                            <strong>{item.amount}</strong>
-                            <em>{item.status}</em>
-                        </div>
-                    ))}
-                </div>
+                <p>
+                    До этого момента GoStudy не запрашивает реквизиты карты,
+                    счёта, ИП или самозанятого и не показывает фиктивную
+                    историю выплат.
+                </p>
             </section>
         </div>
     );

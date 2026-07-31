@@ -1,32 +1,38 @@
-import { getAverageRating } from '../utils.js';
-
 import { TeacherReviewCard } from './TeacherReviewCard.jsx';
 
 export function TeacherReviews({
     reviews,
+    summary,
     onOpenReview,
+    hasMore,
+    isLoadingMore,
+    onLoadMore,
 }) {
+    if (!reviews.length) {
+        return (
+            <div className="reviews-list__empty">
+                Опубликованных отзывов пока нет.
+            </div>
+        );
+    }
+
     return (
         <div className="reviews-view">
             <div className="reviews-summary">
                 <article>
                     <strong>
-                        {getAverageRating(reviews)}
+                        {Number(summary.rating || 0).toFixed(2)}
                     </strong>
 
-                    <span>
-                        Средняя оценка
-                    </span>
+                    <span>Средняя оценка</span>
                 </article>
 
                 <article>
                     <strong>
-                        {reviews.length}
+                        {summary.reviews_count || 0}
                     </strong>
 
-                    <span>
-                        Всего отзывов
-                    </span>
+                    <span>Всего отзывов</span>
                 </article>
             </div>
 
@@ -39,6 +45,21 @@ export function TeacherReviews({
                     />
                 ))}
             </div>
+
+            {hasMore && (
+                <div className="reviews-view__footer">
+                    <button
+                        type="button"
+                        className="reviews-view__find-button"
+                        disabled={isLoadingMore}
+                        onClick={onLoadMore}
+                    >
+                        {isLoadingMore
+                            ? 'Загружаем...'
+                            : 'Показать ещё'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

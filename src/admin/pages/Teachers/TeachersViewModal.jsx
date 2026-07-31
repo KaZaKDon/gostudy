@@ -31,6 +31,22 @@ const verificationVariants = {
     rejected: 'danger',
 };
 
+const documentStatusLabels = {
+    pending: 'На проверке',
+    approved: 'Подтверждён',
+    rejected: 'Отклонён',
+};
+
+function formatFileSize(value) {
+    const bytes = Number(value || 0);
+
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} КБ`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+}
+
 function formatDate(value) {
     if (!value) {
         return '—';
@@ -54,6 +70,7 @@ export function TeachersViewModal({
     onUpdateVerification,
 }) {
     const teacher = teacherData?.teacher;
+    const documents = teacherData?.documents || [];
 
     return (
         <Modal
@@ -192,6 +209,51 @@ export function TeachersViewModal({
                                 <dd>{renderValue(teacher.verification_comment)}</dd>
                             </div>
                         </dl>
+                    </section>
+
+                    <section className="teacher-view__section">
+                        <h4>Документы</h4>
+
+                        {documents.length === 0 ? (
+                            <p className="teacher-view__muted">
+                                Документы не загружены.
+                            </p>
+                        ) : (
+                            <div className="teacher-view__cards">
+                                {documents.map((document) => (
+                                    <article
+                                        key={document.id}
+                                        className="teacher-view__card"
+                                    >
+                                        <strong>
+                                            {document.document_title
+                                                || document.original_name
+                                                || `Документ №${document.id}`}
+                                        </strong>
+                                        <span>
+                                            {documentStatusLabels[document.status]
+                                                || document.status}
+                                        </span>
+                                        <small>
+                                            {document.original_name}
+                                            {document.file_size
+                                                ? ` · ${formatFileSize(document.file_size)}`
+                                                : ''}
+                                        </small>
+                                        {document.reject_reason && (
+                                            <small>{document.reject_reason}</small>
+                                        )}
+                                        <a
+                                            href={document.download_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            Скачать для проверки
+                                        </a>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
                     </section>
 
                     <div className="teacher-view__actions">

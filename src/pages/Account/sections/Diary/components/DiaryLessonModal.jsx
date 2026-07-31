@@ -1,8 +1,18 @@
+import {
+    formatLearningDate,
+    getAttendanceLabel,
+    getGradeLabel,
+    getHomeworkStatusLabel,
+} from '../../LearningResults/learningResults.js';
+
 export function DiaryLessonModal({
     lesson,
+    onOpenHomework,
     onClose,
 }) {
-    if (!lesson) return null;
+    if (!lesson) {
+        return null;
+    }
 
     return (
         <div className="diary-modal">
@@ -20,18 +30,13 @@ export function DiaryLessonModal({
             >
                 <header className="diary-modal__header">
                     <div>
-                        <span>
-                            Подробности занятия
-                        </span>
-
-                        <h2>
-                            {lesson.topic}
-                        </h2>
+                        <span>Результат занятия</span>
+                        <h2>{lesson.topic}</h2>
                     </div>
-
                     <button
                         type="button"
                         className="diary-modal__close"
+                        aria-label="Закрыть"
                         onClick={onClose}
                     >
                         ×
@@ -39,69 +44,53 @@ export function DiaryLessonModal({
                 </header>
 
                 <div className="diary-modal__meta">
-                    <span>
-                        Дата: {lesson.date}
-                    </span>
-
-                    <span>
-                        Оценка:{' '}
-                        {lesson.grade}
-                    </span>
+                    <span>{formatLearningDate(lesson.lessonDate)}</span>
+                    <span>{lesson.teacherName}</span>
+                    <span>{getAttendanceLabel(lesson.attendance)}</span>
+                    <span>Оценка: {getGradeLabel(lesson.grade)}</span>
                 </div>
 
                 <div className="diary-modal__content">
                     <section>
-                        <h3>
-                            Раздел учебника
-                        </h3>
-
+                        <h3>Результат занятия</h3>
                         <p>
-                            {
-                                lesson.textbookSection
-                            }
+                            {lesson.lessonResult
+                                || 'Результат не указан.'}
                         </p>
                     </section>
 
                     <section>
-                        <h3>
-                            План занятия
-                        </h3>
-
+                        <h3>Комментарий преподавателя</h3>
                         <p>
-                            {lesson.lessonPlan}
+                            {lesson.teacherComment
+                                || 'Комментарий отсутствует.'}
                         </p>
                     </section>
 
                     <section>
-                        <h3>
-                            Домашнее задание
-                        </h3>
-
+                        <h3>Домашняя работа</h3>
                         <p>
-                            {
-                                lesson.homeworkTitle
-                            }
-                        </p>
-                    </section>
-
-                    <section>
-                        <h3>
-                            Комментарий преподавателя
-                        </h3>
-
-                        <p>
-                            {
-                                lesson.teacherComment
-                            }
+                            {lesson.homeworkCount > 0
+                                ? `${lesson.latestHomeworkTitle || 'Задание выдано'} · ${getHomeworkStatusLabel(
+                                    lesson.latestHomeworkStatus,
+                                )}`
+                                : 'Домашняя работа не назначалась.'}
                         </p>
                     </section>
                 </div>
 
                 <footer className="diary-modal__actions">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                    >
+                    {lesson.homeworkCount > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => onOpenHomework?.(
+                                lesson.latestHomeworkId,
+                            )}
+                        >
+                            Открыть домашние работы
+                        </button>
+                    )}
+                    <button type="button" onClick={onClose}>
                         Закрыть
                     </button>
                 </footer>

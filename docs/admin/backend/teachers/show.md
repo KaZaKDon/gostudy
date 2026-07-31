@@ -34,17 +34,10 @@ try {
             tp.timezone,
             tp.headline,
             tp.experience_years,
-            tp.education,
-            tp.certificates,
             tp.about,
             tp.teaching_method,
             tp.first_lesson_description,
             tp.student_gets,
-            tp.student_levels,
-            tp.lesson_goals,
-            tp.lesson_format,
-            tp.price_per_lesson,
-            tp.price_per_hour,
             tp.price_45,
             tp.price_60,
             tp.price_90,
@@ -100,6 +93,72 @@ try {
         'teacher_id' => $teacherId,
     ]);
 
+    $preparationsStmt = $pdo->prepare("
+        SELECT
+            tsp.subject_id,
+            s.name AS subject_name,
+            tsp.preparation_id,
+            p.name AS preparation_name,
+            pg.id AS preparation_group_id,
+            pg.name AS preparation_group_name
+        FROM teacher_subject_preparations tsp
+        INNER JOIN subjects s
+            ON s.id = tsp.subject_id
+        INNER JOIN preparations p
+            ON p.id = tsp.preparation_id
+        INNER JOIN preparation_groups pg
+            ON pg.id = p.group_id
+        WHERE tsp.teacher_id = :teacher_id
+        ORDER BY
+            s.sort_order ASC,
+            s.name ASC,
+            pg.sort_order ASC,
+            p.sort_order ASC,
+            p.name ASC
+    ");
+
+    $preparationsStmt->execute([
+        'teacher_id' => $teacherId,
+    ]);
+
+    $ageGroupsStmt = $pdo->prepare("
+        SELECT
+            sag.id,
+            sag.name,
+            sag.slug
+        FROM teacher_age_groups tag
+        INNER JOIN student_age_groups sag
+            ON sag.id = tag.age_group_id
+        WHERE tag.teacher_id = :teacher_id
+        ORDER BY sag.sort_order ASC, sag.name ASC
+    ");
+
+    $ageGroupsStmt->execute([
+        'teacher_id' => $teacherId,
+    ]);
+
+    $educationStmt = $pdo->prepare("
+        SELECT
+            id,
+            institution,
+            faculty,
+            speciality,
+            qualification,
+            graduation_year,
+            description,
+            is_primary,
+            sort_order,
+            created_at,
+            updated_at
+        FROM teacher_education
+        WHERE teacher_id = :teacher_id
+        ORDER BY is_primary DESC, sort_order ASC, id ASC
+    ");
+
+    $educationStmt->execute([
+        'teacher_id' => $teacherId,
+    ]);
+
     $documentsStmt = $pdo->prepare("
         SELECT
             td.id,
@@ -107,8 +166,13 @@ try {
             td.document_title,
             td.institution,
             td.document_year,
-            td.file_url,
             td.original_name,
+            td.mime_type,
+            td.file_size,
+            CONCAT(
+                '/api/admin/teacher-documents/download.php?id=',
+                td.id
+            ) AS download_url,
             td.status,
             td.reject_reason,
             td.checked_by,
@@ -222,6 +286,9 @@ try {
             'teacher' => $teacher,
             'stats' => $statsStmt->fetch(PDO::FETCH_ASSOC),
             'subjects' => $subjectsStmt->fetchAll(PDO::FETCH_ASSOC),
+            'subject_preparations' => $preparationsStmt->fetchAll(PDO::FETCH_ASSOC),
+            'age_groups' => $ageGroupsStmt->fetchAll(PDO::FETCH_ASSOC),
+            'education' => $educationStmt->fetchAll(PDO::FETCH_ASSOC),
             'documents' => $documentsStmt->fetchAll(PDO::FETCH_ASSOC),
             'students' => $studentsStmt->fetchAll(PDO::FETCH_ASSOC),
             'reviews' => $reviewsStmt->fetchAll(PDO::FETCH_ASSOC),

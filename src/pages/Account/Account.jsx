@@ -1,32 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+    useNavigate,
+    useSearchParams,
+} from 'react-router-dom';
 
 import { API, getAuthHeaders } from '../../api/api.js';
 
 import { AccountSidebar } from './components/AccountSidebar.jsx';
 import { AccountPanel } from './components/AccountPanel.jsx';
+import { CreateLessonModal } from './sections/Lessons/CreateLessonModal.jsx';
+import { useMessages } from './sections/Messages/useMessages.js';
+import { useNotifications } from './sections/Notifications/useNotifications.js';
+import { useHomework } from './sections/Homework/useHomework.js';
 
 import {
     STUDENT_NAVIGATION,
     TEACHER_NAVIGATION,
 } from './data/accountNavigation.js';
 
+import { createAccountIdentity } from './utils/accountIdentity.js';
+
 import {
     accountMaterials,
-    studentScheduleWeek,
-    studentTodayLessons,
-    teacherDemoProfile,
     teacherDemoStats,
-    teacherHomework,
-    teacherScheduleWeek,
-    teacherStudents,
-    teacherTodayLessons,
-    teacherJournal,
-    studentDiary,
-    teacherMessages,
-    studentMessages,
-    teacherReviews,
-    studentReviews,
     teacherPayments,
     studentPayments,
 } from './data/demoAccountData.js';
@@ -35,18 +31,24 @@ import './Account.css';
 
 export function Account() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [authData, setAuthData] = useState(null);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-    const [activeSection, setActiveSection] = useState('schedule');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [lessonCreation, setLessonCreation] = useState(null);
+    const [scheduleRevision, setScheduleRevision] = useState(0);
+    const [scheduleFocusDate, setScheduleFocusDate] = useState(null);
+    const [messageTarget, setMessageTarget] = useState(null);
 
-    const [teacherStudentsState, setTeacherStudentsState] =
-        useState(teacherStudents);
-
-    const [studentTeachersState, setStudentTeachersState] =
-        useState(studentReviews);
+    const messagesController = useMessages(
+        authData?.user?.role ?? null,
+    );
+    const notificationsController = useNotifications(Boolean(authData));
+    const homeworkController = useHomework(
+        authData?.user?.role ?? null,
+    );
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -109,58 +111,49 @@ export function Account() {
 
     const role = authData.user.role;
 
-    const navigation =
+    const baseNavigation =
         role === 'teacher'
             ? TEACHER_NAVIGATION
             : STUDENT_NAVIGATION;
 
-    const profile =
-        role === 'teacher'
-            ? teacherDemoProfile
-            : {
-                firstName:
-                    authData?.profile?.first_name || '',
-                lastName:
-                    authData?.profile?.last_name || '',
-                roleTitle: 'Ученик',
-                avatarUrl:
-                    authData?.user?.avatar_url || null,
+    const navigation = baseNavigation.map((item) => {
+        if (item.id === 'messages') {
+            return {
+                ...item,
+                count: messagesController.totalUnread || undefined,
             };
+        }
+
+        if (item.id === 'homework') {
+            return {
+                ...item,
+                count: homeworkController.actionableCount || undefined,
+            };
+        }
+
+        return item;
+    });
+
+    const identity = createAccountIdentity({
+        user: authData.user,
+        profile: authData.profile,
+    });
+
+    const availableSectionIds = new Set([
+        ...navigation.map((item) => item.id),
+        ...(role === 'student' ? ['findTeacher'] : []),
+    ]);
+
+    const requestedSection = searchParams.get('section');
+
+    const activeSection = availableSectionIds.has(requestedSection)
+        ? requestedSection
+        : navigation[0].id;
 
     const stats =
         role === 'teacher'
             ? teacherDemoStats
             : [];
-
-    const todayLessons =
-        role === 'teacher'
-            ? teacherTodayLessons
-            : studentTodayLessons;
-
-    const scheduleWeek =
-        role === 'teacher'
-            ? teacherScheduleWeek
-            : studentScheduleWeek;
-
-    const homework =
-        role === 'teacher'
-            ? teacherHomework
-            : [];
-
-    const diary =
-        role === 'student'
-            ? studentDiary
-            : [];
-
-    const messages =
-        role === 'teacher'
-            ? teacherMessages
-            : studentMessages;
-
-    const reviews =
-        role === 'teacher'
-            ? teacherReviews
-            : studentTeachersState;
 
     const payments =
         role === 'teacher'
@@ -171,48 +164,93 @@ export function Account() {
         navigation.find((item) => item.id === activeSection) ?? navigation[0];
 
     const handleSelectSection = (sectionId) => {
-        setActiveSection(sectionId);
+        if (!availableSectionIds.has(sectionId)) {
+            return;
+        }
+
+        setSearchParams(
+            { section: sectionId },
+            { replace: false },
+        );
+
         setIsSidebarOpen(false);
     };
 
-    const handleChangeTeacherStudentStatus = (studentId, nextStatus) => {
-        setTeacherStudentsState((currentStudents) =>
-            currentStudents.map((student) =>
-                student.id === studentId
-                    ? {
-                        ...student,
-                        status: nextStatus,
-                    }
-                    : student,
-            ),
-        );
+    const handleOpenLessonCreation = (student = null) => {
+        setLessonCreation({
+            initialRelationId: student?.relationId ?? null,
+        });
     };
 
-    const handleSendTeacherRequest = (teacher) => {
-        setStudentTeachersState((currentTeachers) => {
-            const alreadyExists = currentTeachers.some(
-                (item) => item.id === teacher.id,
-            );
+    const handleLessonCreated = (lesson) => {
+        setLessonCreation(null);
+        setScheduleFocusDate(lesson?.lesson_date ?? null);
+        setScheduleRevision((revision) => revision + 1);
+        handleSelectSection('schedule');
+    };
 
-            if (alreadyExists) {
-                return currentTeachers;
-            }
+    const handleOpenNotification = (notification) => {
+        const targetSection = notification.targetSection;
 
-            return [
-                ...currentTeachers,
-                {
-                    id: teacher.id,
-                    teacherName: teacher.name,
-                    subject: teacher.subject,
-                    status: 'requests',
-                    requestStatus: 'Ожидает ответа преподавателя',
-                    rating: null,
-                    reviewText: '',
-                },
-            ];
-        });
+        if (!targetSection || !availableSectionIds.has(targetSection)) {
+            return;
+        }
 
-        setActiveSection('teachers');
+        if (targetSection === 'schedule' && notification.targetDate) {
+            setScheduleFocusDate(notification.targetDate);
+            setScheduleRevision((revision) => revision + 1);
+        }
+
+        if (
+            targetSection === 'messages'
+            && notification.targetEntityType === 'dialog'
+            && notification.targetEntityId
+        ) {
+            setMessageTarget({
+                dialogId: notification.targetEntityId,
+                requestId: notification.id,
+            });
+        }
+
+        if (
+            targetSection === 'homework'
+            && notification.targetEntityType === 'homework'
+            && notification.targetEntityId
+        ) {
+            setSearchParams({
+                section: 'homework',
+                homework: String(notification.targetEntityId),
+            });
+            setIsSidebarOpen(false);
+            return;
+        }
+
+        if (
+            targetSection === 'diary'
+            && notification.targetEntityType === 'lesson'
+            && notification.targetEntityId
+        ) {
+            setSearchParams({
+                section: 'diary',
+                lesson: String(notification.targetEntityId),
+            });
+            setIsSidebarOpen(false);
+            return;
+        }
+
+        if (
+            targetSection === 'students'
+            && notification.targetEntityType === 'review'
+        ) {
+            setSearchParams({
+                section: 'students',
+                view: 'reviews',
+            });
+            setIsSidebarOpen(false);
+            return;
+        }
+
+        handleSelectSection(targetSection);
     };
 
     return (
@@ -245,7 +283,7 @@ export function Account() {
 
             <div className="account__layout">
                 <AccountSidebar
-                    profile={profile}
+                    identity={identity}
                     navigation={navigation}
                     activeSection={activeSection}
                     onSelectSection={handleSelectSection}
@@ -258,27 +296,113 @@ export function Account() {
                     role={role}
                     user={authData.user}
                     profile={authData.profile}
+                    subjects={authData.subjects}
+                    documents={authData.documents}
+                    identity={identity}
                     activeSection={activeSection}
-                    todayLessons={todayLessons}
-                    teacherStudents={teacherStudentsState}
-                    scheduleWeek={scheduleWeek}
                     materials={accountMaterials}
-                    homework={homework}
-                    journal={teacherJournal}
-                    diary={diary}
-                    messages={messages}
-                    reviews={reviews}
-                    payments={payments}
-                    onAddLesson={
-                        role === 'student'
-                            ? () => setActiveSection('findTeacher')
-                            : undefined
+                    homeworkController={homeworkController}
+                    targetHomeworkId={
+                        Number(searchParams.get('homework')) || null
                     }
-                    onFindTeacher={() => setActiveSection('findTeacher')}
-                    onChangeTeacherStudentStatus={handleChangeTeacherStudentStatus}
-                    onSendTeacherRequest={handleSendTeacherRequest}
+                    createHomeworkRelationId={
+                        searchParams.get('create') === '1'
+                            ? Number(searchParams.get('relation')) || null
+                            : null
+                    }
+                    createHomeworkLessonId={
+                        searchParams.get('create') === '1'
+                            ? Number(searchParams.get('lesson')) || null
+                            : null
+                    }
+                    targetDiaryLessonId={
+                        Number(searchParams.get('lesson')) || null
+                    }
+                    targetJournalLessonId={
+                        activeSection === 'journal'
+                            ? Number(searchParams.get('lesson')) || null
+                            : null
+                    }
+                    targetJournalStudentId={
+                        activeSection === 'journal'
+                            ? Number(searchParams.get('student')) || null
+                            : null
+                    }
+                    targetJournalSubjectId={
+                        activeSection === 'journal'
+                            ? Number(searchParams.get('subject')) || null
+                            : null
+                    }
+                    messagesController={messagesController}
+                    notificationsController={notificationsController}
+                    messageTarget={messageTarget}
+                    teacherStudentsView={
+                        searchParams.get('view') === 'reviews'
+                            ? 'reviews'
+                            : 'students'
+                    }
+                    payments={payments}
+                    scheduleRevision={scheduleRevision}
+                    scheduleFocusDate={scheduleFocusDate}
+                    onAddLesson={
+                        role === 'teacher'
+                            ? handleOpenLessonCreation
+                            : () => handleSelectSection('findTeacher')
+                    }
+                    onFindTeacher={() => handleSelectSection('findTeacher')}
+                    onOpenHomework={(homeworkId) => {
+                        const nextParams = { section: 'homework' };
+
+                        if (homeworkId) {
+                            nextParams.homework = String(homeworkId);
+                        }
+
+                        setSearchParams(nextParams);
+                        setIsSidebarOpen(false);
+                    }}
+                    onOpenStudentMessage={(student) => {
+                        setMessageTarget({
+                            studentId: student.studentId,
+                            channelType: 'student',
+                            requestId: Date.now(),
+                        });
+                        handleSelectSection('messages');
+                    }}
+                    onCreateStudentHomework={(student) => {
+                        setSearchParams({
+                            section: 'homework',
+                            create: '1',
+                            relation: String(student.relationId),
+                        });
+                        setIsSidebarOpen(false);
+                    }}
+                    onOpenStudentJournal={(student) => {
+                        setSearchParams({
+                            section: 'journal',
+                            student: String(student.studentId),
+                            subject: String(student.subjectId),
+                        });
+                        setIsSidebarOpen(false);
+                    }}
+                    onCloseHomeworkCreate={() => {
+                        setSearchParams({ section: 'homework' });
+                    }}
+                    onOpenNotification={handleOpenNotification}
+                    onTeacherRequestSent={() =>
+                        handleSelectSection('teachers')
+                    }
                 />
             </div>
+
+            {role === 'teacher' && lessonCreation && (
+                <CreateLessonModal
+                    initialRelationId={
+                        lessonCreation.initialRelationId
+                    }
+                    onClose={() => setLessonCreation(null)}
+                    onCreated={handleLessonCreated}
+                />
+            )}
         </main>
     );
 }

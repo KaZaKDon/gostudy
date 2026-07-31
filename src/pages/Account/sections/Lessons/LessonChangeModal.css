@@ -1,0 +1,248 @@
+.lesson-change-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.lesson-change-modal__overlay {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: var(--color-overlay);
+}
+
+.lesson-change-modal__panel {
+    position: relative;
+    z-index: 1;
+    width: min(680px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-card);
+}
+
+.lesson-change-modal__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.lesson-change-modal__header span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.lesson-change-modal__header h2,
+.lesson-change-modal__header p {
+    margin: 0;
+}
+
+.lesson-change-modal__header p {
+    margin-top: 6px;
+    color: var(--color-ink-muted);
+}
+
+.lesson-change-modal__close {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    font-size: 1.5rem;
+    line-height: 1;
+    background: var(--color-surface-strong);
+}
+
+.lesson-change-modal__form {
+    max-height: calc(100vh - 185px);
+    overflow-y: auto;
+}
+
+.lesson-change-modal__summary,
+.lesson-change-modal__request,
+.lesson-change-modal__fields,
+.lesson-change-modal__confirmation {
+    margin: 20px 22px 0;
+}
+
+.lesson-change-modal__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+}
+
+.lesson-change-modal__summary strong {
+    flex-basis: 100%;
+}
+
+.lesson-change-modal__summary span,
+.lesson-change-modal__request span {
+    color: var(--color-ink-muted);
+}
+
+.lesson-change-modal__request {
+    padding: 14px;
+    border-left: 4px solid var(--schedule-accent, var(--color-student));
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-strong);
+}
+
+.lesson-change-modal__request p {
+    margin: 0;
+}
+
+.lesson-change-modal__request p + p {
+    margin-top: 8px;
+}
+
+.lesson-change-modal__fields {
+    display: grid;
+    gap: 16px;
+}
+
+.lesson-change-modal__field {
+    display: grid;
+    gap: 8px;
+}
+
+.lesson-change-modal__field > span,
+.lesson-change-modal__decision legend {
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.lesson-change-modal__field input,
+.lesson-change-modal__field textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-text);
+    font: inherit;
+    background: var(--color-surface-strong);
+    outline: none;
+}
+
+.lesson-change-modal__field textarea {
+    resize: vertical;
+}
+
+.lesson-change-modal__field input:focus,
+.lesson-change-modal__field textarea:focus {
+    border-color: var(--schedule-accent, var(--color-student));
+}
+
+.lesson-change-modal__decision {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.lesson-change-modal__decision legend {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.lesson-change-modal__decision label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 150px;
+    padding: 11px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-strong);
+}
+
+.lesson-change-modal__confirmation {
+    color: var(--color-ink-muted);
+}
+
+.lesson-change-modal__error {
+    margin: 18px 22px 0;
+    padding: 12px 14px;
+    border: 1px solid var(--color-accent-red);
+    border-radius: var(--radius-md);
+    color: var(--color-accent-red);
+    background: color-mix(
+        in srgb,
+        var(--color-accent-red) 9%,
+        transparent
+    );
+}
+
+.lesson-change-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+    padding: 18px 22px;
+    border-top: 1px solid var(--color-border);
+}
+
+.lesson-change-modal__actions button {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 11px 18px;
+    color: var(--color-text);
+    font-weight: 800;
+    background: var(--color-surface-strong);
+}
+
+.lesson-change-modal__actions .lesson-change-modal__submit {
+    border-color: var(--schedule-accent, var(--color-student));
+    color: var(--color-surface-paper);
+    background: var(--schedule-accent, var(--color-student));
+}
+
+.lesson-change-modal__actions .lesson-change-modal__submit--danger {
+    border-color: var(--color-accent-red);
+    background: var(--color-accent-red);
+}
+
+.lesson-change-modal button:disabled,
+.lesson-change-modal input:disabled,
+.lesson-change-modal textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+@media (max-width: 640px) {
+    .lesson-change-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .lesson-change-modal__panel {
+        max-height: 94vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .lesson-change-modal__actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}

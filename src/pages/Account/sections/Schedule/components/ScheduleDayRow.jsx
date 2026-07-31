@@ -1,4 +1,4 @@
-import { getLessonCountLabel } from '../utils.js';
+import { getLessonCountLabel } from '../../../utils/schedule.js';
 
 import { ScheduleLessonRow } from './ScheduleLessonRow.jsx';
 
@@ -7,6 +7,9 @@ export function ScheduleDayRow({
     day,
     isOpen,
     onToggle,
+    onEnterClass,
+    onOpenChange,
+    currentTime,
 }) {
     const hasLessons = day.lessons.length > 0;
 
@@ -48,6 +51,9 @@ export function ScheduleDayRow({
                             key={lesson.id}
                             role={role}
                             lesson={lesson}
+                            onEnterClass={onEnterClass}
+                            onOpenChange={onOpenChange}
+                            currentTime={currentTime}
                         />
                     ))}
                 </div>
