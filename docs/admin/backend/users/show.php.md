@@ -1,9 +1,3 @@
-# api/admin/users/show.php
-
-Назначение: карточка пользователя.
-
-Статус: ✅ Реализован.
-
 <?php
 
 require_once __DIR__ . '/../shared/require-moderator.php';
@@ -58,37 +52,56 @@ try {
         'messages_total' => 0,
     ];
 
-    $requestsStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM teacher_student_requests
-        WHERE student_id = :user_id OR teacher_id = :user_id
-    ");
-    $requestsStmt->execute(['user_id' => $userId]);
-    $stats['requests_total'] = (int) $requestsStmt->fetchColumn();
+    $safeCount = static function (
+        PDO $pdo,
+        string $sql,
+        int $userId,
+        string $metric
+    ): int {
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['user_id' => $userId]);
 
-    $lessonsStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM lessons
-        WHERE student_id = :user_id OR teacher_id = :user_id
-    ");
-    $lessonsStmt->execute(['user_id' => $userId]);
-    $stats['lessons_total'] = (int) $lessonsStmt->fetchColumn();
+            return (int) $stmt->fetchColumn();
+        } catch (Throwable $error) {
+            error_log(sprintf(
+                'admin/users/show.php metric=%s user_id=%d: %s',
+                $metric,
+                $userId,
+                $error->getMessage()
+            ));
 
-    $homeworkStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM homework
-        WHERE student_id = :user_id OR teacher_id = :user_id
-    ");
-    $homeworkStmt->execute(['user_id' => $userId]);
-    $stats['homework_total'] = (int) $homeworkStmt->fetchColumn();
+            return 0;
+        }
+    };
 
-    $messagesStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM messages
-        WHERE sender_id = :user_id
-    ");
-    $messagesStmt->execute(['user_id' => $userId]);
-    $stats['messages_total'] = (int) $messagesStmt->fetchColumn();
+    $stats['requests_total'] = $safeCount(
+        $pdo,
+        'SELECT COUNT(*) FROM teacher_student_requests '
+            . 'WHERE student_id = :user_id OR teacher_id = :user_id',
+        $userId,
+        'requests_total'
+    );
+    $stats['lessons_total'] = $safeCount(
+        $pdo,
+        'SELECT COUNT(*) FROM lessons '
+            . 'WHERE student_id = :user_id OR teacher_id = :user_id',
+        $userId,
+        'lessons_total'
+    );
+    $stats['homework_total'] = $safeCount(
+        $pdo,
+        'SELECT COUNT(*) FROM homework '
+            . 'WHERE student_id = :user_id OR teacher_id = :user_id',
+        $userId,
+        'homework_total'
+    );
+    $stats['messages_total'] = $safeCount(
+        $pdo,
+        'SELECT COUNT(*) FROM messages WHERE sender_id = :user_id',
+        $userId,
+        'messages_total'
+    );
 
     adminJsonResponse([
         'success' => true,
@@ -98,9 +111,9 @@ try {
         ],
     ]);
 } catch (Throwable $error) {
+    error_log('admin/users/show.php: ' . $error->getMessage());
     adminJsonResponse([
         'success' => false,
         'message' => 'Ошибка получения карточки пользователя',
-        'error' => $error->getMessage(),
     ], 500);
 }

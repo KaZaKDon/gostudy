@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { Pagination } from '../../components/ui/index.js';
 import { useStudents } from '../../hooks/useStudents.js';
 
@@ -8,6 +11,8 @@ import { StudentsViewModal } from './StudentsViewModal.jsx';
 import './students.css';
 
 export function StudentsPage() {
+    const navigate = useNavigate();
+    const { studentId } = useParams();
     const {
         students,
         filters,
@@ -30,6 +35,20 @@ export function StudentsPage() {
         closeStudent,
         updateStudentStatus,
     } = useStudents();
+
+    useEffect(() => {
+        if (/^[1-9]\d*$/.test(studentId || '')) {
+            openStudent(Number(studentId));
+        }
+    }, [openStudent, studentId]);
+
+    function closeStudentProfile() {
+        closeStudent();
+
+        if (studentId) {
+            navigate('/admin/students', { replace: true });
+        }
+    }
 
     return (
         <div className="admin-page students-page">
@@ -66,7 +85,7 @@ export function StudentsPage() {
                 isLoading={isStudentLoading}
                 isStatusUpdating={isStatusUpdating}
                 error={studentError}
-                onClose={closeStudent}
+                onClose={closeStudentProfile}
                 onUpdateStatus={updateStudentStatus}
             />
         </div>

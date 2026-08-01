@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { Pagination } from '../../components/ui/index.js';
 
 import { useTeachers } from '../../hooks/useTeachers.js';
@@ -9,6 +12,8 @@ import { TeachersViewModal } from './TeachersViewModal.jsx';
 import './teachers.css';
 
 export function TeachersPage() {
+    const navigate = useNavigate();
+    const { teacherId } = useParams();
     const {
         teachers,
         filters,
@@ -33,6 +38,20 @@ export function TeachersPage() {
         updateTeacherStatus,
         updateTeacherVerification,
     } = useTeachers();
+
+    useEffect(() => {
+        if (/^[1-9]\d*$/.test(teacherId || '')) {
+            openTeacher(Number(teacherId));
+        }
+    }, [openTeacher, teacherId]);
+
+    function closeTeacherProfile() {
+        closeTeacher();
+
+        if (teacherId) {
+            navigate('/admin/teachers', { replace: true });
+        }
+    }
 
     return (
         <div className="admin-page teachers-page">
@@ -70,7 +89,7 @@ export function TeachersPage() {
                 isStatusUpdating={isStatusUpdating}
                 isVerificationUpdating={isVerificationUpdating}
                 error={teacherError}
-                onClose={closeTeacher}
+                onClose={closeTeacherProfile}
                 onUpdateStatus={updateTeacherStatus}
                 onUpdateVerification={updateTeacherVerification}
             />

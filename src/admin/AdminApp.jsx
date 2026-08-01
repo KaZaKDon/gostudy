@@ -91,7 +91,17 @@ export function AdminApp() {
                 />
 
                 <Route
+                    path="students/:studentId"
+                    element={<StudentsPage />}
+                />
+
+                <Route
                     path="teachers"
+                    element={<TeachersPage />}
+                />
+
+                <Route
+                    path="teachers/:teacherId"
                     element={<TeachersPage />}
                 />
 

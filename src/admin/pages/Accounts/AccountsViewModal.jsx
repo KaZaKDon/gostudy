@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 import {
     Badge,
     Button,
@@ -52,6 +54,7 @@ export function AccountsViewModal({
     onUpdateStatus,
     onUpdateRole,
 }) {
+    const navigate = useNavigate();
     const user = accountData?.user;
 
     function getProfilePath() {
@@ -143,7 +146,7 @@ export function AccountsViewModal({
                         <Button
                             variant="secondary"
                             onClick={() => {
-                                window.location.href = profilePath;
+                                navigate(profilePath);
                             }}
                         >
                             Перейти в профиль
