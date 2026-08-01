@@ -1,7 +1,3 @@
-# shared/require-moderator.php
-
-Проверка прав администратора или модератора.
-
 <?php
 
 declare(strict_types=1);

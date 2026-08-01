@@ -139,6 +139,5 @@ try {
     adminJsonResponse([
         'success' => false,
         'message' => 'Ошибка получения списка учеников',
-        'error' => $error->getMessage(),
     ], 500);
 }

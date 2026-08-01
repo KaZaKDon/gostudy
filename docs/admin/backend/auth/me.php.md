@@ -1,7 +1,3 @@
-# api/admin/auth/me.php
-
-Назначение: проверка текущей сессии.
-
 <?php
 
 require_once __DIR__ . '/../shared/require-moderator.php';

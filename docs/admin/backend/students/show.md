@@ -271,6 +271,5 @@ try {
     adminJsonResponse([
         'success' => false,
         'message' => 'Ошибка получения карточки ученика',
-        'error' => $error->getMessage(),
     ], 500);
 }

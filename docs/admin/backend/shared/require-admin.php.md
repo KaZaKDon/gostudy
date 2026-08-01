@@ -1,7 +1,3 @@
-# shared/require-admin.php
-
-Проверка прав администратора.
-
 <?php
 
 declare(strict_types=1);

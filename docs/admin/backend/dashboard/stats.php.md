@@ -1,24 +1,16 @@
-# dashboard/stats.php
-
-Получение статистики Dashboard.
-
 <?php
 
-header('Access-Control-Allow-Origin: http://localhost:5173');
-header('Access-Control-Allow-Credentials: true');
-header('Vary: Origin');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-header('Content-Type: application/json; charset=utf-8');
+declare(strict_types=1);
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
-
+require_once __DIR__ . '/../../shared/cors.php';
 require_once __DIR__ . '/../shared/require-moderator.php';
 
 $auth = requireAdminOrModerator();
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+    header('Allow: GET');
+    adminErrorResponse('Метод не поддерживается', 405);
+}
 
 $pdo = $auth['pdo'];
 

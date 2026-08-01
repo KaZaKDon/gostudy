@@ -1,7 +1,3 @@
-# api/admin/auth/logout.php
-
-Назначение: выход.
-
 <?php
 
 require_once __DIR__ . '/../../shared/cors.php';
