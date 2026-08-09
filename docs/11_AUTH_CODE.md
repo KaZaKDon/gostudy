@@ -748,7 +748,6 @@ try {
         UPDATE users
         SET
             email_verified_at = NOW(),
-            email_verification_token = NULL,
             email_verification_expires_at = NULL,
             email_verification_sent_at = NULL
         WHERE id = :id
@@ -1443,7 +1442,8 @@ export function VerifyEmail() {
 - `verify-email.php` подтверждает email;
 - после подтверждения:
   - `email_verified_at` заполняется;
-  - `email_verification_token` очищается;
+  - `email_verification_token` сохраняется, чтобы повторное открытие ссылки
+    возвращало успешный ответ «Электронная почта уже подтверждена»;
   - `email_verification_expires_at` очищается;
   - `email_verification_sent_at` очищается;
 - просроченная ссылка возвращает `410`;
@@ -1458,8 +1458,9 @@ export function VerifyEmail() {
 
 - Ссылка подтверждения действует 24 часа.
 - Повторная отправка разрешена не чаще одного раза в 60 секунд.
-- Токены одноразовые.
-- После успешного подтверждения токен очищается.
+- Повторное открытие использованной ссылки безопасно и сообщает, что почта
+  уже подтверждена.
+- Повторная отправка письма заменяет токен новым.
 - Минимальная регистрация собирает только:
   - роль;
   - email;
