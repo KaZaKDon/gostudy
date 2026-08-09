@@ -73,21 +73,21 @@ try {
     $update = $pdo->prepare("
         UPDATE teacher_profiles
         SET
-            verification_status = :status,
+            verification_status = :verification_status,
             verification_comment = :comment,
             verified_by = :verified_by,
             verified_at = CASE
-                WHEN :status = 'approved'
+                WHEN :verified_at_status = 'approved'
                 THEN NOW()
                 ELSE NULL
             END,
             is_verified = CASE
-                WHEN :status = 'approved'
+                WHEN :is_verified_status = 'approved'
                 THEN 1
                 ELSE 0
             END,
             is_visible = CASE
-                WHEN :status = 'approved'
+                WHEN :is_visible_status = 'approved'
                 THEN 1
                 ELSE 0
             END,
@@ -96,7 +96,10 @@ try {
     ");
 
     $update->execute([
-        'status' => $status,
+        'verification_status' => $status,
+        'verified_at_status' => $status,
+        'is_verified_status' => $status,
+        'is_visible_status' => $status,
         'comment' => $comment,
         'verified_by' => (int) $user['id'],
         'teacher_id' => $teacherId,

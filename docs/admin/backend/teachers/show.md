@@ -246,38 +246,42 @@ try {
             (
                 SELECT COUNT(*)
                 FROM teacher_students ts
-                WHERE ts.teacher_id = :teacher_id
+                WHERE ts.teacher_id = :active_students_teacher_id
                     AND ts.status = 'active'
             ) AS active_students_total,
 
             (
                 SELECT COUNT(*)
                 FROM lessons l
-                WHERE l.teacher_id = :teacher_id
+                WHERE l.teacher_id = :lessons_teacher_id
             ) AS lessons_total,
 
             (
                 SELECT COUNT(*)
                 FROM homework h
-                WHERE h.teacher_id = :teacher_id
+                WHERE h.teacher_id = :homework_teacher_id
             ) AS homework_total,
 
             (
                 SELECT COUNT(*)
                 FROM teacher_documents td
-                WHERE td.teacher_id = :teacher_id
+                WHERE td.teacher_id = :documents_teacher_id
             ) AS documents_total,
 
             (
                 SELECT COUNT(*)
                 FROM teacher_documents td
-                WHERE td.teacher_id = :teacher_id
+                WHERE td.teacher_id = :pending_documents_teacher_id
                     AND td.status = 'pending'
             ) AS pending_documents_total
     ");
 
     $statsStmt->execute([
-        'teacher_id' => $teacherId,
+        'active_students_teacher_id' => $teacherId,
+        'lessons_teacher_id' => $teacherId,
+        'homework_teacher_id' => $teacherId,
+        'documents_teacher_id' => $teacherId,
+        'pending_documents_teacher_id' => $teacherId,
     ]);
 
     adminJsonResponse([
