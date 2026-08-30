@@ -123,6 +123,16 @@ try {
         $verificationUrl
     );
 
+    if (!$mailSent) {
+        $stmt = $pdo->prepare("
+            UPDATE users
+            SET email_verification_sent_at = NULL
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $stmt->execute(['id' => $userId]);
+    }
+
     successResponse([
         'message' => $mailSent
             ? 'Регистрация выполнена. Мы отправили письмо для подтверждения email.'

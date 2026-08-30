@@ -59,35 +59,35 @@ ORDER BY id;
 
 ### 3. API на хосте
 
-Содержимое каталога `HOST_API` разместить поверх каталога сайта,
-сохраняя структуру:
+Источником истины служат файлы в `docs/api` и `docs/admin`. При размещении на
+хосте убирается только конечный суффикс `.md`:
 
 ```text
-HOST_API/api/shared/reviews.php
+docs/api/shared/reviews.php.md
     → /api/shared/reviews.php
 
-HOST_API/api/shared/notifications.php
+docs/api/shared/notifications.php.md
     → /api/shared/notifications.php
 
-HOST_API/api/reviews/index.php
+docs/api/reviews/index.php.md
     → /api/reviews/index.php
 
-HOST_API/api/reviews/save.php
+docs/api/reviews/save.php.md
     → /api/reviews/save.php
 
-HOST_API/api/reviews/reply.php
+docs/api/reviews/reply.php.md
     → /api/reviews/reply.php
 
-HOST_API/api/student/teacher.php
+docs/api/student/teacher.php.md
     → /api/student/teacher.php
 
-HOST_API/api/admin/reviews/index.php
+docs/admin/reviews/index.php.md
     → /api/admin/reviews/index.php
 
-HOST_API/api/admin/reviews/moderate.php
+docs/admin/reviews/moderate.php.md
     → /api/admin/reviews/moderate.php
 
-HOST_API/api/admin/dashboard/stats.php
+docs/admin/dashboard/stats.php.md
     → /api/admin/dashboard/stats.php
 ```
 

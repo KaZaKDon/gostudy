@@ -83,7 +83,8 @@ export function Register() {
             );
 
             navigate(
-                `/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
+                `/verify-email?email=${encodeURIComponent(normalizedEmail)}`
+                    + `&mailSent=${result.mail_sent ? '1' : '0'}`,
                 {
                     replace: true,
                 },

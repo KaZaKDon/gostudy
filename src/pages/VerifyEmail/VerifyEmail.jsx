@@ -5,6 +5,29 @@ import { API } from '../../api/api';
 
 import './VerifyEmail.css';
 
+const verificationRequests = new Map();
+
+function requestEmailVerification(token) {
+    if (!verificationRequests.has(token)) {
+        verificationRequests.set(
+            token,
+            fetch(`${API.verifyEmail}?token=${encodeURIComponent(token)}`)
+                .then(async (response) => ({
+                    response,
+                    result: await response.json(),
+                }))
+                .finally(() => {
+                    window.setTimeout(
+                        () => verificationRequests.delete(token),
+                        1000,
+                    );
+                }),
+        );
+    }
+
+    return verificationRequests.get(token);
+}
+
 const STATUS_CONTENT = {
     loading: {
         title: 'Проверяем ссылку',
@@ -15,6 +38,12 @@ const STATUS_CONTENT = {
     waiting: {
         title: 'Подтвердите электронную почту',
         text: 'Мы уже отправили письмо для подтверждения. Проверьте почту или запросите новое письмо.',
+        buttonText: 'Отправить письмо повторно',
+        buttonLink: '',
+    },
+    deliveryFailed: {
+        title: 'Письмо не отправлено',
+        text: 'Регистрация завершена, но почтовый сервер не принял письмо. Запросите отправку ещё раз.',
         buttonText: 'Отправить письмо повторно',
         buttonLink: '',
     },
@@ -57,10 +86,14 @@ export function VerifyEmail() {
         [searchParams]
     );
 
+    const initialMailSent = searchParams.get('mailSent');
+
     const initialStatus = token
         ? 'loading'
         : emailFromQuery
-            ? 'waiting'
+            ? initialMailSent === '0'
+                ? 'deliveryFailed'
+                : 'waiting'
             : 'invalid';
 
     const [status, setStatus] = useState(initialStatus);
@@ -77,11 +110,8 @@ export function VerifyEmail() {
 
         const verifyEmail = async () => {
             try {
-                const response = await fetch(
-                    `${API.verifyEmail}?token=${encodeURIComponent(token)}`
-                );
-
-                const result = await response.json();
+                const { response, result } =
+                    await requestEmailVerification(token);
 
                 if (!isMounted) {
                     return;
@@ -166,7 +196,7 @@ export function VerifyEmail() {
                         <div className="mail-envelope__seal">
                             {(status === 'success' || status === 'resent') && 'GS'}
                             {(status === 'expired' || status === 'waiting') && '⏳'}
-                            {status === 'invalid' && '×'}
+                            {(status === 'invalid' || status === 'deliveryFailed') && '×'}
                             {status === 'loading' && '…'}
                         </div>
                     </div>
@@ -181,7 +211,11 @@ export function VerifyEmail() {
 
                     <p>{content.text}</p>
 
-                    {email && (status === 'waiting' || status === 'expired') && (
+                    {email && (
+                        status === 'waiting'
+                        || status === 'expired'
+                        || status === 'deliveryFailed'
+                    ) && (
                         <p className="verify-email-card__email">
                             {email}
                         </p>
@@ -193,7 +227,11 @@ export function VerifyEmail() {
                         </p>
                     )}
 
-                    {(status === 'waiting' || status === 'expired') ? (
+                    {(
+                        status === 'waiting'
+                        || status === 'expired'
+                        || status === 'deliveryFailed'
+                    ) ? (
                         <button
                             type="button"
                             className="verify-email-card__button"
