@@ -1,12 +1,9 @@
 import {
-    useEffect,
-    useState,
-} from 'react';
-
-import {
     useLocation,
     useNavigate,
 } from 'react-router-dom';
+
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 
 const pageMeta = {
     '/admin/dashboard': {
@@ -57,6 +54,12 @@ const pageMeta = {
             'Модерация отзывов платформы',
     },
 
+    '/admin/materials': {
+        title: 'Материалы',
+        description:
+            'Проверка публикаций и обработка жалоб',
+    },
+
     '/admin/reports': {
         title: 'Жалобы',
         description:
@@ -102,9 +105,10 @@ const roleLabels = {
 export function AdminHeader() {
     const location = useLocation();
     const navigate = useNavigate();
-
-    const [user, setUser] =
-        useState(null);
+    const {
+        logout,
+        user,
+    } = useAdminAuth();
 
     const meta =
         pageMeta[location.pathname]
@@ -114,42 +118,9 @@ export function AdminHeader() {
                 'Административная панель GoStudy',
         };
 
-    useEffect(() => {
-        let isActive = true;
-
-        fetch('/api/admin/auth/me.php', {
-            credentials: 'include',
-        })
-            .then((response) => (
-                response.json()
-            ))
-            .then((data) => {
-                if (
-                    isActive
-                    && data.success
-                ) {
-                    setUser(data.data.user);
-                }
-            })
-            .catch(() => {
-                if (isActive) {
-                    setUser(null);
-                }
-            });
-
-        return () => {
-            isActive = false;
-        };
-    }, []);
-
     async function handleLogout() {
         try {
-            await fetch(
-                '/api/admin/auth/logout.php',
-                {
-                    credentials: 'include',
-                },
-            );
+            await logout();
         } finally {
             navigate(
                 '/admin/login',

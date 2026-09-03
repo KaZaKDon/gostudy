@@ -9,6 +9,7 @@ const roleOptions = [
     { value: '', label: 'Все роли' },
     { value: 'student', label: 'Ученик' },
     { value: 'teacher', label: 'Преподаватель' },
+    { value: 'parent', label: 'Родитель' },
     { value: 'admin', label: 'Администратор' },
     { value: 'moderator', label: 'Модератор' },
 ];
@@ -17,7 +18,7 @@ const statusOptions = [
     { value: '', label: 'Все статусы' },
     { value: 'active', label: 'Активен' },
     { value: 'blocked', label: 'Заблокирован' },
-    { value: 'deleted', label: 'Архив' },
+    { value: 'archived', label: 'Архив' },
 ];
 
 export function AccountsToolbar({

@@ -6,6 +6,7 @@ import {
 
 import {
     API,
+    API_FEATURES,
     getAuthHeaders,
 } from '../../../api/api.js';
 
@@ -23,10 +24,16 @@ export function useSchedule(
     );
 
     const [schedule, setSchedule] = useState([]);
-    const [requestStatus, setRequestStatus] = useState('loading');
+    const [requestStatus, setRequestStatus] = useState(
+        API_FEATURES.schedule ? 'loading' : 'success',
+    );
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
+        if (!API_FEATURES.schedule) {
+            return undefined;
+        }
+
         const controller = new AbortController();
 
         async function loadSchedule() {

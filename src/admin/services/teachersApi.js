@@ -1,7 +1,8 @@
-const TEACHERS_API_URL = '/api/admin/teachers';
+import { API } from '../../api/api.js';
+import { adminApiRequest } from './adminApiRequest.js';
 
 export const teachersApi = {
-    async getTeachers(params = {}) {
+    getTeachers(params = {}) {
         const searchParams = new URLSearchParams();
 
         Object.entries(params).forEach(([key, value]) => {
@@ -10,44 +11,42 @@ export const teachersApi = {
             }
         });
 
-        const response = await fetch(`${TEACHERS_API_URL}/index.php?${searchParams.toString()}`, {
-            credentials: 'include',
-        });
-
-        return response.json();
+        return adminApiRequest(
+            `${API.adminTeachers}?${searchParams.toString()}`,
+        );
     },
 
-    async getTeacher(id) {
-        const response = await fetch(`${TEACHERS_API_URL}/show.php?id=${id}`, {
-            credentials: 'include',
-        });
-
-        return response.json();
+    getTeacher(id) {
+        return adminApiRequest(`${API.adminTeachers}/${id}`);
     },
 
-    async updateStatus(payload) {
-        const response = await fetch(`${TEACHERS_API_URL}/update-status.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    updateStatus({
+        id,
+        status,
+        blocked_reason = '',
+        archive_reason = '',
+    }) {
+        return adminApiRequest(`${API.adminAccounts}/${id}/status`, {
+            method: 'PATCH',
+            body: {
+                status,
+                blocked_reason,
+                archive_reason,
             },
-            credentials: 'include',
-            body: JSON.stringify(payload),
         });
-
-        return response.json();
     },
 
-    async updateVerification(payload) {
-        const response = await fetch(`${TEACHERS_API_URL}/update-verification.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(payload),
+    updateVerification({ id, status, comment = '' }) {
+        return adminApiRequest(`${API.adminTeachers}/${id}/verification`, {
+            method: 'PATCH',
+            body: { status, comment },
         });
+    },
 
-        return response.json();
+    updateVisibility({ id, is_visible }) {
+        return adminApiRequest(`${API.adminTeachers}/${id}/visibility`, {
+            method: 'PATCH',
+            body: { is_visible },
+        });
     },
 };

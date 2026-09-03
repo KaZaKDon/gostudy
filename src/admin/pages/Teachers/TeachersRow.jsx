@@ -4,32 +4,12 @@ import {
     TableCell,
     TableRow,
 } from '../../components/ui/index.js';
-
-const statusLabels = {
-    active: 'Активен',
-    blocked: 'Заблокирован',
-    deleted: 'Архив',
-};
-
-const statusVariants = {
-    active: 'success',
-    blocked: 'danger',
-    deleted: 'info',
-};
-
-const verificationLabels = {
-    draft: 'Черновик',
-    pending: 'На проверке',
-    approved: 'Одобрен',
-    rejected: 'На доработку',
-};
-
-const verificationVariants = {
-    draft: 'default',
-    pending: 'warning',
-    approved: 'success',
-    rejected: 'danger',
-};
+import {
+    teacherStatusLabels,
+    teacherStatusVariants,
+    verificationLabels,
+    verificationVariants,
+} from './teacherPresentation.js';
 
 function formatRating(value, reviewsCount) {
     const rating = Number(value || 0);
@@ -46,6 +26,7 @@ export function TeachersRow({
     isStatusUpdating,
     onOpen,
     onUpdateStatus,
+    canManageAccounts,
 }) {
     function handleToggleStatus() {
         if (isStatusUpdating) {
@@ -80,7 +61,7 @@ export function TeachersRow({
 
         onUpdateStatus({
             id: teacher.id,
-            status: 'deleted',
+            status: 'archived',
             blocked_reason: '',
             archive_reason: 'Архивирован администратором',
         });
@@ -114,8 +95,8 @@ export function TeachersRow({
             <TableCell>{teacher.city || '—'}</TableCell>
 
             <TableCell>
-                <Badge variant={statusVariants[teacher.status] || 'default'}>
-                    {statusLabels[teacher.status] || teacher.status || '—'}
+                <Badge variant={teacherStatusVariants[teacher.status] || 'default'}>
+                    {teacherStatusLabels[teacher.status] || teacher.status || '—'}
                 </Badge>
             </TableCell>
 
@@ -147,7 +128,7 @@ export function TeachersRow({
                         Открыть
                     </Button>
 
-                    {teacher.status !== 'deleted' && (
+                    {canManageAccounts && teacher.status !== 'archived' && teacher.status !== 'deleted' && (
                         <Button
                             size="sm"
                             variant={teacher.status === 'blocked' ? 'primary' : 'danger'}
@@ -158,7 +139,7 @@ export function TeachersRow({
                         </Button>
                     )}
 
-                    {teacher.status !== 'deleted' && (
+                    {canManageAccounts && teacher.status !== 'archived' && teacher.status !== 'deleted' && (
                         <Button
                             size="sm"
                             variant="secondary"
@@ -169,7 +150,7 @@ export function TeachersRow({
                         </Button>
                     )}
 
-                    {teacher.status === 'deleted' && (
+                    {canManageAccounts && (teacher.status === 'archived' || teacher.status === 'deleted') && (
                         <Button
                             size="sm"
                             variant="primary"

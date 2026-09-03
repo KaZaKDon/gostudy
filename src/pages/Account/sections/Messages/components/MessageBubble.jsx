@@ -1,29 +1,16 @@
-function getOwnAuthorType(role, activeTab) {
-    if (role === 'teacher') {
-        return 'teacher';
-    }
-
-    if (activeTab === 'parent') {
-        return 'parent';
-    }
-
-    return 'student';
-}
+import { formatFileSize } from '../../../../../api/upload.js';
 
 export function MessageBubble({
-    role,
-    activeTab,
     message,
+    onDownloadAttachment,
+    onReport,
 }) {
-    const ownAuthorType = getOwnAuthorType(role, activeTab);
-    const isOwnMessage = message.authorType === ownAuthorType;
-
     return (
         <div
             className={[
                 'message-bubble',
                 `message-bubble--${message.authorType}`,
-                isOwnMessage
+                message.isOwn
                     ? 'message-bubble--own'
                     : 'message-bubble--other',
             ].join(' ')}
@@ -33,7 +20,32 @@ export function MessageBubble({
                 <span>{message.time}</span>
             </div>
 
-            <p>{message.text}</p>
+            {message.text && <p>{message.text}</p>}
+
+            {!!message.attachments.length && (
+                <div className="message-bubble__attachments">
+                    {message.attachments.map((attachment) => (
+                        <button
+                            key={attachment.id}
+                            type="button"
+                            onClick={() => onDownloadAttachment(attachment)}
+                        >
+                            <span>{attachment.originalName}</span>
+                            <small>{formatFileSize(attachment.fileSize)}</small>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {!message.isOwn && !message.isHidden && (
+                <button
+                    type="button"
+                    className="message-bubble__report"
+                    onClick={() => onReport(message)}
+                >
+                    Пожаловаться
+                </button>
+            )}
         </div>
     );
 }

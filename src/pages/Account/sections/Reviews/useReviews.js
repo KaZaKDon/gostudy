@@ -46,10 +46,10 @@ export function useReviews(role) {
         setErrorMessage('');
 
         try {
-            const query = role === 'teacher'
-                ? `?page=${page}&limit=20`
-                : '';
-            const result = await apiRequest(`${API.reviews}${query}`, {
+            const url = role === 'teacher'
+                ? `${API.reviews}?page=${page}&limit=20`
+                : API.reviews;
+            const result = await apiRequest(url, {
                 signal,
             });
             const nextItems = role === 'teacher'

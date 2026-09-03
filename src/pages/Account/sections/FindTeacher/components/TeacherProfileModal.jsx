@@ -149,6 +149,25 @@ export function TeacherProfileModal({
                 },
             });
 
+            setProfile((currentProfile) => {
+                if (!currentProfile) return currentProfile;
+
+                const pendingIds = Array.isArray(
+                    currentProfile.pending_subject_ids,
+                )
+                    ? currentProfile.pending_subject_ids
+                    : [];
+
+                return {
+                    ...currentProfile,
+                    pending_subject_ids: [
+                        ...new Set([
+                            ...pendingIds,
+                            selectedSubject.id,
+                        ]),
+                    ],
+                };
+            });
             setSubmitStatus('success');
             onRequestSent?.(result.request);
         } catch (error) {
@@ -352,9 +371,11 @@ export function TeacherProfileModal({
                                     <span>Предмет</span>
                                     <select
                                         value={selectedSubjectId}
-                                        onChange={(event) =>
-                                            setSelectedSubjectId(event.target.value)
-                                        }
+                                        onChange={(event) => {
+                                            setSelectedSubjectId(event.target.value);
+                                            setSubmitStatus('idle');
+                                            setErrorMessage('');
+                                        }}
                                     >
                                         {profile.subjects.map((subject) => (
                                             <option key={subject.id} value={subject.id}>

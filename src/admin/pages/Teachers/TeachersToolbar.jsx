@@ -9,14 +9,13 @@ const statusOptions = [
     { value: '', label: 'Все статусы' },
     { value: 'active', label: 'Активен' },
     { value: 'blocked', label: 'Заблокирован' },
-    { value: 'deleted', label: 'Архив' },
+    { value: 'archived', label: 'Архив' },
 ];
 
 const verificationOptions = [
     { value: '', label: 'Любая проверка' },
-    { value: 'draft', label: 'Черновик' },
     { value: 'pending', label: 'На проверке' },
-    { value: 'approved', label: 'Одобрен' },
+    { value: 'verified', label: 'Подтверждён' },
     { value: 'rejected', label: 'На доработку' },
 ];
 

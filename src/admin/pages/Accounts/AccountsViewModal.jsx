@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 import {
     Badge,
     Button,
@@ -13,6 +14,7 @@ import './accounts.css';
 const roleLabels = {
     student: 'Ученик',
     teacher: 'Преподаватель',
+    parent: 'Родитель',
     admin: 'Администратор',
     moderator: 'Модератор',
 };
@@ -20,6 +22,7 @@ const roleLabels = {
 const roleOptions = [
     { value: 'student', label: 'Ученик' },
     { value: 'teacher', label: 'Преподаватель' },
+    { value: 'parent', label: 'Родитель' },
     { value: 'moderator', label: 'Модератор' },
     { value: 'admin', label: 'Администратор' },
 ];
@@ -27,12 +30,14 @@ const roleOptions = [
 const statusLabels = {
     active: 'Активен',
     blocked: 'Заблокирован',
-    deleted: 'Архив',
+    archived: 'Архив',
+    deleted: 'Удалён',
 };
 
 const statusVariants = {
     active: 'success',
     blocked: 'danger',
+    archived: 'info',
     deleted: 'info',
 };
 
@@ -55,7 +60,14 @@ export function AccountsViewModal({
     onUpdateRole,
 }) {
     const navigate = useNavigate();
+    const { user: currentAdmin } = useAdminAuth();
     const user = accountData?.user;
+    const isOwnAccount = Boolean(
+        user && currentAdmin && user.id === currentAdmin.id,
+    );
+    const canManageAccount = Boolean(
+        user && currentAdmin?.role === 'admin' && !isOwnAccount,
+    );
 
     function getProfilePath() {
         if (!user) {
@@ -113,7 +125,7 @@ export function AccountsViewModal({
 
         onUpdateStatus({
             id: user.id,
-            status: 'deleted',
+            status: 'archived',
             blocked_reason: '',
             archive_reason: 'Архивирован администратором',
         });
@@ -153,7 +165,7 @@ export function AccountsViewModal({
                         </Button>
                     )}
 
-                    {user && (
+                    {user && canManageAccount && (
                         <Button
                             variant={user.status === 'blocked' ? 'primary' : 'danger'}
                             loading={isStatusUpdating}
@@ -216,9 +228,16 @@ export function AccountsViewModal({
                                 <dd>{user.blocked_reason}</dd>
                             </div>
                         )}
+
+                        {user.archive_reason && (
+                            <div>
+                                <dt>Причина архивации</dt>
+                                <dd>{user.archive_reason}</dd>
+                            </div>
+                        )}
                     </dl>
 
-                    {user && user.status !== 'deleted' && (
+                    {canManageAccount && user.status !== 'archived' && user.status !== 'deleted' && (
                         <Button
                             variant="secondary"
                             loading={isStatusUpdating}
@@ -228,7 +247,7 @@ export function AccountsViewModal({
                         </Button>
                     )}
 
-                    {user && user.status === 'deleted' && (
+                    {canManageAccount && user.status === 'archived' && (
                         <Button
                             variant="primary"
                             loading={isStatusUpdating}
@@ -243,7 +262,7 @@ export function AccountsViewModal({
                             label="Назначить роль"
                             value={user.role}
                             options={roleOptions}
-                            disabled={isRoleUpdating}
+                            disabled={isRoleUpdating || !canManageAccount}
                             onChange={handleRoleChange}
                         />
                     </div>

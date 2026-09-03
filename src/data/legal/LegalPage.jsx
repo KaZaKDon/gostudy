@@ -1,15 +1,53 @@
-import { Link, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import Markdown from 'react-markdown';
+import { Link, Navigate, useParams } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
 
-import { LEGAL_DOCUMENTS } from '../../data/legal/legalDocuments.js';
+import { getLegalDocument } from './legalDocuments.js';
 
 import './LegalPage.css';
 
-export function LegalPage({ documentType }) {
-    const document = LEGAL_DOCUMENTS[documentType];
+export function LegalPage({ documentType: legacyDocumentType }) {
+    const { documentType: routeDocumentType } = useParams();
+    const document = getLegalDocument(
+        legacyDocumentType || routeDocumentType,
+    );
 
     if (!document) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/404" replace />;
     }
+
+    return (
+        <LegalDocumentView
+            document={document}
+            key={document.key}
+        />
+    );
+}
+
+function LegalDocumentView({ document }) {
+    const [content, setContent] = useState('');
+    const [loadError, setLoadError] = useState(false);
+
+    useEffect(() => {
+        let isActive = true;
+
+        document.loadContent()
+            .then((loadedContent) => {
+                if (isActive) {
+                    setContent(loadedContent);
+                }
+            })
+            .catch(() => {
+                if (isActive) {
+                    setLoadError(true);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [document]);
 
     return (
         <main className="legal-page">
@@ -19,44 +57,36 @@ export function LegalPage({ documentType }) {
                 </Link>
 
                 <p className="legal-card__eyebrow">
-                    {document.eyebrow}
+                    Документы GoStudy · редакция {document.version}
                 </p>
 
-                <h1>
-                    {document.title}
-                </h1>
-
-                <p className="legal-card__date">
-                    {document.updatedAt}
-                </p>
-
-                <p className="legal-card__intro">
-                    {document.intro}
-                </p>
+                {document.status === 'draft' && (
+                    <div className="legal-card__notice" role="note">
+                        <strong>Проект документа.</strong>{' '}
+                        До коммерческого запуска требуется юридическая
+                        проверка и заполнение реквизитов Оператора.
+                    </div>
+                )}
 
                 <div className="legal-card__content">
-                    {document.sections.map((section) => (
-                        <section
-                            className="legal-card__section"
-                            key={section.title}
-                        >
-                            <h2>
-                                {section.title}
-                            </h2>
+                    {!content && !loadError && (
+                        <p className="legal-card__state" role="status">
+                            Загружаем документ…
+                        </p>
+                    )}
 
-                            {section.paragraphs.map((paragraph) => (
-                                <p key={paragraph}>
-                                    {paragraph}
-                                </p>
-                            ))}
-                        </section>
-                    ))}
-                </div>
+                    {loadError && (
+                        <p className="legal-card__state" role="alert">
+                            Не удалось загрузить документ. Обновите страницу
+                            или напишите в support@gostudyonline.ru.
+                        </p>
+                    )}
 
-                <div className="legal-card__notice">
-                    <strong>Важно:</strong> текст используется как черновой
-                    вариант для демо-версии GoStudy. Перед полноценным запуском
-                    и подключением оплаты документ нужно юридически вычитать.
+                    {content && (
+                        <Markdown remarkPlugins={[remarkGfm]}>
+                            {content}
+                        </Markdown>
+                    )}
                 </div>
             </article>
         </main>

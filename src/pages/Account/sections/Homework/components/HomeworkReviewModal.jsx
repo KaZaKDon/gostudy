@@ -264,7 +264,13 @@ export function HomeworkReviewModal({
                                     <strong>Попытка №{submission.attempt_number}</strong>
                                     <span>{formatHomeworkDate(submission.submitted_at)}</span>
                                     <p>{submission.answer_text || 'Ответ приложен файлом.'}</p>
+                                    <AttachmentList
+                                        files={submission.attachments}
+                                        type="submission"
+                                        onError={setError}
+                                    />
                                     {submission.teacher_comment && <p>Комментарий: {submission.teacher_comment}</p>}
+                                    {submission.grade && <p>Оценка: {submission.grade}</p>}
                                 </article>
                             ))}
                         </details>

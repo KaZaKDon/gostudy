@@ -4,90 +4,58 @@ import {
     Loader,
     Modal,
 } from '../../components/ui/index.js';
-
-const statusLabels = {
-    active: 'Активен',
-    blocked: 'Заблокирован',
-    deleted: 'Архив',
-};
-
-const statusVariants = {
-    active: 'success',
-    blocked: 'danger',
-    deleted: 'info',
-};
-
-const verificationLabels = {
-    draft: 'Черновик',
-    pending: 'На проверке',
-    approved: 'Одобрен',
-    rejected: 'На доработку',
-};
-
-const verificationVariants = {
-    draft: 'default',
-    pending: 'warning',
-    approved: 'success',
-    rejected: 'danger',
-};
-
-const documentStatusLabels = {
-    pending: 'На проверке',
-    approved: 'Подтверждён',
-    rejected: 'Отклонён',
-};
-
-function formatFileSize(value) {
-    const bytes = Number(value || 0);
-
-    if (bytes < 1024 * 1024) {
-        return `${(bytes / 1024).toFixed(1)} КБ`;
-    }
-
-    return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
-}
-
-function formatDate(value) {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(value).toLocaleString('ru-RU');
-}
-
-function renderValue(value) {
-    return value || '—';
-}
+import { TeacherProfileDetails } from './TeacherProfileDetails.jsx';
+import {
+    teacherStatusLabels,
+    teacherStatusVariants,
+    verificationLabels,
+    verificationVariants,
+} from './teacherPresentation.js';
 
 export function TeachersViewModal({
     teacherData,
     isLoading,
     isStatusUpdating,
     isVerificationUpdating,
+    isVisibilityUpdating,
     error,
     onClose,
     onUpdateStatus,
     onUpdateVerification,
+    onUpdateVisibility,
+    canManageAccounts,
 }) {
     const teacher = teacherData?.teacher;
-    const documents = teacherData?.documents || [];
+    const isArchived = teacher?.status === 'archived'
+        || teacher?.status === 'deleted';
+
+    function rejectProfile() {
+        const comment = window.prompt(
+            'Укажите, что преподавателю необходимо исправить',
+            teacher.verification_comment || '',
+        );
+
+        if (comment === null) {
+            return;
+        }
+
+        onUpdateVerification({
+            id: teacher.id,
+            status: 'rejected',
+            comment: comment.trim(),
+        });
+    }
 
     return (
         <Modal
             isOpen={Boolean(isLoading || error || teacher)}
             title="Карточка преподавателя"
-            description="Аккаунт, профиль и модерация"
+            description="Аккаунт, полная анкета и модерация"
             onClose={onClose}
         >
-            {isLoading && (
-                <Loader text="Загрузка преподавателя..." />
-            )}
+            {isLoading && <Loader text="Загрузка преподавателя..." />}
 
-            {error && (
-                <div className="admin-alert">
-                    {error}
-                </div>
-            )}
+            {error && <div className="admin-alert">{error}</div>}
 
             {!isLoading && teacher && (
                 <div className="teacher-view">
@@ -98,258 +66,142 @@ export function TeachersViewModal({
                         </div>
 
                         <div className="teacher-view__badges">
-                            <Badge variant={statusVariants[teacher.status] || 'default'}>
-                                {statusLabels[teacher.status] || teacher.status || '—'}
+                            <Badge
+                                variant={
+                                    teacherStatusVariants[teacher.status]
+                                    || 'default'
+                                }
+                            >
+                                {teacherStatusLabels[teacher.status]
+                                    || teacher.status
+                                    || '—'}
                             </Badge>
-
-                            <Badge variant={verificationVariants[teacher.verification_status] || 'default'}>
-                                {verificationLabels[teacher.verification_status] || 'Профиль не создан'}
+                            <Badge
+                                variant={
+                                    verificationVariants[
+                                        teacher.verification_status
+                                    ] || 'default'
+                                }
+                            >
+                                {verificationLabels[
+                                    teacher.verification_status
+                                ] || 'Профиль не создан'}
                             </Badge>
                         </div>
                     </div>
 
                     {!teacher.profile_id && (
                         <div className="admin-alert">
-                            Профиль преподавателя ещё не создан. Доступны только данные аккаунта.
+                            Профиль преподавателя ещё не заполнен.
                         </div>
                     )}
 
-                    <section className="teacher-view__section">
-                        <h4>Аккаунт</h4>
-
-                        <dl className="teacher-view__list">
-                            <div>
-                                <dt>ID</dt>
-                                <dd>{teacher.id}</dd>
-                            </div>
-
-                            <div>
-                                <dt>ФИО</dt>
-                                <dd>{renderValue(teacher.full_name)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Email</dt>
-                                <dd>{renderValue(teacher.email)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Телефон</dt>
-                                <dd>{renderValue(teacher.phone)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Статус</dt>
-                                <dd>{statusLabels[teacher.status] || teacher.status || '—'}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Дата регистрации</dt>
-                                <dd>{formatDate(teacher.created_at)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Последний вход</dt>
-                                <dd>{formatDate(teacher.last_login_at)}</dd>
-                            </div>
-                        </dl>
-                    </section>
-
-                    <section className="teacher-view__section">
-                        <h4>Профиль</h4>
-
-                        <dl className="teacher-view__list">
-                            <div>
-                                <dt>ID профиля</dt>
-                                <dd>{renderValue(teacher.profile_id)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Город</dt>
-                                <dd>{renderValue(teacher.city)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Заголовок</dt>
-                                <dd>{renderValue(teacher.headline)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Опыт</dt>
-                                <dd>{renderValue(teacher.experience_years)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Проверка</dt>
-                                <dd>{verificationLabels[teacher.verification_status] || renderValue(teacher.verification_status)}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Видимость</dt>
-                                <dd>
-                                    {teacher.is_visible === null
-                                        ? '—'
-                                        : Number(teacher.is_visible) === 1
-                                            ? 'Да'
-                                            : 'Нет'}
-                                </dd>
-                            </div>
-
-                            <div>
-                                <dt>Заполненность</dt>
-                                <dd>
-                                    {teacher.profile_completion === null
-                                        ? '—'
-                                        : `${teacher.profile_completion}%`}
-                                </dd>
-                            </div>
-
-                            <div>
-                                <dt>Комментарий</dt>
-                                <dd>{renderValue(teacher.verification_comment)}</dd>
-                            </div>
-                        </dl>
-                    </section>
+                    <TeacherProfileDetails teacherData={teacherData} />
 
                     <section className="teacher-view__section">
                         <h4>Документы</h4>
-
-                        {documents.length === 0 ? (
-                            <p className="teacher-view__muted">
-                                Документы не загружены.
-                            </p>
-                        ) : (
-                            <div className="teacher-view__cards">
-                                {documents.map((document) => (
-                                    <article
-                                        key={document.id}
-                                        className="teacher-view__card"
-                                    >
-                                        <strong>
-                                            {document.document_title
-                                                || document.original_name
-                                                || `Документ №${document.id}`}
-                                        </strong>
-                                        <span>
-                                            {documentStatusLabels[document.status]
-                                                || document.status}
-                                        </span>
-                                        <small>
-                                            {document.original_name}
-                                            {document.file_size
-                                                ? ` · ${formatFileSize(document.file_size)}`
-                                                : ''}
-                                        </small>
-                                        {document.reject_reason && (
-                                            <small>{document.reject_reason}</small>
-                                        )}
-                                        <a
-                                            href={document.download_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            Скачать для проверки
-                                        </a>
-                                    </article>
-                                ))}
-                            </div>
-                        )}
+                        <p className="teacher-view__muted">
+                            Загрузка и защищённая проверка файлов будут
+                            подключены вместе с переносом медиахранилища на
+                            российский сервер.
+                        </p>
                     </section>
 
-                    <div className="teacher-view__actions">
-                        {teacher.status !== 'deleted' && (
-                            <Button
-                                variant={teacher.status === 'blocked' ? 'primary' : 'danger'}
-                                loading={isStatusUpdating}
-                                onClick={() => {
-                                    onUpdateStatus({
+                    {canManageAccounts && (
+                        <div className="teacher-view__actions">
+                            {!isArchived && (
+                                <Button
+                                    variant={
+                                        teacher.status === 'blocked'
+                                            ? 'primary'
+                                            : 'danger'
+                                    }
+                                    loading={isStatusUpdating}
+                                    onClick={() => onUpdateStatus({
                                         id: teacher.id,
-                                        status: teacher.status === 'blocked' ? 'active' : 'blocked',
-                                        blocked_reason: teacher.status === 'blocked'
-                                            ? ''
-                                            : 'Заблокирован администратором',
-                                    });
-                                }}
-                            >
-                                {teacher.status === 'blocked' ? 'Разблокировать' : 'Заблокировать'}
-                            </Button>
-                        )}
+                                        status: teacher.status === 'blocked'
+                                            ? 'active'
+                                            : 'blocked',
+                                        blocked_reason:
+                                            teacher.status === 'blocked'
+                                                ? ''
+                                                : 'Заблокирован администратором',
+                                    })}
+                                >
+                                    {teacher.status === 'blocked'
+                                        ? 'Разблокировать'
+                                        : 'Заблокировать'}
+                                </Button>
+                            )}
 
-                        {teacher.status !== 'deleted' && (
-                            <Button
-                                variant="secondary"
-                                loading={isStatusUpdating}
-                                onClick={() => {
-                                    onUpdateStatus({
+                            {!isArchived && (
+                                <Button
+                                    variant="secondary"
+                                    loading={isStatusUpdating}
+                                    onClick={() => onUpdateStatus({
                                         id: teacher.id,
-                                        status: 'deleted',
-                                        blocked_reason: '',
-                                        archive_reason: 'Архивирован администратором',
-                                    });
-                                }}
-                            >
-                                В архив
-                            </Button>
-                        )}
+                                        status: 'archived',
+                                        archive_reason:
+                                            'Архивирован администратором',
+                                    })}
+                                >
+                                    В архив
+                                </Button>
+                            )}
 
-                        {teacher.status === 'deleted' && (
-                            <Button
-                                variant="primary"
-                                loading={isStatusUpdating}
-                                onClick={() => {
-                                    onUpdateStatus({
+                            {isArchived && (
+                                <Button
+                                    variant="primary"
+                                    loading={isStatusUpdating}
+                                    onClick={() => onUpdateStatus({
                                         id: teacher.id,
                                         status: 'active',
-                                        blocked_reason: '',
-                                        archive_reason: '',
-                                    });
-                                }}
-                            >
-                                Восстановить
-                            </Button>
-                        )}
-                    </div>
+                                    })}
+                                >
+                                    Восстановить
+                                </Button>
+                            )}
+                        </div>
+                    )}
 
                     {teacher.profile_id && (
                         <div className="teacher-view__actions">
-                            {teacher.verification_status !== 'approved' && (
+                            {teacher.verification_status !== 'verified' && (
                                 <Button
                                     variant="primary"
                                     loading={isVerificationUpdating}
-                                    onClick={() => {
-                                        onUpdateVerification({
-                                            id: teacher.id,
-                                            status: 'approved',
-                                            comment: '',
-                                        });
-                                    }}
+                                    onClick={() => onUpdateVerification({
+                                        id: teacher.id,
+                                        status: 'verified',
+                                        comment: '',
+                                    })}
                                 >
-                                    Подтвердить профиль
+                                    Подтвердить и опубликовать
                                 </Button>
                             )}
 
                             <Button
                                 variant="secondary"
                                 loading={isVerificationUpdating}
-                                onClick={() => {
-                                    const comment = window.prompt(
-                                        'Комментарий преподавателю',
-                                        teacher.verification_comment || '',
-                                    );
-
-                                    if (comment === null) {
-                                        return;
-                                    }
-
-                                    onUpdateVerification({
-                                        id: teacher.id,
-                                        status: 'rejected',
-                                        comment,
-                                    });
-                                }}
+                                onClick={rejectProfile}
                             >
                                 Вернуть на доработку
                             </Button>
+
+                            {teacher.verification_status === 'verified' && (
+                                <Button
+                                    variant="secondary"
+                                    loading={isVisibilityUpdating}
+                                    onClick={() => onUpdateVisibility({
+                                        id: teacher.id,
+                                        is_visible: !teacher.is_visible,
+                                    })}
+                                >
+                                    {teacher.is_visible
+                                        ? 'Скрыть из поиска'
+                                        : 'Опубликовать в поиске'}
+                                </Button>
+                            )}
                         </div>
                     )}
                 </div>

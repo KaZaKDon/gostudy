@@ -8,13 +8,34 @@ import {
 const statusLabels = {
     active: 'Активен',
     blocked: 'Заблокирован',
+    archived: 'Архив',
     deleted: 'Архив',
 };
 
 const statusVariants = {
     active: 'success',
     blocked: 'danger',
+    archived: 'info',
     deleted: 'info',
+};
+
+const relationStatusLabels = {
+    active: 'Активная связь',
+    archived: 'Архивная связь',
+};
+
+const requestStatusLabels = {
+    pending: 'Ожидает ответа',
+    accepted: 'Принята',
+    rejected: 'Отклонена',
+};
+
+const lessonStatusLabels = {
+    scheduled: 'Запланирован',
+    active: 'Идёт',
+    completed: 'Завершён',
+    cancelled: 'Отменён',
+    rescheduled: 'Перенесён',
 };
 
 function formatDate(value) {
@@ -26,7 +47,9 @@ function formatDate(value) {
 }
 
 function renderValue(value) {
-    return value || '—';
+    return value === undefined || value === null || value === ''
+        ? '—'
+        : value;
 }
 
 function InfoList({ items }) {
@@ -70,6 +93,7 @@ export function StudentsViewModal({
     error,
     onClose,
     onUpdateStatus,
+    canManageAccounts,
 }) {
     const student = studentData?.student;
     const stats = studentData?.stats || {};
@@ -77,6 +101,9 @@ export function StudentsViewModal({
     const requests = studentData?.requests || [];
     const lessons = studentData?.lessons || [];
     const homework = studentData?.homework || [];
+    const profileExists = studentData?.profile_exists !== false;
+    const isArchived = student?.status === 'archived'
+        || student?.status === 'deleted';
 
     function handleToggleStatus() {
         if (!student || isStatusUpdating) {
@@ -107,7 +134,7 @@ export function StudentsViewModal({
 
         onUpdateStatus({
             id: student.id,
-            status: 'deleted',
+            status: 'archived',
             blocked_reason: '',
             archive_reason: 'Архивирован администратором',
         });
@@ -130,11 +157,11 @@ export function StudentsViewModal({
         <Modal
             isOpen={Boolean(isLoading || error || student)}
             title="Карточка ученика"
-            description="Профиль, связи, уроки и домашние задания"
+            description="Аккаунт, анкета, преподаватели, заявки и уроки"
             onClose={onClose}
-            footer={(
+            footer={canManageAccounts ? (
                 <>
-                    {student && student.status !== 'deleted' && (
+                    {student && !isArchived && (
                         <Button
                             variant={student.status === 'blocked' ? 'primary' : 'danger'}
                             loading={isStatusUpdating}
@@ -144,7 +171,7 @@ export function StudentsViewModal({
                         </Button>
                     )}
 
-                    {student && student.status !== 'deleted' && (
+                    {student && !isArchived && (
                         <Button
                             variant="secondary"
                             loading={isStatusUpdating}
@@ -154,7 +181,7 @@ export function StudentsViewModal({
                         </Button>
                     )}
 
-                    {student && student.status === 'deleted' && (
+                    {student && isArchived && (
                         <Button
                             variant="primary"
                             loading={isStatusUpdating}
@@ -164,7 +191,7 @@ export function StudentsViewModal({
                         </Button>
                     )}
                 </>
-            )}
+            ) : null}
         >
             {isLoading && (
                 <Loader text="Загрузка ученика..." />
@@ -191,7 +218,7 @@ export function StudentsViewModal({
 
                     <div className="student-view__stats">
                         <div>
-                            <span>Преподаватели</span>
+                            <span>Активные преподаватели</span>
                             <strong>{stats.teachers_total ?? 0}</strong>
                         </div>
 
@@ -216,21 +243,61 @@ export function StudentsViewModal({
                         </div>
                     </div>
 
+                    {!profileExists && (
+                        <div className="admin-alert">
+                            Анкета ученика ещё не заполнена.
+                        </div>
+                    )}
+
                     <section className="student-view__section">
-                        <h4>Основные данные</h4>
+                        <h4>Аккаунт</h4>
 
                         <InfoList
                             items={[
                                 { label: 'ID', value: student.id },
+                                { label: 'Email', value: student.email },
                                 { label: 'Телефон', value: student.phone },
-                                { label: 'Год рождения', value: student.birth_year },
-                                { label: 'Класс / уровень', value: student.class_level },
-                                { label: 'Цель обучения', value: student.goal },
-                                { label: 'Описание уровня', value: student.level_description },
-                                { label: 'Мессенджер', value: student.messenger },
-                                { label: 'Удобное время', value: student.preferred_time },
+                                {
+                                    label: 'Email подтверждён',
+                                    value: student.email_verified ? 'Да' : 'Нет',
+                                },
+                                {
+                                    label: 'Анкета завершена',
+                                    value: student.profile_completed ? 'Да' : 'Нет',
+                                },
+                                {
+                                    label: 'Заполнение анкеты',
+                                    value: student.profile_completion === null
+                                        || student.profile_completion === undefined
+                                        ? '—'
+                                        : `${student.profile_completion}%`,
+                                },
                                 { label: 'Регистрация', value: formatDate(student.created_at) },
                                 { label: 'Последний вход', value: formatDate(student.last_login_at) },
+                            ]}
+                        />
+                    </section>
+
+                    <section className="student-view__section">
+                        <h4>Анкета ученика</h4>
+
+                        <InfoList
+                            items={[
+                                { label: 'Имя', value: student.first_name },
+                                { label: 'Фамилия', value: student.last_name },
+                                { label: 'Город', value: student.city },
+                                { label: 'Часовой пояс', value: student.timezone },
+                                { label: 'Год рождения', value: student.birth_year },
+                                { label: 'Класс / уровень', value: student.class_level },
+                                { label: 'Предметы', value: student.subjects },
+                                { label: 'Цель обучения', value: student.goal },
+                                { label: 'Учебные цели', value: student.learning_goals },
+                                { label: 'Описание уровня', value: student.level_description },
+                                { label: 'Формат занятий', value: student.lesson_format },
+                                { label: 'Мессенджер', value: student.messenger },
+                                { label: 'Предпочтительный контакт', value: student.contact_preference },
+                                { label: 'Удобное время', value: student.preferred_time },
+                                { label: 'Комментарий к расписанию', value: student.schedule_comment },
                             ]}
                         />
                     </section>
@@ -242,6 +309,7 @@ export function StudentsViewModal({
                             items={[
                                 { label: 'Имя', value: student.parent_name },
                                 { label: 'Телефон', value: student.parent_phone },
+                                { label: 'Email', value: student.parent_email },
                             ]}
                         />
                     </section>
@@ -263,12 +331,17 @@ export function StudentsViewModal({
                     <SimpleCollection
                         title="Преподаватели"
                         items={teachers}
-                        emptyText="Активных преподавателей пока нет."
+                        emptyText="Связей с преподавателями пока нет."
                         renderItem={(teacher) => (
                             <article className="student-view__card" key={teacher.id}>
                                 <strong>{teacher.teacher_name || 'Преподаватель'}</strong>
                                 <span>{teacher.subject_name || 'Предмет не указан'}</span>
-                                <small>{teacher.status || '—'}</small>
+                                <small>
+                                    {relationStatusLabels[teacher.status] || teacher.status || '—'}
+                                    {teacher.teacher_status !== 'active'
+                                        ? ` · аккаунт: ${statusLabels[teacher.teacher_status] || teacher.teacher_status}`
+                                        : ''}
+                                </small>
                             </article>
                         )}
                     />
@@ -281,7 +354,11 @@ export function StudentsViewModal({
                             <article className="student-view__card" key={request.id}>
                                 <strong>{request.teacher_name || 'Преподаватель'}</strong>
                                 <span>{request.subject_name || 'Предмет не указан'}</span>
-                                <small>{request.status || '—'} · {formatDate(request.created_at)}</small>
+                                <small>
+                                    {requestStatusLabels[request.status] || request.status || '—'}
+                                    {' · '}{formatDate(request.created_at)}
+                                </small>
+                                {request.message && <p>{request.message}</p>}
                             </article>
                         )}
                     />
@@ -294,7 +371,13 @@ export function StudentsViewModal({
                             <article className="student-view__card" key={lesson.id}>
                                 <strong>{lesson.title || lesson.lesson_topic || 'Урок'}</strong>
                                 <span>{lesson.teacher_name || 'Преподаватель'} · {lesson.subject_name || 'Предмет не указан'}</span>
-                                <small>{lesson.status || '—'} · {formatDate(lesson.lesson_date)}</small>
+                                <small>
+                                    {lessonStatusLabels[lesson.status] || lesson.status || '—'}
+                                    {' · '}{formatDate(lesson.lesson_date)}
+                                    {lesson.duration_minutes
+                                        ? ` · ${lesson.duration_minutes} минут`
+                                        : ''}
+                                </small>
                             </article>
                         )}
                     />
@@ -314,6 +397,13 @@ export function StudentsViewModal({
                             </article>
                         )}
                     />
+
+                    <p className="student-view__muted">
+                        Сообщения появятся после переноса соответствующего
+                        модуля. Аккаунт родителя будет связан с учеником
+                        отдельным этапом; сейчас показаны контактные данные из
+                        анкеты.
+                    </p>
                 </div>
             )}
         </Modal>

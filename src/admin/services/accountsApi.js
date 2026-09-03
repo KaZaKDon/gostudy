@@ -1,7 +1,8 @@
-const ACCOUNTS_API_URL = '/api/admin/users';
+import { API } from '../../api/api.js';
+import { adminApiRequest } from './adminApiRequest.js';
 
 export const accountsApi = {
-    async getAccounts(params = {}) {
+    getAccounts(params = {}) {
         const searchParams = new URLSearchParams();
 
         Object.entries(params).forEach(([key, value]) => {
@@ -10,58 +11,38 @@ export const accountsApi = {
             }
         });
 
-        const response = await fetch(`${ACCOUNTS_API_URL}/index.php?${searchParams.toString()}`, {
-            credentials: 'include',
-        });
-
-        return response.json();
+        return adminApiRequest(
+            `${API.adminAccounts}?${searchParams.toString()}`,
+        );
     },
 
-    async getAccount(id) {
-        const response = await fetch(`${ACCOUNTS_API_URL}/show.php?id=${id}`, {
-            credentials: 'include',
-        });
-
-        return response.json();
+    getAccount(id) {
+        return adminApiRequest(`${API.adminAccounts}/${id}`);
     },
 
     async updateStatus({
         id,
         status,
-        blocked_reason = ''
+        blocked_reason = '',
+        archive_reason = '',
     }) {
-        const response = await fetch(`${ACCOUNTS_API_URL}/update-status.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                id,
+        return adminApiRequest(`${API.adminAccounts}/${id}/status`, {
+            method: 'PATCH',
+            body: {
                 status,
                 blocked_reason,
-            }),
+                archive_reason,
+            },
         });
-
-        return response.json();
     },
 
     async updateRole({
         id,
         role
     }) {
-        const response = await fetch(`${ACCOUNTS_API_URL}/update-role.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                id,
-                role,
-            }),
+        return adminApiRequest(`${API.adminAccounts}/${id}/role`, {
+            method: 'PATCH',
+            body: { role },
         });
-
-        return response.json();
     },
 };

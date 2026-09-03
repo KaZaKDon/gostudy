@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { API } from '../../api/api.js';
+import { PasswordField } from '../../components/PasswordField/PasswordField.jsx';
+import { buildRegistrationLegalAcceptances } from '../../data/legal/legalAcceptance.js';
 
 import './Register.css';
 
@@ -19,11 +21,11 @@ export function Register() {
     const [password, setPassword] = useState('');
     const [passwordRepeat, setPasswordRepeat] = useState('');
 
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const [isPasswordRepeatVisible, setIsPasswordRepeatVisible] =
+    const [arePlatformDocumentsAccepted, setArePlatformDocumentsAccepted] =
         useState(false);
-
-    const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
+    const [isPersonalDataAccepted, setIsPersonalDataAccepted] =
+        useState(false);
+    const [isMarketingAccepted, setIsMarketingAccepted] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -37,9 +39,16 @@ export function Register() {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        if (!isAgreementAccepted) {
+        if (!arePlatformDocumentsAccepted) {
             setErrorMessage(
-                'Необходимо принять пользовательское соглашение.',
+                'Необходимо принять документы платформы.',
+            );
+            return;
+        }
+
+        if (!isPersonalDataAccepted) {
+            setErrorMessage(
+                'Необходимо дать согласие на обработку персональных данных.',
             );
             return;
         }
@@ -66,6 +75,12 @@ export function Register() {
                     role,
                     email: normalizedEmail,
                     password,
+                    legal_acceptances: buildRegistrationLegalAcceptances({
+                        platformDocumentsAccepted:
+                            arePlatformDocumentsAccepted,
+                        personalDataAccepted: isPersonalDataAccepted,
+                        marketingAccepted: isMarketingAccepted,
+                    }),
                 }),
             });
 
@@ -147,89 +162,29 @@ export function Register() {
                         />
                     </label>
 
-                    <label>
-                        <span>Пароль</span>
+                    <PasswordField
+                        value={password}
+                        onChange={(event) =>
+                            setPassword(event.target.value)
+                        }
+                        autoComplete="new-password"
+                        minLength={6}
+                        disabled={isLoading}
+                        required
+                    />
 
-                        <div className="auth-card__password-field">
-                            <input
-                                type={
-                                    isPasswordVisible
-                                        ? 'text'
-                                        : 'password'
-                                }
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                                placeholder="Введите пароль"
-                                autoComplete="new-password"
-                                minLength={6}
-                                disabled={isLoading}
-                                required
-                            />
-
-                            <button
-                                type="button"
-                                className="auth-card__password-toggle"
-                                aria-label={
-                                    isPasswordVisible
-                                        ? 'Скрыть пароль'
-                                        : 'Показать пароль'
-                                }
-                                aria-pressed={isPasswordVisible}
-                                onClick={() =>
-                                    setIsPasswordVisible(
-                                        (currentValue) => !currentValue,
-                                    )
-                                }
-                            >
-                                {isPasswordVisible ? 'Скрыть' : 'Показать'}
-                            </button>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>Повторите пароль</span>
-
-                        <div className="auth-card__password-field">
-                            <input
-                                type={
-                                    isPasswordRepeatVisible
-                                        ? 'text'
-                                        : 'password'
-                                }
-                                value={passwordRepeat}
-                                onChange={(event) =>
-                                    setPasswordRepeat(event.target.value)
-                                }
-                                placeholder="Повторите пароль"
-                                autoComplete="new-password"
-                                minLength={6}
-                                disabled={isLoading}
-                                required
-                            />
-
-                            <button
-                                type="button"
-                                className="auth-card__password-toggle"
-                                aria-label={
-                                    isPasswordRepeatVisible
-                                        ? 'Скрыть повтор пароля'
-                                        : 'Показать повтор пароля'
-                                }
-                                aria-pressed={isPasswordRepeatVisible}
-                                onClick={() =>
-                                    setIsPasswordRepeatVisible(
-                                        (currentValue) => !currentValue,
-                                    )
-                                }
-                            >
-                                {isPasswordRepeatVisible
-                                    ? 'Скрыть'
-                                    : 'Показать'}
-                            </button>
-                        </div>
-                    </label>
+                    <PasswordField
+                        label="Повторите пароль"
+                        value={passwordRepeat}
+                        onChange={(event) =>
+                            setPasswordRepeat(event.target.value)
+                        }
+                        placeholder="Повторите пароль"
+                        autoComplete="new-password"
+                        minLength={6}
+                        disabled={isLoading}
+                        required
+                    />
 
                     {errorMessage && (
                         <p className="auth-card__error">
@@ -243,38 +198,115 @@ export function Register() {
                         </p>
                     )}
 
-                    <label className="auth-card__agreement">
-                        <input
-                            type="checkbox"
-                            checked={isAgreementAccepted}
-                            onChange={(event) =>
-                                setIsAgreementAccepted(
-                                    event.target.checked,
-                                )
-                            }
-                            disabled={isLoading}
-                        />
+                    <fieldset className="auth-card__agreements">
+                        <legend>Согласия и документы</legend>
 
-                        <span>
-                            Я принимаю{' '}
-                            <Link to="/agreement">
-                                пользовательское соглашение
-                            </Link>
-                            ,{' '}
-                            <Link to="/privacy">
-                                политику конфиденциальности
-                            </Link>{' '}
-                            и{' '}
-                            <Link to="/rules">
-                                правила платформы
-                            </Link>
-                            .
-                        </span>
-                    </label>
+                        <label className="auth-card__agreement">
+                            <input
+                                type="checkbox"
+                                checked={arePlatformDocumentsAccepted}
+                                onChange={(event) =>
+                                    setArePlatformDocumentsAccepted(
+                                        event.target.checked,
+                                    )
+                                }
+                                disabled={isLoading}
+                                required
+                            />
+
+                            <span>
+                                Я принимаю{' '}
+                                <Link
+                                    to="/legal/agreement"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Пользовательское соглашение
+                                </Link>{' '}
+                                и{' '}
+                                <Link
+                                    to="/legal/rules"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Правила платформы
+                                </Link>{' '}
+                                и подтверждаю, что ознакомился с{' '}
+                                <Link
+                                    to="/legal/privacy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Политикой конфиденциальности
+                                </Link>
+                                .
+                            </span>
+                        </label>
+
+                        <label className="auth-card__agreement">
+                            <input
+                                type="checkbox"
+                                checked={isPersonalDataAccepted}
+                                onChange={(event) =>
+                                    setIsPersonalDataAccepted(
+                                        event.target.checked,
+                                    )
+                                }
+                                disabled={isLoading}
+                                required
+                            />
+
+                            <span>
+                                Я даю{' '}
+                                <Link
+                                    to="/legal/personal-data-consent"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    согласие на обработку персональных данных
+                                </Link>
+                                .
+                            </span>
+                        </label>
+
+                        <label className="auth-card__agreement auth-card__agreement--optional">
+                            <input
+                                type="checkbox"
+                                checked={isMarketingAccepted}
+                                onChange={(event) =>
+                                    setIsMarketingAccepted(
+                                        event.target.checked,
+                                    )
+                                }
+                                disabled={isLoading}
+                            />
+
+                            <span>
+                                Я согласен получать новости, специальные
+                                предложения и{' '}
+                                <Link
+                                    to="/legal/marketing-consent"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    рекламные сообщения GoStudy
+                                </Link>{' '}
+                                по электронной почте.
+                                <small>
+                                    Необязательно. Не применяется к детскому
+                                    профилю.
+                                </small>
+                            </span>
+                        </label>
+                    </fieldset>
 
                     <button
                         type="submit"
-                        disabled={!isAgreementAccepted || isLoading}
+                        disabled={
+                            !arePlatformDocumentsAccepted
+                            || !isPersonalDataAccepted
+                            || isLoading
+                        }
                     >
                         {isLoading
                             ? 'Регистрируем...'

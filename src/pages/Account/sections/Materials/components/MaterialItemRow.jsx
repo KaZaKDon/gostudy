@@ -1,10 +1,9 @@
 export function MaterialItemRow({
-    role,
+    material,
     item,
-    isExtraMaterial,
+    onOpen,
 }) {
-    const isTeacher = role === 'teacher';
-    const isPaid = item.access === 'Платно';
+    const isPaidLocked = material.access_type === 'paid' && !item.can_open;
 
     return (
         <div className="material-item">
@@ -13,51 +12,21 @@ export function MaterialItemRow({
 
                 <span>
                     {item.format}
-                    {' · '}
-                    {item.access}
+                    {item.file_size ? ` · ${formatBytes(item.file_size)}` : ''}
                 </span>
             </div>
 
             <div className="material-item__actions">
-                <button type="button">
-                    Открыть
+                <button type="button" onClick={() => onOpen(material, item)}>
+                    {isPaidLocked ? 'Купить — скоро' : item.content_type === 'file' ? 'Скачать' : 'Открыть'}
                 </button>
-
-                {isTeacher ? (
-                    <>
-                        <button type="button">
-                            Назначить
-                        </button>
-
-                        {isExtraMaterial && (
-                            <>
-                                <button type="button">
-                                    Редактировать
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className="material-item__danger"
-                                >
-                                    Скрыть
-                                </button>
-                            </>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {isPaid ? (
-                            <button type="button">
-                                Купить
-                            </button>
-                        ) : (
-                            <button type="button">
-                                Скачать
-                            </button>
-                        )}
-                    </>
-                )}
             </div>
         </div>
     );
+}
+
+function formatBytes(value) {
+    const bytes = Number(value || 0);
+    if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} КБ`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
 }

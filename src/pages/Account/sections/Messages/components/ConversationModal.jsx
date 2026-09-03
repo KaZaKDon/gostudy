@@ -8,8 +8,6 @@ import { MessageBubble } from './MessageBubble.jsx';
 import { MessageComposer } from './MessageComposer.jsx';
 
 export function ConversationModal({
-    role,
-    activeTab,
     conversation,
     messages,
     threadStatus,
@@ -17,8 +15,16 @@ export function ConversationModal({
     hasMore,
     sendStatus,
     draft,
+    files,
+    uploadLimits,
+    uploadProgress,
+    fileError,
+    suspendKeyboardClose,
     onDraftChange,
+    onFilesChange,
     onSend,
+    onDownloadAttachment,
+    onReportMessage,
     onLoadOlder,
     onClose,
 }) {
@@ -35,7 +41,7 @@ export function ConversationModal({
         }
 
         const handleKeyDown = (event) => {
-            if (event.key === 'Escape') {
+            if (event.key === 'Escape' && !suspendKeyboardClose) {
                 onClose();
             }
         };
@@ -43,7 +49,7 @@ export function ConversationModal({
         document.addEventListener('keydown', handleKeyDown);
 
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [conversation, onClose]);
+    }, [conversation, onClose, suspendKeyboardClose]);
 
     useEffect(() => {
         const container = messagesContainerRef.current;
@@ -118,9 +124,9 @@ export function ConversationModal({
                     {messages.map((message) => (
                         <MessageBubble
                             key={message.id}
-                            role={role}
-                            activeTab={activeTab}
                             message={message}
+                            onDownloadAttachment={onDownloadAttachment}
+                            onReport={onReportMessage}
                         />
                     ))}
 
@@ -134,8 +140,13 @@ export function ConversationModal({
                 {conversation.canSend ? (
                     <MessageComposer
                         value={draft}
+                        files={files}
+                        uploadLimits={uploadLimits}
+                        uploadProgress={uploadProgress}
+                        fileError={fileError}
                         isSending={sendStatus === 'loading'}
                         onChange={onDraftChange}
+                        onFilesChange={onFilesChange}
                         onSend={onSend}
                     />
                 ) : (

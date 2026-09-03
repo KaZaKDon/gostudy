@@ -1,10 +1,20 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+    Navigate,
+    useNavigate,
+} from 'react-router-dom';
+
+import { PasswordField } from '../../../components/PasswordField/PasswordField.jsx';
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 
 import '../../styles/admin.css';
 
 export function AdminLoginPage() {
     const navigate = useNavigate();
+    const {
+        login,
+        status,
+    } = useAdminAuth();
 
     const [form, setForm] = useState({
         email: '',
@@ -30,30 +40,24 @@ export function AdminLoginPage() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/admin/auth/login.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(form),
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                setError(data.message || 'Ошибка входа');
-                return;
-            }
+            await login(form);
 
             navigate('/admin/dashboard', {
                 replace: true,
             });
-        } catch {
-            setError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsLoading(false);
         }
+    }
+
+    if (status === 'authenticated') {
+        return <Navigate to="/admin/dashboard" replace />;
     }
 
     return (
@@ -79,17 +83,14 @@ export function AdminLoginPage() {
                     />
                 </label>
 
-                <label className="admin-login__field">
-                    <span>Пароль</span>
-                    <input
-                        type="password"
-                        name="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        autoComplete="current-password"
-                        required
-                    />
-                </label>
+                <PasswordField
+                    labelClassName="admin-login__field"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                />
 
                 {error && (
                     <p className="admin-login__error">

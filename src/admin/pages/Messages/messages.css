@@ -1,0 +1,89 @@
+.admin-messages {
+    display: grid;
+    gap: var(--admin-gap-lg);
+}
+
+.admin-messages__privacy {
+    max-width: 760px;
+    margin: 6px 0 0;
+    color: var(--admin-text-muted);
+}
+
+.admin-messages__filter {
+    max-width: 340px;
+}
+
+.admin-messages__success {
+    border-color: var(--admin-success);
+    color: var(--admin-success);
+}
+
+.admin-messages__email {
+    display: block;
+    margin-top: 3px;
+    color: var(--admin-text-muted);
+}
+
+.admin-messages__detail {
+    display: grid;
+    gap: var(--admin-gap-lg);
+}
+
+.admin-messages__report-info {
+    border-radius: var(--admin-radius-md);
+    padding: var(--admin-gap-md);
+    background: var(--admin-surface-soft);
+}
+
+.admin-messages__report-info p {
+    margin: 0 0 8px;
+}
+
+.admin-messages__report-info p:last-child {
+    margin-bottom: 0;
+}
+
+.admin-messages__context {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-messages__message {
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    padding: var(--admin-gap-md);
+    background: var(--admin-surface);
+}
+
+.admin-messages__message--reported {
+    border: 2px solid var(--admin-danger);
+    background: color-mix(in srgb, var(--admin-danger) 8%, var(--admin-surface));
+}
+
+.admin-messages__message header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--admin-text-muted);
+    font-size: 0.82rem;
+}
+
+.admin-messages__message p {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.admin-messages__attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.admin-messages__check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+}

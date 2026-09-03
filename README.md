@@ -1,49 +1,78 @@
-# GoStudy — общий показ материалов в «Классе»
+# GoStudy
 
-Комплект накопительный: содержит просмотр материалов внутри класса и
-синхронный показ преподавателем ученику.
+GoStudy — образовательная онлайн-платформа для учеников, родителей и
+преподавателей.
 
-## Порядок размещения
+## Текущая архитектура
 
-1. Сделать резервную копию БД и файлов.
-Выполнить `docs/database/migrations/2026-07-21_classroom_shared_material.sql`.
-3. Взять PHP-файлы из `docs/api`, убрать у них конечный суффикс `.md` и
-   разместить в `/api` на хосте с сохранением относительных путей.
-4. Собрать текущий React-проект.
-5. В корне фронтенда выполнить:
+- frontend: React + Vite;
+- backend: Node.js + TypeScript + NestJS;
+- база данных: PostgreSQL;
+- ORM и миграции: Prisma;
+- юридические документы: Markdown в `shared/legal`;
+- локальная инфраструктура: Docker Compose.
+
+Новая серверная часть находится в `server`. Старые PHP-файлы в `docs/api` и
+`docs/admin` сохранены только как справочник для поэтапного переноса
+бизнес-логики. Они не являются действующим backend и не должны размещаться на
+сервере.
+
+## Быстрый локальный запуск
+
+Подробная инструкция находится в
+[`docs/LOCAL_DEVELOPMENT.md`](docs/LOCAL_DEVELOPMENT.md).
 
 ```bash
 npm install
-npm run lint
-npm run build
+npm --prefix server install
 ```
 
-6. Для административного API использовать ту же схему: файл
-   `docs/admin/<path>/name.php.md` соответствует файлу
-   `/api/admin/<path>/name.php` на хосте. Промежуточной папки `backend` нет.
+Для выбранного локального режима сначала создать базы `gostudy`,
+`gostudy_shadow` и пользователя `gostudy_app` по инструкции
+[`docs/POSTGRESQL_EXISTING_SETUP.md`](docs/POSTGRESQL_EXISTING_SETUP.md).
+Создать `server/.env` на основе `server/local-postgres.env.example`, затем
+выполнить:
 
-## Что реализовано
+```bash
+npm run server:prisma:generate
+npm run server:prisma:migrate
+npm run server:dev
+npm run dev
+```
 
-- изображения, текст и PDF открываются внутри класса;
-- преподаватель включает и останавливает общий показ;
-- выбранный файл автоматически открывается у ученика;
-- страница PDF синхронизируется через существующий опрос API;
-- ученик может временно открыть другой материал и вернуться к показу;
-- новые файлы преподавателя появляются у ученика без перезагрузки;
-- удаление показываемого файла и завершение урока останавливают показ;
-- приватный путь к файлам не раскрывается;
-- PDF обрабатывается локально, без внешнего просмотрщика.
+Docker Compose и `server/.env.example` остаются запасным изолированным
+вариантом на порту `5434`.
 
-## Проверка
+Frontend открывается на `http://localhost:5174`, API — на
+`http://localhost:3002/api/v1`, проверка API —
+`http://localhost:3002/api/v1/health`. Порт `3001` оставлен локальному API
+TELIRA, поэтому проекты можно запускать одновременно.
 
-1. Начать урок преподавателем.
-2. Открыть PDF и нажать `Показать ученику`.
-3. Убедиться, что PDF появился у ученика без перезагрузки.
-4. Переключить страницу преподавателем и дождаться её смены у ученика.
-5. Учеником открыть другой материал и нажать `Вернуться к показу
-   преподавателя`.
-6. Остановить показ преподавателем.
-7. Повторить проверку с изображением и TXT.
+## Документация
 
-API этого комплекта требует выполненную миграцию до первого обращения к
-странице класса.
+- [`docs/README.md`](docs/README.md) — карта актуальных и архивных документов;
+- [`docs/ARCHITECTURE_NODE.md`](docs/ARCHITECTURE_NODE.md) — действующая
+  архитектура;
+- [`docs/BACKEND_MIGRATION_STATUS.md`](docs/BACKEND_MIGRATION_STATUS.md) —
+  состояние переноса PHP → NestJS;
+- [`docs/SCHEDULE_API_NODE.md`](docs/SCHEDULE_API_NODE.md) — чтение расписания
+  и его PostgreSQL-модель;
+- [`docs/TEACHER_REQUESTS_API_NODE.md`](docs/TEACHER_REQUESTS_API_NODE.md) —
+  поиск преподавателей, заявки и связи;
+- [`docs/NOTIFICATIONS_API_NODE.md`](docs/NOTIFICATIONS_API_NODE.md) —
+  внутренняя лента, колокольчик и счётчики;
+- [`docs/MESSAGES_API_NODE.md`](docs/MESSAGES_API_NODE.md) — личные диалоги,
+  вложения, непрочитанные сообщения и жалобы;
+- [`docs/LEGAL_STAGE_1_IMPLEMENTATION.md`](docs/LEGAL_STAGE_1_IMPLEMENTATION.md)
+  — юридические документы и фиксация согласий;
+- [`README_DEPLOY.md`](README_DEPLOY.md) — будущий порядок размещения на VPS.
+
+## Проверки
+
+```bash
+npm run lint
+npm run build
+npm run server:lint
+npm run server:test
+npm run server:build
+```

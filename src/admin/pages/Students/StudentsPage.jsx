@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Pagination } from '../../components/ui/index.js';
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 import { useStudents } from '../../hooks/useStudents.js';
 
 import { StudentsTable } from './StudentsTable.jsx';
@@ -13,6 +14,8 @@ import './students.css';
 export function StudentsPage() {
     const navigate = useNavigate();
     const { studentId } = useParams();
+    const { user } = useAdminAuth();
+    const canManageAccounts = user?.role === 'admin';
     const {
         students,
         filters,
@@ -71,6 +74,7 @@ export function StudentsPage() {
                 isStatusUpdating={isStatusUpdating}
                 onOpenStudent={openStudent}
                 onUpdateStatus={updateStudentStatus}
+                canManageAccounts={canManageAccounts}
             />
 
             <Pagination
@@ -87,6 +91,7 @@ export function StudentsPage() {
                 error={studentError}
                 onClose={closeStudentProfile}
                 onUpdateStatus={updateStudentStatus}
+                canManageAccounts={canManageAccounts}
             />
         </div>
     );

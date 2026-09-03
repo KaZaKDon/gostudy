@@ -1,4 +1,8 @@
-import { getAuthHeaders } from './api.js';
+import {
+    getAuthHeaders,
+    isLegacyApiUrl,
+    LEGACY_API_UNAVAILABLE_MESSAGE,
+} from './api.js';
 
 export async function apiRequest(
     url,
@@ -8,6 +12,10 @@ export async function apiRequest(
         signal,
     } = {},
 ) {
+    if (isLegacyApiUrl(url)) {
+        throw new Error(LEGACY_API_UNAVAILABLE_MESSAGE);
+    }
+
     const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),

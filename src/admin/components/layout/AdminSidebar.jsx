@@ -64,8 +64,12 @@ const navigationGroups = [
             to: '/admin/reviews',
         },
         {
-            label: 'Жалобы',
-            to: '/admin/reports',
+            label: 'Материалы',
+            to: '/admin/materials',
+        },
+        {
+            label: 'Жалобы на сообщения',
+            to: '/admin/messages',
         },
     ],
     [

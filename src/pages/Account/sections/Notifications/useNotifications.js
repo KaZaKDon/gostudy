@@ -58,6 +58,7 @@ function mergeNotifications(current, incoming) {
 export function useNotifications(isEnabled) {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [teacherRequestsCount, setTeacherRequestsCount] = useState(0);
     const [status, setStatus] = useState('idle');
     const [errorMessage, setErrorMessage] = useState('');
     const [actionError, setActionError] = useState('');
@@ -133,6 +134,9 @@ export function useNotifications(isEnabled) {
                     : mergeNotifications(current, loaded),
             );
             setUnreadCount(Number(result.unread_count) || 0);
+            setTeacherRequestsCount(
+                Number(result.counters?.teacher_requests) || 0,
+            );
             setStatus('success');
 
             if (append) {
@@ -380,6 +384,7 @@ export function useNotifications(isEnabled) {
     return {
         notifications,
         unreadCount,
+        teacherRequestsCount,
         status,
         errorMessage,
         actionError,

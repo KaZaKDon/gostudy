@@ -11,12 +11,15 @@ export const TEACHER_MESSAGE_TABS = [
 
 export const STUDENT_MESSAGE_TABS = [
     {
-        id: 'student',
-        label: 'Ученик',
+        id: 'teachers',
+        label: 'Преподаватели',
     },
+];
+
+export const PARENT_MESSAGE_TABS = [
     {
-        id: 'parent',
-        label: 'Родитель',
+        id: 'teachers',
+        label: 'Преподаватели детей',
     },
 ];
 

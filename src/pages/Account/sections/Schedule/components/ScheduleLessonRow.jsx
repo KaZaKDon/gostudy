@@ -22,8 +22,10 @@ export function ScheduleLessonRow({
         currentTime,
     );
 
-    const isClassAvailable = canEnterLesson(lesson, currentTime);
-    const canChangeLesson = canRequestLessonChange(lesson);
+    const isClassAvailable = Boolean(onEnterClass)
+        && canEnterLesson(lesson, currentTime);
+    const canChangeLesson = Boolean(onOpenChange)
+        && canRequestLessonChange(lesson);
     const changeRequest = lesson.changeRequest;
     const lastChange = lesson.lastChange;
 
@@ -54,7 +56,7 @@ export function ScheduleLessonRow({
                         type="button"
                         className="schedule-lesson__action schedule-lesson__action--primary"
                         disabled={!isClassAvailable}
-                        onClick={() => onEnterClass(lesson)}
+                        onClick={() => onEnterClass?.(lesson)}
                     >
                         {classButtonText}
                     </button>
@@ -83,7 +85,7 @@ export function ScheduleLessonRow({
                         </>
                     )}
 
-                    {changeRequest?.canRespond && (
+                    {onOpenChange && changeRequest?.canRespond && (
                         <button
                             type="button"
                             className="schedule-lesson__action"
@@ -95,7 +97,7 @@ export function ScheduleLessonRow({
                         </button>
                     )}
 
-                    {changeRequest?.canWithdraw && (
+                    {onOpenChange && changeRequest?.canWithdraw && (
                         <button
                             type="button"
                             className="schedule-lesson__action schedule-lesson__action--danger"

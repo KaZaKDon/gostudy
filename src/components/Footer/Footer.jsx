@@ -27,7 +27,7 @@ export function Footer() {
                     {LEGAL_DOCUMENT_LINKS.map((link) => (
                         <Link
                             className="footer__link"
-                            key={link.id}
+                            key={link.key}
                             to={link.path}
                         >
                             {link.label}

@@ -7,6 +7,8 @@ import {
 import {
     AdminLayout,
 } from './layout/AdminLayout.jsx';
+import { AdminAuthProvider } from './auth/AdminAuthContext.jsx';
+import { AdminProtectedRoute } from './auth/AdminProtectedRoute.jsx';
 
 import {
     AccountsPage,
@@ -56,90 +58,107 @@ import {
     ReviewsPage,
 } from './pages/Reviews/ReviewsPage.jsx';
 
+import { MaterialsPage } from './pages/Materials/MaterialsPage.jsx';
+import { MessagesPage } from './pages/Messages/MessagesPage.jsx';
+
 export function AdminApp() {
     return (
-        <Routes>
-            <Route
-                path="login"
-                element={<AdminLoginPage />}
-            />
-
-            <Route element={<AdminLayout />}>
+        <AdminAuthProvider>
+            <Routes>
                 <Route
-                    index
-                    element={(
-                        <Navigate
-                            to="dashboard"
-                            replace
+                    path="login"
+                    element={<AdminLoginPage />}
+                />
+
+                <Route element={<AdminProtectedRoute />}>
+                    <Route element={<AdminLayout />}>
+                        <Route
+                            index
+                            element={(
+                                <Navigate
+                                    to="dashboard"
+                                    replace
+                                />
+                            )}
                         />
-                    )}
-                />
 
-                <Route
-                    path="dashboard"
-                    element={<AdminDashboardPage />}
-                />
+                        <Route
+                            path="dashboard"
+                            element={<AdminDashboardPage />}
+                        />
 
-                <Route
-                    path="accounts"
-                    element={<AccountsPage />}
-                />
+                        <Route
+                            path="accounts"
+                            element={<AccountsPage />}
+                        />
 
-                <Route
-                    path="students"
-                    element={<StudentsPage />}
-                />
+                        <Route
+                            path="students"
+                            element={<StudentsPage />}
+                        />
 
-                <Route
-                    path="students/:studentId"
-                    element={<StudentsPage />}
-                />
+                        <Route
+                            path="students/:studentId"
+                            element={<StudentsPage />}
+                        />
 
-                <Route
-                    path="teachers"
-                    element={<TeachersPage />}
-                />
+                        <Route
+                            path="teachers"
+                            element={<TeachersPage />}
+                        />
 
-                <Route
-                    path="teachers/:teacherId"
-                    element={<TeachersPage />}
-                />
+                        <Route
+                            path="teachers/:teacherId"
+                            element={<TeachersPage />}
+                        />
 
-                <Route
-                    path="reviews"
-                    element={<ReviewsPage />}
-                />
+                        <Route
+                            path="reviews"
+                            element={<ReviewsPage />}
+                        />
 
-                <Route
-                    path="dictionaries/subject-groups"
-                    element={<SubjectGroupsPage />}
-                />
+                        <Route
+                            path="materials"
+                            element={<MaterialsPage />}
+                        />
 
-                <Route
-                    path="dictionaries/subjects"
-                    element={<SubjectsPage />}
-                />
+                        <Route
+                            path="messages"
+                            element={<MessagesPage />}
+                        />
 
-                <Route
-                    path="dictionaries/preparation-groups"
-                    element={<PreparationGroupsPage />}
-                />
+                        <Route
+                            path="dictionaries/subject-groups"
+                            element={<SubjectGroupsPage />}
+                        />
 
-                <Route
-                    path="dictionaries/preparations"
-                    element={<PreparationsPage />}
-                />
+                        <Route
+                            path="dictionaries/subjects"
+                            element={<SubjectsPage />}
+                        />
 
-                <Route
-                    path="dictionaries/age-groups"
-                    element={<AgeGroupsPage />}
-                />
+                        <Route
+                            path="dictionaries/preparation-groups"
+                            element={<PreparationGroupsPage />}
+                        />
 
-                <Route
-                    path="dictionaries/subject-preparations"
-                    element={<SubjectPreparationsPage />}
-                />
-            </Route>
-        </Routes>
+                        <Route
+                            path="dictionaries/preparations"
+                            element={<PreparationsPage />}
+                        />
+
+                        <Route
+                            path="dictionaries/age-groups"
+                            element={<AgeGroupsPage />}
+                        />
+
+                        <Route
+                            path="dictionaries/subject-preparations"
+                            element={<SubjectPreparationsPage />}
+                        />
+                    </Route>
+                </Route>
+            </Routes>
+        </AdminAuthProvider>
     );
 }

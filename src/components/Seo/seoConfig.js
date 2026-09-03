@@ -36,18 +36,33 @@ const PUBLIC_ROUTES = {
         description: DEFAULT_DESCRIPTION,
         structuredData: HOME_STRUCTURED_DATA,
     },
-    '/agreement': {
+    '/legal/agreement': {
         title: 'Пользовательское соглашение — GoStudy',
         description: 'Пользовательское соглашение онлайн-платформы GoStudy.',
     },
-    '/privacy': {
+    '/legal/privacy': {
         title: 'Политика конфиденциальности — GoStudy',
         description: 'Политика обработки и защиты персональных данных пользователей GoStudy.',
     },
-    '/rules': {
+    '/legal/rules': {
         title: 'Правила платформы — GoStudy',
         description: 'Правила безопасного общения, занятий и размещения материалов на платформе GoStudy.',
     },
+};
+
+const DRAFT_LEGAL_ROUTES = {
+    '/legal/personal-data-consent':
+        'Согласие на обработку персональных данных — GoStudy',
+    '/legal/parent-child-data-consent':
+        'Согласие Родителя на обработку данных ребёнка — GoStudy',
+    '/legal/marketing-consent':
+        'Согласие на информационные и рекламные сообщения — GoStudy',
+    '/legal/tariffs':
+        'Тарифы, подписки и приоритетное размещение — GoStudy',
+    '/legal/teacher-subscription-offer':
+        'Оферта на подписку преподавателя — GoStudy',
+    '/legal/ip-npd-commission-offer':
+        'Оферта для преподавателей-ИП и плательщиков НПД — GoStudy',
 };
 
 const PRIVATE_ROUTES = {
@@ -76,7 +91,22 @@ export function getSeoConfig(pathname) {
             ...publicRoute,
             canonical: `${SITE_URL}${normalizedPathname === '/' ? '/' : normalizedPathname}`,
             image: `${SITE_URL}${DEFAULT_IMAGE_PATH}`,
-            robots: 'index, follow',
+            robots:
+                normalizedPathname.startsWith('/legal/')
+                    ? 'noindex, nofollow, noarchive'
+                    : 'index, follow',
+        };
+    }
+
+    const draftLegalTitle = DRAFT_LEGAL_ROUTES[normalizedPathname];
+
+    if (draftLegalTitle) {
+        return {
+            title: draftLegalTitle,
+            description: 'Проект юридического документа онлайн-платформы GoStudy.',
+            canonical: `${SITE_URL}${normalizedPathname}`,
+            image: `${SITE_URL}${DEFAULT_IMAGE_PATH}`,
+            robots: 'noindex, nofollow, noarchive',
         };
     }
 

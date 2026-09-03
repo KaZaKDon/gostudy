@@ -119,7 +119,7 @@ export function formatLessonDateTime(dateValue) {
 
 export function getLessonCountLabel(count) {
     if (count === 0) {
-        return 'Выходной';
+        return 'Нет уроков';
     }
 
     if (count === 1) {

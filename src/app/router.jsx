@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import {
     createBrowserRouter,
+    Navigate,
     Outlet,
     RouterProvider,
 } from 'react-router-dom';
@@ -107,16 +108,20 @@ const router = createBrowserRouter([
                 element: <ClassroomPage />,
             },
             {
+                path: '/legal/:documentType',
+                element: <LegalPage />,
+            },
+            {
                 path: '/agreement',
-                element: <LegalPage documentType="agreement" />,
+                element: <Navigate to="/legal/agreement" replace />,
             },
             {
                 path: '/privacy',
-                element: <LegalPage documentType="privacy" />,
+                element: <Navigate to="/legal/privacy" replace />,
             },
             {
                 path: '/rules',
-                element: <LegalPage documentType="rules" />,
+                element: <Navigate to="/legal/rules" replace />,
             },
             {
                 path: '/admin/*',
@@ -125,6 +130,10 @@ const router = createBrowserRouter([
             {
                 path: '/verify-email',
                 element: <VerifyEmail />,
+            },
+            {
+                path: '/404',
+                element: <NotFoundPage />,
             },
             {
                 path: '*',

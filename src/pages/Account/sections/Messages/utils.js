@@ -1,12 +1,13 @@
 import {
+    PARENT_MESSAGE_TABS,
     STUDENT_MESSAGE_TABS,
     TEACHER_MESSAGE_TABS,
 } from './constants.js';
 
 export function getMessageTabsByRole(role) {
-    return role === 'teacher'
-        ? TEACHER_MESSAGE_TABS
-        : STUDENT_MESSAGE_TABS;
+    if (role === 'teacher') return TEACHER_MESSAGE_TABS;
+    if (role === 'parent') return PARENT_MESSAGE_TABS;
+    return STUDENT_MESSAGE_TABS;
 }
 
 export function getFirstMessageTab(role) {
@@ -106,7 +107,7 @@ function getTabId(role, channelType) {
         return channelType === 'parent' ? 'parents' : 'students';
     }
 
-    return channelType === 'parent' ? 'parent' : 'student';
+    return 'teachers';
 }
 
 export function mapConversation(dialog, role) {
@@ -115,6 +116,7 @@ export function mapConversation(dialog, role) {
         key: String(dialog.key),
         teacherId: Number(dialog.teacher_id),
         studentId: Number(dialog.student_id),
+        parentId: dialog.parent_id ? Number(dialog.parent_id) : null,
         channelType: dialog.channel_type,
         tabId: getTabId(role, dialog.channel_type),
         name: dialog.display_name || 'Диалог',
@@ -136,6 +138,16 @@ export function mapMessage(message) {
         authorName: message.author_name || 'Пользователь',
         text: message.message_text || '',
         isRead: Boolean(message.is_read),
+        isOwn: Boolean(message.is_own),
+        isHidden: Boolean(message.is_hidden),
+        attachments: Array.isArray(message.attachments)
+            ? message.attachments.map((attachment) => ({
+                id: Number(attachment.id),
+                originalName: attachment.original_name || 'Файл',
+                mimeType: attachment.mime_type || '',
+                fileSize: Number(attachment.file_size) || 0,
+            }))
+            : [],
         createdAt: message.created_at || null,
         time: formatMessageTime(message.created_at),
     };

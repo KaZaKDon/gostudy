@@ -26,6 +26,7 @@ export function StudentsTable({
     isStatusUpdating,
     onOpenStudent,
     onUpdateStatus,
+    canManageAccounts,
 }) {
     if (isLoading) {
         return <Loader text="Загрузка учеников..." />;
@@ -49,6 +50,7 @@ export function StudentsTable({
                     isStatusUpdating={isStatusUpdating}
                     onOpen={onOpenStudent}
                     onUpdateStatus={onUpdateStatus}
+                    canManageAccounts={canManageAccounts}
                 />
             ))}
         </Table>

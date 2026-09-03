@@ -242,6 +242,24 @@ export function StudentProfileForm() {
                 ? CURRENT_YEAR - age
                 : null;
 
+        if (
+            age !== null
+            && age < 18
+            && (
+                !profile.parentName.trim()
+                || (
+                    !profile.parentPhone.trim()
+                    && !profile.parentEmail.trim()
+                )
+            )
+        ) {
+            setErrorMessage(
+                'Для ученика младше 18 лет укажите родителя и его телефон или email.',
+            );
+            setActiveStepIndex(2);
+            return;
+        }
+
         setIsSaving(true);
 
         try {

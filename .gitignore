@@ -16,6 +16,10 @@ node_modules
 dist
 dist-ssr
 *.local
+server/generated
+server/src/generated
+server/coverage
+server/storage/
 
 # Editor directories and files
 .vscode/*

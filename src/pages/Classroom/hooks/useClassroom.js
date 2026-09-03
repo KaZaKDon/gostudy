@@ -49,6 +49,9 @@ export function useClassroom(lessonId) {
                 files: Array.isArray(result.files)
                     ? result.files
                     : current.files,
+                homework: Array.isArray(result.homework)
+                    ? result.homework
+                    : current.homework,
                 messages,
             };
         });

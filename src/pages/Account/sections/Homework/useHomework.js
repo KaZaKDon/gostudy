@@ -77,6 +77,8 @@ export function useHomework(role) {
             await loadHomework({ silent: true });
         }
 
+        window.dispatchEvent(new Event('gostudy:notifications-refresh'));
+
         return result.homework;
     }, [loadHomework, role]);
 

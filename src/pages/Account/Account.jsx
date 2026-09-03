@@ -4,7 +4,11 @@ import {
     useSearchParams,
 } from 'react-router-dom';
 
-import { API, getAuthHeaders } from '../../api/api.js';
+import {
+    API,
+    API_FEATURES,
+    getAuthHeaders,
+} from '../../api/api.js';
 
 import { AccountSidebar } from './components/AccountSidebar.jsx';
 import { AccountPanel } from './components/AccountPanel.jsx';
@@ -12,6 +16,7 @@ import { CreateLessonModal } from './sections/Lessons/CreateLessonModal.jsx';
 import { useMessages } from './sections/Messages/useMessages.js';
 import { useNotifications } from './sections/Notifications/useNotifications.js';
 import { useHomework } from './sections/Homework/useHomework.js';
+import { useMaterials } from './sections/Materials/useMaterials.js';
 
 import {
     STUDENT_NAVIGATION,
@@ -21,7 +26,6 @@ import {
 import { createAccountIdentity } from './utils/accountIdentity.js';
 
 import {
-    accountMaterials,
     teacherDemoStats,
     teacherPayments,
     studentPayments,
@@ -43,11 +47,22 @@ export function Account() {
     const [messageTarget, setMessageTarget] = useState(null);
 
     const messagesController = useMessages(
-        authData?.user?.role ?? null,
+        API_FEATURES.messages
+            ? authData?.user?.role ?? null
+            : null,
     );
-    const notificationsController = useNotifications(Boolean(authData));
+    const notificationsController = useNotifications(
+        API_FEATURES.notifications && Boolean(authData),
+    );
     const homeworkController = useHomework(
-        authData?.user?.role ?? null,
+        API_FEATURES.homework
+            ? authData?.user?.role ?? null
+            : null,
+    );
+    const materialsController = useMaterials(
+        API_FEATURES.materials
+            ? authData?.user?.role ?? null
+            : null,
     );
 
     useEffect(() => {
@@ -128,6 +143,15 @@ export function Account() {
             return {
                 ...item,
                 count: homeworkController.actionableCount || undefined,
+            };
+        }
+
+        if (role === 'teacher' && item.id === 'students') {
+            return {
+                ...item,
+                count:
+                    notificationsController.teacherRequestsCount
+                    || undefined,
             };
         }
 
@@ -240,6 +264,18 @@ export function Account() {
 
         if (
             targetSection === 'students'
+            && notification.targetEntityType === 'teacher_request'
+        ) {
+            setSearchParams({
+                section: 'students',
+                status: 'requests',
+            });
+            setIsSidebarOpen(false);
+            return;
+        }
+
+        if (
+            targetSection === 'students'
             && notification.targetEntityType === 'review'
         ) {
             setSearchParams({
@@ -300,7 +336,7 @@ export function Account() {
                     documents={authData.documents}
                     identity={identity}
                     activeSection={activeSection}
-                    materials={accountMaterials}
+                    materialsController={materialsController}
                     homeworkController={homeworkController}
                     targetHomeworkId={
                         Number(searchParams.get('homework')) || null
@@ -341,13 +377,22 @@ export function Account() {
                             ? 'reviews'
                             : 'students'
                     }
+                    teacherStudentsStatus={
+                        searchParams.get('status') === 'requests'
+                            ? 'requests'
+                            : searchParams.get('status') === 'archive'
+                                ? 'archive'
+                                : 'active'
+                    }
                     payments={payments}
                     scheduleRevision={scheduleRevision}
                     scheduleFocusDate={scheduleFocusDate}
                     onAddLesson={
-                        role === 'teacher'
+                        role === 'teacher' && API_FEATURES.lessonCreation
                             ? handleOpenLessonCreation
-                            : () => handleSelectSection('findTeacher')
+                            : role === 'student'
+                                ? () => handleSelectSection('findTeacher')
+                                : null
                     }
                     onFindTeacher={() => handleSelectSection('findTeacher')}
                     onOpenHomework={(homeworkId) => {
@@ -388,13 +433,12 @@ export function Account() {
                         setSearchParams({ section: 'homework' });
                     }}
                     onOpenNotification={handleOpenNotification}
-                    onTeacherRequestSent={() =>
-                        handleSelectSection('teachers')
-                    }
                 />
             </div>
 
-            {role === 'teacher' && lessonCreation && (
+            {role === 'teacher'
+                && API_FEATURES.lessonCreation
+                && lessonCreation && (
                 <CreateLessonModal
                     initialRelationId={
                         lessonCreation.initialRelationId

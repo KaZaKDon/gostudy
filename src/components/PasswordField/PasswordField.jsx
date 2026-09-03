@@ -37,35 +37,31 @@ export function PasswordField({
     label = 'Пароль',
     placeholder = 'Введите пароль',
     autoComplete = 'current-password',
-    value,
-    onChange,
-    name,
-    required = false,
-    disabled = false,
+    labelClassName = '',
+    ...inputProps
 }) {
     const [isVisible, setIsVisible] = useState(false);
+    const toggleLabel = isVisible ? 'Скрыть пароль' : 'Показать пароль';
 
     return (
-        <label>
+        <label className={labelClassName}>
             <span>{label}</span>
 
             <div className="password-field">
                 <input
+                    {...inputProps}
                     type={isVisible ? 'text' : 'password'}
                     placeholder={placeholder}
                     autoComplete={autoComplete}
-                    value={value}
-                    onChange={onChange}
-                    name={name}
-                    required={required}
-                    disabled={disabled}
                 />
 
                 <button
                     type="button"
                     className="password-field__toggle"
-                    aria-label={isVisible ? 'Скрыть пароль' : 'Показать пароль'}
-                    disabled={disabled}
+                    aria-label={toggleLabel}
+                    aria-pressed={isVisible}
+                    title={toggleLabel}
+                    disabled={inputProps.disabled}
                     onClick={() => setIsVisible((value) => !value)}
                 >
                     <EyeIcon opened={isVisible} />

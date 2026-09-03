@@ -8,6 +8,7 @@ import {
 const roleLabels = {
     student: 'Ученик',
     teacher: 'Преподаватель',
+    parent: 'Родитель',
     admin: 'Администратор',
     moderator: 'Модератор',
 };
@@ -15,12 +16,14 @@ const roleLabels = {
 const statusLabels = {
     active: 'Активен',
     blocked: 'Заблокирован',
+    archived: 'Архив',
     deleted: 'Удалён',
 };
 
 const statusVariants = {
     active: 'success',
     blocked: 'danger',
+    archived: 'info',
     deleted: 'info',
 };
 

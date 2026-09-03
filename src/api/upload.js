@@ -1,4 +1,8 @@
-import { getAuthToken } from './api.js';
+import {
+    getAuthToken,
+    isLegacyApiUrl,
+    LEGACY_API_UNAVAILABLE_MESSAGE,
+} from './api.js';
 
 export const DEFAULT_UPLOAD_LIMITS = {
     maxFiles: 5,
@@ -52,6 +56,11 @@ export function uploadFile({
     onProgress,
 }) {
     return new Promise((resolve, reject) => {
+        if (isLegacyApiUrl(url)) {
+            reject(new Error(LEGACY_API_UNAVAILABLE_MESSAGE));
+            return;
+        }
+
         const token = getAuthToken();
 
         if (!token) {
@@ -121,6 +130,11 @@ export function submitMultipart({
     onProgress,
 }) {
     return new Promise((resolve, reject) => {
+        if (isLegacyApiUrl(url)) {
+            reject(new Error(LEGACY_API_UNAVAILABLE_MESSAGE));
+            return;
+        }
+
         const token = getAuthToken();
 
         if (!token) {
@@ -195,6 +209,10 @@ export function submitMultipart({
 }
 
 export async function fetchAuthFileBlob(url, { signal } = {}) {
+    if (isLegacyApiUrl(url)) {
+        throw new Error(LEGACY_API_UNAVAILABLE_MESSAGE);
+    }
+
     const token = getAuthToken();
     const response = await fetch(url, {
         headers: token ? { 'X-Auth-Token': token } : {},

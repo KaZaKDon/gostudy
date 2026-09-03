@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: gostudy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gostudy
+      POSTGRES_USER: gostudy
+      POSTGRES_PASSWORD: gostudy_local
+    ports:
+      - "5434:5432"
+    volumes:
+      - gostudy_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gostudy -d gostudy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  gostudy_postgres_data:

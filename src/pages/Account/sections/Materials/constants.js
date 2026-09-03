@@ -1,10 +1,10 @@
 export const MATERIAL_TABS = [
     {
-        id: 'textbooks',
+        id: 'textbook',
         label: 'Учебники',
     },
     {
-        id: 'trainers',
+        id: 'trainer',
         label: 'Тренажёры',
     },
     {
@@ -14,3 +14,22 @@ export const MATERIAL_TABS = [
 ];
 
 export const ALL_SUBJECTS_ID = 'all';
+
+export const MATERIAL_VIEWS = {
+    teacher: [
+        { id: 'mine', label: 'Моя библиотека' },
+        { id: 'catalog', label: 'Общий каталог' },
+    ],
+    student: [
+        { id: 'assigned', label: 'Назначено мне' },
+        { id: 'catalog', label: 'Общий каталог' },
+    ],
+};
+
+export const PUBLICATION_LABELS = {
+    private: 'Личный',
+    pending: 'На модерации',
+    approved: 'Опубликован',
+    rejected: 'Отклонён',
+    hidden: 'Скрыт',
+};

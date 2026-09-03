@@ -1,0 +1,11 @@
+.materials-admin__tabs { display: flex; gap: 8px; }
+.materials-admin__tabs button { border: 1px solid var(--admin-border); border-radius: 999px; padding: 10px 15px; color: var(--admin-text); background: var(--admin-surface); font-weight: 700; }
+.materials-admin__tabs button.active { border-color: var(--admin-primary); color: #fff; background: var(--admin-primary); }
+.materials-admin__success { color: var(--admin-success); }
+.materials-admin__email { display: block; margin-top: 4px; color: var(--admin-muted); }
+.materials-admin__report-filter { width: min(320px, 100%); }
+.material-moderation { display: grid; gap: 18px; }
+.material-moderation section { display: grid; gap: 10px; }
+.material-moderation h3, .material-moderation p { margin: 0; }
+.material-moderation__item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--admin-border); border-radius: 12px; }
+.materials-admin__check { display: flex; align-items: center; gap: 8px; font-weight: 700; }

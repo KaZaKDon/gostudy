@@ -59,8 +59,12 @@ export function useAccounts() {
 
             setAccounts(response.data.items || []);
             setPagination(response.data.pagination || DEFAULT_PAGINATION);
-        } catch {
-            setError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsLoading(false);
         }
@@ -80,8 +84,12 @@ export function useAccounts() {
             }
 
             setSelectedAccount(response.data);
-        } catch {
-            setAccountError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setAccountError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsAccountLoading(false);
         }
@@ -90,7 +98,8 @@ export function useAccounts() {
     async function updateAccountStatus({
         id,
         status,
-        blocked_reason = ''
+        blocked_reason = '',
+        archive_reason = '',
     }) {
         setIsStatusUpdating(true);
         setAccountError('');
@@ -100,6 +109,7 @@ export function useAccounts() {
                 id,
                 status,
                 blocked_reason,
+                archive_reason,
             });
 
             if (!response.success) {
@@ -109,8 +119,12 @@ export function useAccounts() {
 
             await openAccount(id);
             await loadAccounts(queryParams);
-        } catch {
-            setAccountError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setAccountError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsStatusUpdating(false);
         }
@@ -136,8 +150,12 @@ export function useAccounts() {
 
             await openAccount(id);
             await loadAccounts(queryParams);
-        } catch {
-            setAccountError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setAccountError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsRoleUpdating(false);
         }

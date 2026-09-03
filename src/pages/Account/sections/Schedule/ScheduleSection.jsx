@@ -5,6 +5,8 @@ import {
 
 import { useNavigate } from 'react-router-dom';
 
+import { API_FEATURES } from '../../../../api/api.js';
+
 import { useCurrentTime } from '../../../../hooks/useCurrentTime.js';
 import { ScheduleDayRow } from './components/ScheduleDayRow.jsx';
 import { LessonChangeModal } from '../Lessons/LessonChangeModal.jsx';
@@ -89,7 +91,9 @@ export function ScheduleSection({
     };
 
     const handleEnterClass = (lesson) => {
-        navigate(`/classroom/${lesson.id}`);
+        if (API_FEATURES.classroom) {
+            navigate(`/classroom/${lesson.id}`);
+        }
     };
 
     const handleShiftWeek = (direction) => {
@@ -122,6 +126,9 @@ export function ScheduleSection({
         setChangeDialog(null);
         setNoticeMessage(message || 'Расписание обновлено');
         setLocalRevision((revision) => revision + 1);
+        window.dispatchEvent(
+            new Event('gostudy:notifications-refresh'),
+        );
     };
 
     return (
@@ -214,8 +221,16 @@ export function ScheduleSection({
                             role={role}
                             day={day}
                             isOpen={activeOpenedDayId === day.id}
-                            onEnterClass={handleEnterClass}
-                            onOpenChange={handleOpenChange}
+                            onEnterClass={
+                                API_FEATURES.classroom
+                                    ? handleEnterClass
+                                    : null
+                            }
+                            onOpenChange={
+                                API_FEATURES.lessonChanges
+                                    ? handleOpenChange
+                                    : null
+                            }
                             currentTime={currentTime}
                             onToggle={() =>
                                 handleToggleDay(day.id)

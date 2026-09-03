@@ -117,6 +117,7 @@ export function HomeworkSection({
             )}
 
             <HomeworkReviewModal
+                key={controller.selectedHomework?.id || 'closed'}
                 role={role}
                 homework={controller.selectedHomework}
                 isSaving={controller.isSaving}

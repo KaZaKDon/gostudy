@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { PUBLICATION_LABELS } from '../constants.js';
 import { getMaterialCountLabel } from '../utils.js';
 
 import { MaterialItemRow } from './MaterialItemRow.jsx';
@@ -7,7 +8,14 @@ import { MaterialItemRow } from './MaterialItemRow.jsx';
 export function MaterialsGroupRow({
     role,
     group,
-    isExtraMaterial,
+    view,
+    isSaving,
+    onOpenItem,
+    onEdit,
+    onAssign,
+    onSubmitModeration,
+    onHide,
+    onReport,
 }) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -33,7 +41,7 @@ export function MaterialsGroupRow({
                 </span>
 
                 <span className="materials-group__author">
-                    {group.author}
+                    {group.author || 'GoStudy'}
                 </span>
 
                 <span className="materials-group__count">
@@ -49,27 +57,45 @@ export function MaterialsGroupRow({
                         </p>
                     )}
 
-                    {'price' in group && (
-                        <div className="materials-group__meta">
-                            <span>Доступ: {group.access}</span>
-                            <span>Стоимость: {group.price}</span>
-                            <span>
-                                Статус:{' '}
-                                {group.isVisible
-                                    ? 'показывается'
-                                    : 'скрыт'}
-                            </span>
-                        </div>
+                    <div className="materials-group__meta">
+                        <span>{group.access}</span>
+                        {group.price_rub && <span>{group.price_rub} ₽</span>}
+                        {group.is_owner && <span>{PUBLICATION_LABELS[group.publication_status] || group.publication_status}</span>}
+                        {group.is_assigned && <span>Назначен преподавателем</span>}
+                    </div>
+
+                    {group.is_owner && group.moderation_comment && (
+                        <p className="materials-message materials-message--error">
+                            Комментарий модератора: {group.moderation_comment}
+                        </p>
                     )}
 
                     {group.items.map((item) => (
                         <MaterialItemRow
                             key={item.id}
-                            role={role}
+                            material={group}
                             item={item}
-                            isExtraMaterial={isExtraMaterial}
+                            onOpen={onOpenItem}
                         />
                     ))}
+
+                    <div className="materials-group__actions">
+                        {role === 'teacher' && (group.is_owner || (view === 'catalog' && group.access_type === 'free')) && (
+                            <button type="button" disabled={isSaving} onClick={() => onAssign(group)}>Назначить ученику</button>
+                        )}
+                        {group.is_owner && (
+                            <button type="button" disabled={isSaving} onClick={() => onEdit(group)}>Редактировать</button>
+                        )}
+                        {group.is_owner && ['private', 'rejected', 'hidden'].includes(group.publication_status) && (
+                            <button type="button" disabled={isSaving} onClick={() => onSubmitModeration(group.id)}>В общий каталог</button>
+                        )}
+                        {group.is_owner && ['pending', 'approved'].includes(group.publication_status) && (
+                            <button type="button" className="material-item__danger" disabled={isSaving} onClick={() => onHide(group.id)}>Скрыть</button>
+                        )}
+                        {group.can_report && (
+                            <button type="button" className="material-item__danger" onClick={() => onReport(group)}>Пожаловаться</button>
+                        )}
+                    </div>
                 </div>
             )}
         </article>

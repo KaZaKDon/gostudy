@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Pagination } from '../../components/ui/index.js';
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 
 import { useTeachers } from '../../hooks/useTeachers.js';
 
@@ -14,6 +15,8 @@ import './teachers.css';
 export function TeachersPage() {
     const navigate = useNavigate();
     const { teacherId } = useParams();
+    const { user } = useAdminAuth();
+    const canManageAccounts = user?.role === 'admin';
     const {
         teachers,
         filters,
@@ -24,6 +27,7 @@ export function TeachersPage() {
         isTeacherLoading,
         isStatusUpdating,
         isVerificationUpdating,
+        isVisibilityUpdating,
 
         error,
         teacherError,
@@ -37,6 +41,7 @@ export function TeachersPage() {
         closeTeacher,
         updateTeacherStatus,
         updateTeacherVerification,
+        updateTeacherVisibility,
     } = useTeachers();
 
     useEffect(() => {
@@ -74,6 +79,7 @@ export function TeachersPage() {
                 isStatusUpdating={isStatusUpdating}
                 onOpenTeacher={openTeacher}
                 onUpdateStatus={updateTeacherStatus}
+                canManageAccounts={canManageAccounts}
             />
 
             <Pagination
@@ -88,10 +94,13 @@ export function TeachersPage() {
                 isLoading={isTeacherLoading}
                 isStatusUpdating={isStatusUpdating}
                 isVerificationUpdating={isVerificationUpdating}
+                isVisibilityUpdating={isVisibilityUpdating}
                 error={teacherError}
                 onClose={closeTeacherProfile}
                 onUpdateStatus={updateTeacherStatus}
                 onUpdateVerification={updateTeacherVerification}
+                onUpdateVisibility={updateTeacherVisibility}
+                canManageAccounts={canManageAccounts}
             />
         </div>
     );

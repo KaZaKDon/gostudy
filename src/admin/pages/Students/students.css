@@ -122,6 +122,12 @@
     font-weight: 700;
 }
 
+.student-view__card p {
+    margin: 4px 0 0;
+    color: var(--admin-text);
+    line-height: 1.5;
+}
+
 .students-row-actions {
     display: flex;
     align-items: center;

@@ -1,50 +1,27 @@
-const REVIEWS_API_URL = '/api/admin/reviews';
-
-async function parseResponse(response) {
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-        throw new Error(
-            result.message || 'Не удалось выполнить запрос',
-        );
-    }
-
-    return result;
-}
+import { API } from '../../api/api.js';
+import { adminApiRequest } from './adminApiRequest.js';
 
 export const reviewsApi = {
-    async getReviews(params = {}) {
+    getReviews(params = {}) {
         const searchParams = new URLSearchParams();
 
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
-                searchParams.set(key, value);
+                searchParams.set(key, String(value));
             }
         });
 
-        const response = await fetch(
-            `${REVIEWS_API_URL}/index.php?${searchParams.toString()}`,
-            {
-                credentials: 'include',
-            },
+        const query = searchParams.toString();
+        return adminApiRequest(
+            query ? `${API.adminReviews}?${query}` : API.adminReviews,
         );
-
-        return parseResponse(response);
     },
 
-    async moderate(payload) {
-        const response = await fetch(
-            `${REVIEWS_API_URL}/moderate.php`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload),
-            },
-        );
-
-        return parseResponse(response);
+    moderate(payload) {
+        const { review_id: reviewId, ...body } = payload;
+        return adminApiRequest(`${API.adminReviews}/${reviewId}/moderation`, {
+            method: 'PATCH',
+            body,
+        });
     },
 };

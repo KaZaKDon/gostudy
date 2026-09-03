@@ -32,6 +32,7 @@ export function useTeachers() {
     const [isTeacherLoading, setIsTeacherLoading] = useState(false);
     const [isStatusUpdating, setIsStatusUpdating] = useState(false);
     const [isVerificationUpdating, setIsVerificationUpdating] = useState(false);
+    const [isVisibilityUpdating, setIsVisibilityUpdating] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -57,8 +58,12 @@ export function useTeachers() {
 
             setTeachers(response.data.items || []);
             setPagination(response.data.pagination || DEFAULT_PAGINATION);
-        } catch {
-            setError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsLoading(false);
         }
@@ -78,8 +83,12 @@ export function useTeachers() {
             }
 
             setSelectedTeacher(response.data);
-        } catch {
-            setTeacherError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setTeacherError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsTeacherLoading(false);
         }
@@ -109,14 +118,18 @@ export function useTeachers() {
 
             await openTeacher(id);
             await loadTeachers(queryParams);
-        } catch {
-            setTeacherError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setTeacherError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsStatusUpdating(false);
         }
     }
 
-        async function updateTeacherVerification({
+    async function updateTeacherVerification({
         id,
         status,
         comment = '',
@@ -138,11 +151,33 @@ export function useTeachers() {
 
             await openTeacher(id);
             await loadTeachers(queryParams);
-        } catch (error) {
-            console.error(error);
-            setTeacherError(error.message || 'Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setTeacherError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsVerificationUpdating(false);
+        }
+    }
+
+    async function updateTeacherVisibility({ id, is_visible }) {
+        setIsVisibilityUpdating(true);
+        setTeacherError('');
+
+        try {
+            await teachersApi.updateVisibility({ id, is_visible });
+            await openTeacher(id);
+            await loadTeachers(queryParams);
+        } catch (requestError) {
+            setTeacherError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
+        } finally {
+            setIsVisibilityUpdating(false);
         }
     }
 
@@ -152,6 +187,7 @@ export function useTeachers() {
         setIsTeacherLoading(false);
         setIsStatusUpdating(false);
         setIsVerificationUpdating(false);
+        setIsVisibilityUpdating(false);
     }
 
     useEffect(() => {
@@ -201,6 +237,7 @@ export function useTeachers() {
         isTeacherLoading,
         isStatusUpdating,
         isVerificationUpdating,
+        isVisibilityUpdating,
 
         error,
         teacherError,
@@ -214,5 +251,6 @@ export function useTeachers() {
         closeTeacher,
         updateTeacherStatus,
         updateTeacherVerification,
+        updateTeacherVisibility,
     };
 }

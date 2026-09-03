@@ -15,6 +15,10 @@ export const HOMEWORK_STATUSES = [
         id: 'completed',
         label: 'Проверенные',
     },
+    {
+        id: 'cancelled',
+        label: 'Отменённые',
+    },
 ];
 
 export const HOMEWORK_STATUS_LABELS = {

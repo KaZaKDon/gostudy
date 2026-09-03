@@ -22,7 +22,7 @@ export function AccountPanel({
     documents,
     identity,
     activeSection,
-    materials,
+    materialsController,
     homeworkController,
     targetHomeworkId,
     createHomeworkRelationId,
@@ -35,6 +35,7 @@ export function AccountPanel({
     notificationsController,
     messageTarget,
     teacherStudentsView,
+    teacherStudentsStatus,
     payments,
     scheduleRevision,
     scheduleFocusDate,
@@ -135,8 +136,9 @@ export function AccountPanel({
                 />
             ) : isTeacherStudentsSection ? (
                 <TeacherStudentsSection
-                    key={teacherStudentsView}
+                    key={`${teacherStudentsView}:${teacherStudentsStatus}`}
                     initialView={teacherStudentsView}
+                    initialStatusTab={teacherStudentsStatus}
                     onAddLesson={onAddLesson}
                     onOpenMessage={onOpenStudentMessage}
                     onCreateHomework={onCreateStudentHomework}
@@ -153,7 +155,7 @@ export function AccountPanel({
             ) : isMaterialsSection ? (
                 <MaterialsSection
                     role={role}
-                    materials={materials}
+                    controller={materialsController}
                 />
             ) : isHomeworkSection ? (
                 <HomeworkSection

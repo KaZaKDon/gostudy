@@ -98,6 +98,9 @@ export function useTeacherStudents() {
 
                 setStudents(loadedStudents);
                 setActionStatus('success');
+                window.dispatchEvent(
+                    new Event('gostudy:notifications-refresh'),
+                );
             } catch (error) {
                 setErrorMessage(
                     error instanceof Error

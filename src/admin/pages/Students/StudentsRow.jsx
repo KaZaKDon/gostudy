@@ -8,12 +8,14 @@ import {
 const statusLabels = {
     active: 'Активен',
     blocked: 'Заблокирован',
+    archived: 'Архив',
     deleted: 'Архив',
 };
 
 const statusVariants = {
     active: 'success',
     blocked: 'danger',
+    archived: 'info',
     deleted: 'info',
 };
 
@@ -30,7 +32,11 @@ export function StudentsRow({
     isStatusUpdating,
     onOpen,
     onUpdateStatus,
+    canManageAccounts,
 }) {
+    const isArchived = student.status === 'archived'
+        || student.status === 'deleted';
+
     function handleToggleStatus() {
         if (isStatusUpdating) {
             return;
@@ -64,7 +70,7 @@ export function StudentsRow({
 
         onUpdateStatus({
             id: student.id,
-            status: 'deleted',
+            status: 'archived',
             blocked_reason: '',
             archive_reason: 'Архивирован администратором',
         });
@@ -121,7 +127,7 @@ export function StudentsRow({
                         Открыть
                     </Button>
 
-                    {student.status !== 'deleted' && (
+                    {canManageAccounts && !isArchived && (
                         <Button
                             size="sm"
                             variant={student.status === 'blocked' ? 'primary' : 'danger'}
@@ -132,7 +138,7 @@ export function StudentsRow({
                         </Button>
                     )}
 
-                    {student.status !== 'deleted' && (
+                    {canManageAccounts && !isArchived && (
                         <Button
                             size="sm"
                             variant="secondary"
@@ -143,7 +149,7 @@ export function StudentsRow({
                         </Button>
                     )}
 
-                    {student.status === 'deleted' && (
+                    {canManageAccounts && isArchived && (
                         <Button
                             size="sm"
                             variant="primary"

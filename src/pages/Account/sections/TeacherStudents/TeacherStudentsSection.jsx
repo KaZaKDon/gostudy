@@ -17,6 +17,7 @@ const STUDENT_STATUS_TABS = [
 
 export function TeacherStudentsSection({
     initialView = 'students',
+    initialStatusTab = 'active',
     onAddLesson,
     onOpenMessage,
     onCreateHomework,
@@ -31,7 +32,11 @@ export function TeacherStudentsSection({
         updateStudentStatus,
     } = useTeacherStudents();
 
-    const [statusTab, setStatusTab] = useState('active');
+    const [statusTab, setStatusTab] = useState(
+        STUDENT_STATUS_TABS.some((tab) => tab.id === initialStatusTab)
+            ? initialStatusTab
+            : 'active',
+    );
     const [searchValue, setSearchValue] = useState('');
     const [selectedStudentId, setSelectedStudentId] = useState(
         null,

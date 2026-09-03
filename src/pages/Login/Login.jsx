@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { API } from '../../api/api.js';
+import { PasswordField } from '../../components/PasswordField/PasswordField.jsx';
 import { getRouteAfterLogin } from '../../utils/roleRoutes.js';
 
 import './Login.css';
@@ -86,18 +87,12 @@ export function Login() {
                         />
                     </label>
 
-                    <label>
-                        <span>Пароль</span>
-
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            placeholder="Введите пароль"
-                            autoComplete="current-password"
-                            required
-                        />
-                    </label>
+                    <PasswordField
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
 
                     {errorMessage && (
                         <p className="auth-card__error">

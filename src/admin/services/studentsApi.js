@@ -1,7 +1,8 @@
-const STUDENTS_API_URL = '/api/admin/students';
+import { API } from '../../api/api.js';
+import { adminApiRequest } from './adminApiRequest.js';
 
 export const studentsApi = {
-    async getStudents(params = {}) {
+    getStudents(params = {}) {
         const searchParams = new URLSearchParams();
 
         Object.entries(params).forEach(([key, value]) => {
@@ -10,41 +11,29 @@ export const studentsApi = {
             }
         });
 
-        const response = await fetch(`${STUDENTS_API_URL}/index.php?${searchParams.toString()}`, {
-            credentials: 'include',
-        });
-
-        return response.json();
+        return adminApiRequest(
+            `${API.adminStudents}?${searchParams.toString()}`,
+        );
     },
 
-    async getStudent(id) {
-        const response = await fetch(`${STUDENTS_API_URL}/show.php?id=${id}`, {
-            credentials: 'include',
-        });
-
-        return response.json();
+    getStudent(id) {
+        return adminApiRequest(`${API.adminStudents}/${id}`);
     },
 
-    async updateStatus({
+    updateStatus({
         id,
         status,
         blocked_reason = '',
         archive_reason = '',
     }) {
-        const response = await fetch(`${STUDENTS_API_URL}/update-status.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
+        return adminApiRequest(`${API.adminAccounts}/${id}/status`, {
+            method: 'PATCH',
+            body: {
                 id,
                 status,
                 blocked_reason,
                 archive_reason,
-            }),
+            },
         });
-
-        return response.json();
     },
 };

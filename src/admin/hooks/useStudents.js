@@ -54,8 +54,12 @@ export function useStudents() {
 
             setStudents(response.data.items || []);
             setPagination(response.data.pagination || DEFAULT_PAGINATION);
-        } catch {
-            setError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsLoading(false);
         }
@@ -75,8 +79,12 @@ export function useStudents() {
             }
 
             setSelectedStudent(response.data);
-        } catch {
-            setStudentError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setStudentError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsStudentLoading(false);
         }
@@ -106,8 +114,12 @@ export function useStudents() {
 
             await openStudent(id);
             await loadStudents(queryParams);
-        } catch {
-            setStudentError('Не удалось подключиться к серверу');
+        } catch (requestError) {
+            setStudentError(
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'Не удалось подключиться к серверу',
+            );
         } finally {
             setIsStatusUpdating(false);
         }

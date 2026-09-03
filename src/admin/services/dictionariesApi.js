@@ -1,237 +1,94 @@
-const DICTIONARIES_API_BASE =
-    '/api/admin/dictionaries';
+import { API } from '../../api/api.js';
+import { adminApiRequest } from './adminApiRequest.js';
 
-async function request(url, options = {}) {
-    const response = await fetch(url, {
-        credentials: 'include',
-        ...options,
-        headers: {
-            ...(options.body
-                ? {
-                    'Content-Type': 'application/json',
-                }
-                : {}),
-            ...options.headers,
-        },
-    });
-
-    const data = await response
-        .json()
-        .catch(() => null);
-
-    if (!data) {
-        throw new Error(
-            'Сервер вернул некорректный ответ',
-        );
-    }
-
-    return data;
-}
-
-function post(url, payload) {
-    return request(url, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-    });
-}
+const DICTIONARIES_API_BASE = API.adminDictionaries;
 
 function buildQuery(filters = {}) {
     const params = new URLSearchParams();
 
     if (filters.group_id) {
-        params.set(
-            'group_id',
-            String(filters.group_id),
-        );
+        params.set('group_id', String(filters.group_id));
     }
-
     if (filters.is_active !== undefined) {
-        params.set(
-            'is_active',
-            filters.is_active ? '1' : '0',
-        );
+        params.set('is_active', filters.is_active ? '1' : '0');
     }
-
     if (filters.search?.trim()) {
-        params.set(
-            'search',
-            filters.search.trim(),
-        );
+        params.set('search', filters.search.trim());
     }
 
     const query = params.toString();
-
-    return query
-        ? `?${query}`
-        : '';
+    return query ? `?${query}` : '';
 }
 
+function createCrudApi(resource) {
+    const url = `${DICTIONARIES_API_BASE}/${resource}`;
+
+    return {
+        getList(filters = {}) {
+            return adminApiRequest(`${url}${buildQuery(filters)}`);
+        },
+        create(payload) {
+            return adminApiRequest(url, { method: 'POST', body: payload });
+        },
+        update(payload) {
+            const { id, ...body } = payload;
+            return adminApiRequest(`${url}/${id}`, { method: 'PATCH', body });
+        },
+        delete(id) {
+            return adminApiRequest(`${url}/${id}`, { method: 'DELETE' });
+        },
+    };
+}
+
+const subjectGroups = createCrudApi('subject-groups');
+const subjects = createCrudApi('subjects');
+const preparationGroups = createCrudApi('preparation-groups');
+const preparations = createCrudApi('preparations');
+const ageGroups = createCrudApi('age-groups');
+
 export const dictionariesApi = {
-    getSubjectGroups() {
-        return request(
-            `${DICTIONARIES_API_BASE}/subject-groups/index.php`,
-        );
-    },
+    getSubjectGroups: subjectGroups.getList,
+    createSubjectGroup: subjectGroups.create,
+    updateSubjectGroup: subjectGroups.update,
+    deleteSubjectGroup: subjectGroups.delete,
 
-    createSubjectGroup(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subject-groups/create.php`,
-            payload,
-        );
-    },
+    getSubjects: subjects.getList,
+    createSubject: subjects.create,
+    updateSubject: subjects.update,
+    deleteSubject: subjects.delete,
 
-    updateSubjectGroup(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subject-groups/update.php`,
-            payload,
-        );
-    },
+    getPreparationGroups: preparationGroups.getList,
+    createPreparationGroup: preparationGroups.create,
+    updatePreparationGroup: preparationGroups.update,
+    deletePreparationGroup: preparationGroups.delete,
 
-    deleteSubjectGroup(id) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subject-groups/delete.php`,
-            {
-                id,
-            },
-        );
-    },
+    getPreparations: preparations.getList,
+    createPreparation: preparations.create,
+    updatePreparation: preparations.update,
+    deletePreparation: preparations.delete,
 
-    getSubjects(filters = {}) {
-        return request(
-            `${DICTIONARIES_API_BASE}/subjects/index.php${buildQuery(filters)}`,
-        );
-    },
-
-    createSubject(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subjects/create.php`,
-            payload,
-        );
-    },
-
-    updateSubject(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subjects/update.php`,
-            payload,
-        );
-    },
-
-    deleteSubject(id) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subjects/delete.php`,
-            {
-                id,
-            },
-        );
-    },
-
-    getPreparationGroups() {
-        return request(
-            `${DICTIONARIES_API_BASE}/preparation-groups/index.php`,
-        );
-    },
-
-    createPreparationGroup(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/preparation-groups/create.php`,
-            payload,
-        );
-    },
-
-    updatePreparationGroup(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/preparation-groups/update.php`,
-            payload,
-        );
-    },
-
-    deletePreparationGroup(id) {
-        return post(
-            `${DICTIONARIES_API_BASE}/preparation-groups/delete.php`,
-            {
-                id,
-            },
-        );
-    },
-
-    getPreparations(filters = {}) {
-        return request(
-            `${DICTIONARIES_API_BASE}/preparations/index.php${buildQuery(filters)}`,
-        );
-    },
-
-    createPreparation(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/preparations/create.php`,
-            payload,
-        );
-    },
-
-    updatePreparation(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/preparations/update.php`,
-            payload,
-        );
-    },
-
-    deletePreparation(id) {
-        return post(
-            `${DICTIONARIES_API_BASE}/preparations/delete.php`,
-            {
-                id,
-            },
-        );
-    },
-
-    getAgeGroups() {
-        return request(
-            `${DICTIONARIES_API_BASE}/age-groups/index.php`,
-        );
-    },
-
-    createAgeGroup(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/age-groups/create.php`,
-            payload,
-        );
-    },
-
-    updateAgeGroup(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/age-groups/update.php`,
-            payload,
-        );
-    },
-
-    deleteAgeGroup(id) {
-        return post(
-            `${DICTIONARIES_API_BASE}/age-groups/delete.php`,
-            {
-                id,
-            },
-        );
-    },
+    getAgeGroups: ageGroups.getList,
+    createAgeGroup: ageGroups.create,
+    updateAgeGroup: ageGroups.update,
+    deleteAgeGroup: ageGroups.delete,
 
     getSubjectPreparationsData() {
-        return request(
-            `${DICTIONARIES_API_BASE}/subject-preparations/index.php`,
-        );
+        return adminApiRequest(`${DICTIONARIES_API_BASE}/subject-preparations`);
     },
 
     getSubjectPreparationLinks(subjectId) {
-        const params = new URLSearchParams({
-            subject_id: String(subjectId),
-        });
-
-        return request(
-            `${DICTIONARIES_API_BASE}/subject-preparations/links.php?${params.toString()}`,
-        );
+        return adminApiRequest(`${DICTIONARIES_API_BASE}/subject-preparations/${subjectId}`);
     },
 
     updateSubjectPreparations(payload) {
-        return post(
-            `${DICTIONARIES_API_BASE}/subject-preparations/update.php`,
-            payload,
-        );
+        const {
+            subject_id: subjectId,
+            preparations: selectedPreparations,
+        } = payload;
+
+        return adminApiRequest(`${DICTIONARIES_API_BASE}/subject-preparations/${subjectId}`, {
+            method: 'PUT',
+            body: { preparations: selectedPreparations },
+        });
     },
 };

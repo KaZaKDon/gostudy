@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "documents": [
+    {
+      "key": "user_agreement",
+      "slug": "agreement",
+      "label": "Пользовательское соглашение",
+      "title": "Пользовательское соглашение",
+      "path": "/legal/agreement",
+      "version": "draft-0.1",
+      "status": "draft",
+      "file": "user-agreement.md"
+    },
+    {
+      "key": "privacy_policy",
+      "slug": "privacy",
+      "label": "Политика конфиденциальности",
+      "title": "Политика конфиденциальности",
+      "path": "/legal/privacy",
+      "version": "1.5",
+      "status": "draft",
+      "file": "privacy-policy.md"
+    },
+    {
+      "key": "platform_rules",
+      "slug": "rules",
+      "label": "Правила платформы",
+      "title": "Правила платформы",
+      "path": "/legal/rules",
+      "version": "1.3",
+      "status": "draft",
+      "file": "platform-rules.md"
+    },
+    {
+      "key": "personal_data_consent",
+      "slug": "personal-data-consent",
+      "label": "Согласие на обработку персональных данных",
+      "title": "Согласие на обработку персональных данных",
+      "path": "/legal/personal-data-consent",
+      "version": "1.9",
+      "status": "draft",
+      "file": "personal-data-consent.md"
+    },
+    {
+      "key": "parent_child_data_consent",
+      "slug": "parent-child-data-consent",
+      "label": "Согласие Родителя на обработку данных ребёнка",
+      "title": "Согласие Родителя на обработку данных ребёнка",
+      "path": "/legal/parent-child-data-consent",
+      "version": "1.0",
+      "status": "draft",
+      "file": "parent-child-data-consent.md"
+    },
+    {
+      "key": "marketing_consent",
+      "slug": "marketing-consent",
+      "label": "Согласие на информационные и рекламные сообщения",
+      "title": "Согласие на информационные и рекламные сообщения",
+      "path": "/legal/marketing-consent",
+      "version": "1.5",
+      "status": "draft",
+      "file": "marketing-consent.md"
+    },
+    {
+      "key": "tariffs",
+      "slug": "tariffs",
+      "label": "Тарифы, подписки и приоритетное размещение",
+      "title": "Тарифы, подписки и приоритетное размещение",
+      "path": "/legal/tariffs",
+      "version": "1.1",
+      "status": "draft",
+      "file": "tariffs.md"
+    },
+    {
+      "key": "teacher_subscription_offer",
+      "slug": "teacher-subscription-offer",
+      "label": "Оферта на подписку преподавателя",
+      "title": "Оферта на подписку преподавателя",
+      "path": "/legal/teacher-subscription-offer",
+      "version": "1.5",
+      "status": "draft",
+      "file": "teacher-subscription-offer.md"
+    },
+    {
+      "key": "ip_npd_commission_offer",
+      "slug": "ip-npd-commission-offer",
+      "label": "Оферта для преподавателей-ИП и плательщиков НПД",
+      "title": "Оферта для преподавателей-ИП и плательщиков НПД",
+      "path": "/legal/ip-npd-commission-offer",
+      "version": "1.9",
+      "status": "draft",
+      "file": "ip-npd-commission-offer.md"
+    }
+  ]
+}

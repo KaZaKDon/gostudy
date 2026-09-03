@@ -9,6 +9,7 @@ import {
     Loader,
 } from '../ui/index.js';
 
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 import { useCrud } from '../../hooks/useCrud.js';
 
 import { CrudModal } from './CrudModal.jsx';
@@ -124,6 +125,20 @@ function applyDefaultFilters(
 export function CrudPage({
     config,
 }) {
+    const { user } = useAdminAuth();
+    const pageConfig = useMemo(() => ({
+        ...config,
+        permissions: user?.role === 'admin'
+            ? config.permissions
+            : {
+                ...config.permissions,
+                create: false,
+                update: false,
+                toggle: false,
+                delete: false,
+            },
+    }), [config, user?.role]);
+
     const [filters, setFilters] =
         useState(() => (
             createInitialFilters(
@@ -180,12 +195,12 @@ export function CrudPage({
             dependencies:
                 crud.dependencies,
             filters,
-            config,
+            config: pageConfig,
         }),
         [
-            config,
             crud.dependencies,
             filters,
+            pageConfig,
         ],
     );
 
@@ -267,7 +282,7 @@ export function CrudPage({
             </header>
 
             <CrudToolbar
-                config={config}
+                config={pageConfig}
                 filters={filters}
                 context={context}
                 isLoading={crud.isLoading}
@@ -345,7 +360,7 @@ export function CrudPage({
                 />
             ) : (
                 <CrudTable
-                    config={config}
+                    config={pageConfig}
                     items={visibleItems}
                     context={context}
                     changingStatusId={
@@ -372,7 +387,7 @@ export function CrudPage({
                         crud.selectedItem?.id
                         ?? `new-${config.entityKey}`
                     }
-                    config={config}
+                    config={pageConfig}
                     item={crud.selectedItem}
                     context={modalContext}
                     isSaving={crud.isSaving}

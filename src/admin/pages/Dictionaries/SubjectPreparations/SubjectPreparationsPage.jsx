@@ -15,6 +15,7 @@ import {
 import {
     dictionariesApi,
 } from '../../../services/dictionariesApi.js';
+import { useAdminAuth } from '../../../auth/useAdminAuth.js';
 
 import './subjectPreparations.css';
 
@@ -61,6 +62,10 @@ function areIdListsEqual(firstIds, secondIds) {
 }
 
 export function SubjectPreparationsPage() {
+    const { user } = useAdminAuth();
+    const canManageDictionaries =
+        user?.role === 'admin';
+
     const [subjects, setSubjects] =
         useState([]);
 
@@ -854,6 +859,7 @@ export function SubjectPreparationsPage() {
                                                                     }
                                                                     disabled={
                                                                         isSaving
+                                                                        || !canManageDictionaries
                                                                     }
                                                                     onChange={() => {
                                                                         handlePreparationToggle(
@@ -938,6 +944,7 @@ export function SubjectPreparationsPage() {
                                             disabled={
                                                 index === 0
                                                 || isSaving
+                                                || !canManageDictionaries
                                             }
                                             onClick={() => {
                                                 movePreparation(
@@ -958,6 +965,7 @@ export function SubjectPreparationsPage() {
                                                     .length
                                                     - 1
                                                 || isSaving
+                                                || !canManageDictionaries
                                             }
                                             onClick={() => {
                                                 movePreparation(
@@ -989,6 +997,7 @@ export function SubjectPreparationsPage() {
                                 !selectedSubjectId
                                 || !isDirty
                                 || isLinksLoading
+                                || !canManageDictionaries
                             }
                             fullWidth
                             onClick={handleSave}

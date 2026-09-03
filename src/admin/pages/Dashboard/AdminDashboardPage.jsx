@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { getAdminDashboardStats } from '../../services/adminDashboardApi.js';
+
 const statLabels = {
     users_total: 'Пользователи',
     students_total: 'Ученики',
@@ -12,7 +14,10 @@ const statLabels = {
     homework_assigned_total: 'Домашние задания',
     messages_total: 'Сообщения',
     reports_new_total: 'Жалобы',
+    message_reports_pending_total: 'Жалобы на сообщения',
     reviews_pending_total: 'Отзывы на проверке',
+    materials_pending_total: 'Материалы на проверке',
+    material_reports_pending_total: 'Жалобы на материалы',
     payments_paid_total: 'Оплаченные платежи',
     payouts_pending_total: 'Выплаты в ожидании',
 };
@@ -25,20 +30,14 @@ export function AdminDashboardPage() {
     useEffect(() => {
         async function loadStats() {
             try {
-                const response = await fetch('/api/admin/dashboard/stats.php', {
-                    credentials: 'include',
-                });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    setError(data.message || 'Ошибка загрузки статистики');
-                    return;
-                }
-
-                setStats(data.data);
-            } catch {
-                setError('Не удалось подключиться к серверу');
+                const result = await getAdminDashboardStats();
+                setStats(result.data);
+            } catch (requestError) {
+                setError(
+                    requestError instanceof Error
+                        ? requestError.message
+                        : 'Не удалось подключиться к серверу',
+                );
             } finally {
                 setIsLoading(false);
             }

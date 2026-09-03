@@ -8,6 +8,11 @@ import {
 
 import { API } from '../../../../api/api.js';
 import { apiRequest } from '../../../../api/apiRequest.js';
+import {
+    DEFAULT_UPLOAD_LIMITS,
+    downloadAuthFile,
+    submitMultipart,
+} from '../../../../api/upload.js';
 
 import {
     mapConversation,
@@ -28,6 +33,10 @@ function buildThreadUrl(conversation, beforeId = null) {
 
     if (beforeId) {
         params.set('before_id', String(beforeId));
+    }
+
+    if (conversation.parentId) {
+        params.set('parent_id', String(conversation.parentId));
     }
 
     return `${API.messageThread}?${params.toString()}`;
@@ -59,6 +68,7 @@ export function useMessages(role) {
     const [hasMore, setHasMore] = useState(false);
     const [nextBeforeId, setNextBeforeId] = useState(null);
     const [sendStatus, setSendStatus] = useState('idle');
+    const [uploadLimits, setUploadLimits] = useState(DEFAULT_UPLOAD_LIMITS);
 
     const selectedKeyRef = useRef(null);
     const selectedConversationRef = useRef(null);
@@ -95,6 +105,14 @@ export function useMessages(role) {
                 : [];
 
             setDialogs(loadedDialogs);
+            setUploadLimits({
+                maxFiles: Number(result.upload_limits?.max_files)
+                    || DEFAULT_UPLOAD_LIMITS.maxFiles,
+                maxFileBytes: Number(result.upload_limits?.max_file_bytes)
+                    || DEFAULT_UPLOAD_LIMITS.maxFileBytes,
+                maxTotalBytes: Number(result.upload_limits?.max_total_bytes)
+                    || DEFAULT_UPLOAD_LIMITS.maxTotalBytes,
+            });
             setDialogsStatus('success');
 
             setSelectedConversation((current) => {
@@ -140,6 +158,7 @@ export function useMessages(role) {
                 teacher_id: conversation.teacherId,
                 student_id: conversation.studentId,
                 channel_type: conversation.channelType,
+                parent_id: conversation.parentId || undefined,
             },
         });
 
@@ -293,7 +312,11 @@ export function useMessages(role) {
         }
     }, [nextBeforeId, selectedConversation, threadStatus]);
 
-    const sendMessage = useCallback(async (messageText) => {
+    const sendMessage = useCallback(async (
+        messageText,
+        files = [],
+        onProgress,
+    ) => {
         if (!selectedConversation || sendStatus === 'loading') {
             return false;
         }
@@ -302,14 +325,18 @@ export function useMessages(role) {
         setThreadError('');
 
         try {
-            const result = await apiRequest(API.sendMessage, {
-                method: 'POST',
-                body: {
+            const result = await submitMultipart({
+                url: API.sendMessage,
+                fields: {
                     teacher_id: selectedConversation.teacherId,
                     student_id: selectedConversation.studentId,
                     channel_type: selectedConversation.channelType,
+                    parent_id: selectedConversation.parentId || undefined,
                     message_text: messageText,
                 },
+                files,
+                limits: uploadLimits,
+                onProgress,
             });
 
             const sentMessage = mapMessage(result.message);
@@ -345,7 +372,31 @@ export function useMessages(role) {
             setSendStatus('error');
             return false;
         }
-    }, [loadDialogs, selectedConversation, sendStatus]);
+    }, [loadDialogs, selectedConversation, sendStatus, uploadLimits]);
+
+    const downloadAttachment = useCallback(async (attachment) => {
+        setThreadError('');
+        try {
+            await downloadAuthFile(
+                `${API.messageDownload}?attachment_id=${attachment.id}`,
+                attachment.originalName,
+            );
+        } catch (error) {
+            setThreadError(error.message || 'Не удалось скачать вложение');
+        }
+    }, []);
+
+    const reportMessage = useCallback(async (messageId, reason, comment) => {
+        const result = await apiRequest(API.reportMessage, {
+            method: 'POST',
+            body: {
+                message_id: Number(messageId),
+                reason,
+                comment,
+            },
+        });
+        return result.message || 'Жалоба передана администрации';
+    }, []);
 
     useEffect(() => {
         if (!role) {
@@ -427,10 +478,13 @@ export function useMessages(role) {
         threadError,
         hasMore,
         sendStatus,
+        uploadLimits,
         reloadDialogs: loadDialogs,
         openConversation,
         closeConversation,
         loadOlderMessages,
         sendMessage,
+        downloadAttachment,
+        reportMessage,
     };
 }
