@@ -28,6 +28,7 @@ export function ScheduleSection({
     onAddLesson,
     refreshKey,
     initialDate,
+    initialLessonId,
 }) {
     const navigate = useNavigate();
     const currentTime = useCurrentTime();
@@ -38,12 +39,25 @@ export function ScheduleSection({
     const [localRevision, setLocalRevision] = useState(0);
     const [changeDialog, setChangeDialog] = useState(null);
     const [noticeMessage, setNoticeMessage] = useState('');
+    const [parentStudentId, setParentStudentId] = useState(null);
+    const [targetLessonId, setTargetLessonId] = useState(
+        () => Number(initialLessonId) || null,
+    );
 
     const {
         schedule,
         requestStatus,
         errorMessage,
-    } = useSchedule(displayedDate, refreshKey + localRevision);
+        children,
+        selectedStudentId,
+    } = useSchedule(
+        displayedDate,
+        refreshKey + localRevision,
+        {
+            studentId: role === 'parent' ? parentStudentId : null,
+            lessonId: role === 'parent' ? targetLessonId : null,
+        },
+    );
 
     /*
      * undefined — пользователь ещё не открывал и не закрывал дни;
@@ -59,6 +73,8 @@ export function ScheduleSection({
 
     const weekLabel = getScheduleWeekLabel(displayedDate);
     const isCurrentWeek = isCurrentScheduleWeek(displayedDate);
+    const effectiveParentStudentId =
+        parentStudentId || selectedStudentId || '';
 
     const firstActiveDayId = useMemo(
         () =>
@@ -97,6 +113,7 @@ export function ScheduleSection({
     };
 
     const handleShiftWeek = (direction) => {
+        setTargetLessonId(null);
         setDisplayedDate((currentDate) =>
             shiftScheduleWeek(currentDate, direction),
         );
@@ -104,6 +121,7 @@ export function ScheduleSection({
     };
 
     const handleShowCurrentWeek = () => {
+        setTargetLessonId(null);
         setDisplayedDate(new Date());
         setOpenedDayId(undefined);
     };
@@ -135,8 +153,12 @@ export function ScheduleSection({
         <section className="schedule-section">
             <header className="schedule-section__header">
                 <div>
-                    <span>Расписание</span>
-                    <h2>Неделя занятий</h2>
+                    <span>{role === 'parent' ? 'Семья' : 'Расписание'}</span>
+                    <h2>
+                        {role === 'parent'
+                            ? 'Расписание детей'
+                            : 'Неделя занятий'}
+                    </h2>
                 </div>
 
                 <div className="schedule-section__header-actions">
@@ -153,6 +175,37 @@ export function ScheduleSection({
                     )}
                 </div>
             </header>
+
+            {role === 'parent' && children.length > 0 && (
+                <div className="schedule-section__parent-controls">
+                    <label>
+                        <span>Ребёнок</span>
+
+                        <select
+                            value={effectiveParentStudentId}
+                            onChange={(event) => {
+                                setTargetLessonId(null);
+                                setParentStudentId(Number(event.target.value));
+                                setOpenedDayId(undefined);
+                            }}
+                        >
+                            {children.map((child) => (
+                                <option
+                                    key={child.student_id}
+                                    value={child.student_id}
+                                >
+                                    {child.full_name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <p>
+                        Только просмотр. Изменить, перенести или отменить
+                        занятие могут ученик и преподаватель.
+                    </p>
+                </div>
+            )}
 
             <nav
                 className="schedule-section__navigation"
@@ -204,13 +257,17 @@ export function ScheduleSection({
             ) : !hasLessons ? (
                 <div className="schedule-section__empty">
                     <h3>
-                        У вас пока нет запланированных занятий
+                        {role === 'parent'
+                            ? 'У выбранного ребёнка пока нет занятий'
+                            : 'У вас пока нет запланированных занятий'}
                     </h3>
 
                     <p>
                         {role === 'teacher'
                             ? 'Когда будет назначен первый урок, расписание появится здесь.'
-                            : 'Когда преподаватель назначит первый урок, расписание появится здесь.'}
+                            : role === 'parent'
+                                ? 'Когда преподаватель назначит урок, он появится в этом расписании.'
+                                : 'Когда преподаватель назначит первый урок, расписание появится здесь.'}
                     </p>
                 </div>
             ) : (
@@ -222,12 +279,12 @@ export function ScheduleSection({
                             day={day}
                             isOpen={activeOpenedDayId === day.id}
                             onEnterClass={
-                                API_FEATURES.classroom
+                                role !== 'parent' && API_FEATURES.classroom
                                     ? handleEnterClass
                                     : null
                             }
                             onOpenChange={
-                                API_FEATURES.lessonChanges
+                                role !== 'parent' && API_FEATURES.lessonChanges
                                     ? handleOpenChange
                                     : null
                             }

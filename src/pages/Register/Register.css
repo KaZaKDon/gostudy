@@ -48,10 +48,19 @@
 
 .auth-card__tabs {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
 
     margin-bottom: 22px;
+}
+
+.auth-card__role-note {
+    margin: 0;
+
+    color: var(--color-ink-muted);
+
+    font-size: 14px;
+    line-height: 1.45;
 }
 
 .auth-card__tabs button {
@@ -279,5 +288,11 @@
     .auth-card__back {
         display: inline-block;
         margin-bottom: 8px;
+    }
+
+    .auth-card__tabs button {
+        padding: 10px 6px;
+
+        font-size: 13px;
     }
 }

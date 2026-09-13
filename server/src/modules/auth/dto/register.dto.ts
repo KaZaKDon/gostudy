@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
     IsArray,
     IsBoolean,
@@ -7,7 +7,9 @@ import {
     IsOptional,
     IsString,
     MaxLength,
+    Matches,
     MinLength,
+    ValidateIf,
     ValidateNested,
 } from 'class-validator';
 
@@ -39,10 +41,30 @@ class RegistrationLegalAcceptancesDto {
 }
 
 export class RegisterDto {
-    @IsIn(['student', 'teacher'], {
+    @IsIn(['student', 'teacher', 'parent'], {
         message: 'Некорректная роль пользователя',
     })
-    role: 'student' | 'teacher';
+    role: 'student' | 'teacher' | 'parent';
+
+    @ValidateIf((input: RegisterDto) => input.role === 'parent')
+    @Transform(({ value }: { value: unknown }) => (
+        typeof value === 'string' ? value.trim() : value
+    ))
+    @IsString({ message: 'Укажите имя родителя' })
+    @MinLength(3, { message: 'Укажите полное имя родителя' })
+    @MaxLength(255, { message: 'Имя не должно превышать 255 символов' })
+    full_name?: string;
+
+    @ValidateIf((input: RegisterDto) => input.role === 'parent')
+    @Transform(({ value }: { value: unknown }) => (
+        typeof value === 'string' ? value.trim() : value
+    ))
+    @IsString({ message: 'Укажите телефон родителя' })
+    @MaxLength(40, { message: 'Телефон не должен превышать 40 символов' })
+    @Matches(/^[0-9+\s().-]{7,40}$/, {
+        message: 'Укажите корректный телефон',
+    })
+    phone?: string;
 
     @IsEmail({}, { message: 'Некорректный email' })
     @MaxLength(320)

@@ -12,6 +12,7 @@ import type { SessionUser } from '../auth/session-user';
 import { HomeworkService } from '../homework/homework.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ClassroomFileStorageService } from './classroom-file-storage.service';
+import { ClassroomRealtimeService } from './classroom-realtime.service';
 import { ClassroomService } from './classroom.service';
 
 const teacher: SessionUser = {
@@ -77,6 +78,7 @@ describe('ClassroomService', () => {
             {} as NotificationsService,
             {} as ClassroomFileStorageService,
             {} as HomeworkService,
+            {} as ClassroomRealtimeService,
         );
 
         await expect(service.finish(student, 12))
@@ -133,11 +135,15 @@ describe('ClassroomService', () => {
             },
         } as unknown as PrismaService;
         const notifications = new NotificationsService(prisma);
+        const realtime = {
+            publish: vi.fn(),
+        } as unknown as ClassroomRealtimeService;
         const service = new ClassroomService(
             prisma,
             notifications,
             {} as ClassroomFileStorageService,
             {} as HomeworkService,
+            realtime,
         );
 
         const result = await service.finish(teacher, 12);
@@ -157,6 +163,7 @@ describe('ClassroomService', () => {
             }),
         );
         expect(transaction.notification.upsert).toHaveBeenCalledOnce();
+        expect(realtime.publish).toHaveBeenCalledWith(12, 'lesson');
         expect(result).toMatchObject({
             success: true,
             message: 'Урок завершён',

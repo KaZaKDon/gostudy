@@ -49,6 +49,7 @@ const lesson = {
 
 const notifications = {
     create: vi.fn().mockResolvedValue(undefined),
+    createForActiveParents: vi.fn().mockResolvedValue(undefined),
     markDedupeRead: vi.fn().mockResolvedValue(undefined),
 } as unknown as NotificationsService;
 
@@ -171,6 +172,16 @@ describe('LessonChangesService', () => {
             expect.objectContaining({
                 userId: 9,
                 type: 'lesson_change_approved',
+            }),
+        );
+        expect(notifications.createForActiveParents).toHaveBeenCalledWith(
+            transaction,
+            9,
+            expect.objectContaining({
+                type: 'parent_lesson_cancelled',
+                targetSection: 'schedule',
+                targetEntityType: 'lesson',
+                targetEntityId: 15,
             }),
         );
         expect(result).toMatchObject({

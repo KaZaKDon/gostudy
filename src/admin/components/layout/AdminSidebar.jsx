@@ -24,6 +24,10 @@ const navigationGroups = [
             to: '/admin/students',
         },
         {
+            label: 'Дети и родители',
+            to: '/admin/parent-children',
+        },
+        {
             label: 'Преподаватели',
             to: '/admin/teachers',
         },

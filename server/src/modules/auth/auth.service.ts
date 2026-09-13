@@ -67,9 +67,12 @@ export class AuthService {
             );
         }
 
-        const role = input.role === 'student'
-            ? UserRole.STUDENT
-            : UserRole.TEACHER;
+        const roles: Record<RegisterDto['role'], UserRole> = {
+            student: UserRole.STUDENT,
+            teacher: UserRole.TEACHER,
+            parent: UserRole.PARENT,
+        };
+        const role = roles[input.role];
         const passwordHash = await hash(input.password, 12);
         const verificationToken = createOpaqueToken();
         const verificationTokenHash = hashToken(verificationToken);
@@ -92,13 +95,22 @@ export class AuthService {
                 data: {
                     role,
                     email,
+                    ...(role === UserRole.PARENT
+                        ? {
+                            fullName: input.full_name?.trim(),
+                            phone: input.phone?.trim(),
+                            profileCompleted: true,
+                        }
+                        : {}),
                     passwordHash,
                     emailVerificationTokenHash: verificationTokenHash,
                     emailVerificationExpiresAt: verificationExpiresAt,
                     emailVerificationSentAt: now,
                     ...(role === UserRole.STUDENT
                         ? { studentProfile: { create: {} } }
-                        : { teacherProfile: { create: {} } }),
+                        : role === UserRole.TEACHER
+                            ? { teacherProfile: { create: {} } }
+                            : {}),
                     legalAcceptances: {
                         create: legalSnapshots.map((snapshot) => ({
                             type: snapshot.type,
@@ -117,6 +129,9 @@ export class AuthService {
                     id: true,
                     role: true,
                     email: true,
+                    fullName: true,
+                    phone: true,
+                    avatarUrl: true,
                     status: true,
                     emailVerifiedAt: true,
                     profileCompleted: true,

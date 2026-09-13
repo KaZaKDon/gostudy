@@ -13,6 +13,8 @@ import {
     HomeworkStatus,
     HomeworkSubmissionStatus,
     LessonStatus,
+    ParentChildVerificationStatus,
+    ParentStudentStatus,
     TeacherStudentStatus,
     UserRole,
     UserStatus,
@@ -86,11 +88,17 @@ export class HomeworkService {
         private readonly files: HomeworkFileStorageService,
     ) {}
 
-    async list(user: SessionUser) {
-        this.requireParticipant(user);
-        const timezone = await this.getViewerTimezone(user);
+    async list(user: SessionUser, requestedStudentId?: number) {
+        this.requireViewer(user);
+        const parentContext = user.role === UserRole.PARENT
+            ? await this.getParentHomeworkContext(user, requestedStudentId)
+            : null;
+        const timezone = parentContext?.timezone
+            ?? await this.getViewerTimezone(user);
         const rows = await this.prisma.homework.findMany({
-            where: this.participantWhere(user),
+            where: parentContext
+                ? { studentId: parentContext.selectedStudentId }
+                : this.participantWhere(user),
             include: listHomeworkInclude,
         });
         const homework = rows
@@ -118,7 +126,8 @@ export class HomeworkService {
             actionable_count: homework.filter((item) => (
                 user.role === UserRole.TEACHER
                     ? item.display_status === 'review'
-                    : item.status === 'active'
+                    : user.role === UserRole.STUDENT
+                        && item.status === 'active'
                         && (
                             !item.viewed_at
                             || item.submission_status === 'returned'
@@ -126,25 +135,47 @@ export class HomeworkService {
             )).length,
             timezone,
             upload_limits: this.serializeLimits(),
+            ...(parentContext
+                ? {
+                    children: parentContext.children.map((child) => ({
+                        student_id: child.student_id,
+                        full_name: child.full_name,
+                    })),
+                    selected_student_id: parentContext.selectedStudentId,
+                    read_only: true,
+                }
+                : {}),
         };
     }
 
     async show(user: SessionUser, homeworkId: number) {
-        this.requireParticipant(user);
-        const [timezone, homework] = await Promise.all([
-            this.getViewerTimezone(user),
-            this.prisma.homework.findFirst({
+        this.requireViewer(user);
+        const parentContext = user.role === UserRole.PARENT
+            ? await this.getParentHomeworkContext(user)
+            : null;
+        const homework = await this.prisma.homework.findFirst({
                 where: {
                     id: homeworkId,
-                    ...this.participantWhere(user),
+                    ...(parentContext
+                        ? {
+                            studentId: {
+                                in: parentContext.children.map(
+                                    (child) => child.student_id,
+                                ),
+                            },
+                        }
+                        : this.participantWhere(user)),
                 },
                 include: homeworkDetailsInclude,
-            }),
-        ]);
+            });
 
         if (!homework) {
             throw new NotFoundException('Домашнее задание не найдено');
         }
+
+        const timezone = parentContext
+            ? this.getParentChildTimezone(parentContext, homework.studentId)
+            : await this.getViewerTimezone(user);
 
         await this.notifications.markEntityRead(
             this.prisma,
@@ -328,6 +359,20 @@ export class HomeworkService {
                         targetEntityId: homework.id,
                         dedupeKey: `homework-assigned:${homework.id}`,
                     });
+                    await this.notifications.createForActiveParents(
+                        transaction,
+                        relation.studentId,
+                        {
+                            category: 'homework',
+                            type: 'parent_homework_assigned',
+                            title: 'Новое домашнее задание',
+                            message: `${relation.subject.name}: ${title}`,
+                            targetSection: 'homework',
+                            targetEntityType: 'homework',
+                            targetEntityId: homework.id,
+                            dedupeKey: `homework-assigned:${homework.id}`,
+                        },
+                    );
 
                     return homework.id;
                 },
@@ -540,6 +585,24 @@ export class HomeworkService {
                 targetEntityId: homework.id,
                 dedupeKey: `homework-review:${submission.id}`,
             });
+            await this.notifications.createForActiveParents(
+                transaction,
+                homework.studentId,
+                {
+                    category: 'homework',
+                    type: accepted
+                        ? 'parent_homework_accepted'
+                        : 'parent_homework_returned',
+                    title: accepted
+                        ? 'Домашняя работа принята'
+                        : 'Домашняя работа требует доработки',
+                    message: `${homework.subject.name}: ${homework.title}`,
+                    targetSection: 'homework',
+                    targetEntityType: 'homework',
+                    targetEntityId: homework.id,
+                    dedupeKey: `homework-review:${submission.id}`,
+                },
+            );
         });
 
         return {
@@ -594,6 +657,20 @@ export class HomeworkService {
                 targetEntityId: homework.id,
                 dedupeKey: `homework-cancelled:${homework.id}`,
             });
+            await this.notifications.createForActiveParents(
+                transaction,
+                homework.studentId,
+                {
+                    category: 'homework',
+                    type: 'parent_homework_cancelled',
+                    title: 'Домашнее задание отменено',
+                    message: `${homework.subject.name}: ${homework.title}`,
+                    targetSection: 'homework',
+                    targetEntityType: 'homework',
+                    targetEntityId: homework.id,
+                    dedupeKey: `homework-cancelled:${homework.id}`,
+                },
+            );
         });
 
         return {
@@ -636,14 +713,14 @@ export class HomeworkService {
         user: SessionUser,
         query: DownloadHomeworkFileQueryDto,
     ) {
-        this.requireParticipant(user);
+        this.requireViewer(user);
         if (query.type === 'assignment') {
             const file = await this.prisma.homeworkAttachment.findUnique({
                 where: { id: query.id },
                 include: { homework: true },
             });
 
-            if (!file || !this.canAccess(user, file.homework)) {
+            if (!file || !await this.canAccess(user, file.homework)) {
                 throw new NotFoundException('Файл не найден');
             }
 
@@ -659,7 +736,10 @@ export class HomeworkService {
             },
         });
 
-        if (!file || !this.canAccess(user, file.submission.homework)) {
+        if (
+            !file
+            || !await this.canAccess(user, file.submission.homework)
+        ) {
             throw new NotFoundException('Файл не найден');
         }
 
@@ -960,19 +1040,146 @@ export class HomeworkService {
         return resolveTimezone(profile?.timezone);
     }
 
+    private async getParentHomeworkContext(
+        user: SessionUser,
+        requestedStudentId?: number,
+    ): Promise<{
+        children: Array<{
+            student_id: number;
+            full_name: string;
+            timezone: string;
+        }>;
+        selectedStudentId: number;
+        timezone: string;
+    }> {
+        const links = await this.prisma.parentStudent.findMany({
+            where: {
+                parentId: user.id,
+                status: ParentStudentStatus.ACTIVE,
+                verifiedAt: { not: null },
+            },
+            select: { studentId: true },
+        });
+        const linkedStudentIds = links.map((link) => link.studentId);
+
+        if (!linkedStudentIds.length) {
+            throw new BadRequestException(
+                'Сначала привяжите подтверждённый аккаунт ребёнка',
+            );
+        }
+
+        const adultBirthDate = new Date();
+        adultBirthDate.setUTCHours(0, 0, 0, 0);
+        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+
+        const childProfiles = await this.prisma.parentChildProfile.findMany({
+            where: {
+                parentId: user.id,
+                studentId: { in: linkedStudentIds },
+                verificationStatus: ParentChildVerificationStatus.VERIFIED,
+                verifiedAt: { not: null },
+                archivedAt: null,
+                birthDate: { gt: adultBirthDate },
+            },
+            orderBy: [
+                { createdAt: 'asc' },
+                { id: 'asc' },
+            ],
+            select: {
+                studentId: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                timezone: true,
+                student: {
+                    select: {
+                        studentProfile: {
+                            select: { timezone: true },
+                        },
+                    },
+                },
+            },
+        });
+        const children = childProfiles.flatMap((child) => {
+            if (!child.studentId) {
+                return [];
+            }
+
+            return [{
+                student_id: child.studentId,
+                full_name: [
+                    child.lastName,
+                    child.firstName,
+                    child.middleName,
+                ].filter(Boolean).join(' '),
+                timezone: resolveTimezone(
+                    child.student?.studentProfile?.timezone
+                    || child.timezone,
+                ),
+            }];
+        });
+
+        if (!children.length) {
+            throw new BadRequestException(
+                'Нет доступных заданий несовершеннолетних детей',
+            );
+        }
+
+        const selected = requestedStudentId
+            ? children.find((child) => (
+                child.student_id === requestedStudentId
+            ))
+            : children[0];
+
+        if (!selected) {
+            throw new ForbiddenException(
+                'Домашние задания этого ученика недоступны родителю',
+            );
+        }
+
+        return {
+            children,
+            selectedStudentId: selected.student_id,
+            timezone: selected.timezone,
+        };
+    }
+
+    private getParentChildTimezone(
+        context: {
+            children: Array<{ student_id: number; timezone: string }>;
+            timezone: string;
+        },
+        studentId: number,
+    ): string {
+        return context.children.find(
+            (child) => child.student_id === studentId,
+        )?.timezone || context.timezone;
+    }
+
     private participantWhere(user: SessionUser): Prisma.HomeworkWhereInput {
         return user.role === UserRole.TEACHER
             ? { teacherId: user.id }
             : { studentId: user.id };
     }
 
-    private canAccess(
+    private async canAccess(
         user: SessionUser,
         homework: { teacherId: number; studentId: number },
-    ): boolean {
-        return user.role === UserRole.TEACHER
-            ? homework.teacherId === user.id
-            : homework.studentId === user.id;
+    ): Promise<boolean> {
+        if (user.role === UserRole.TEACHER) {
+            return homework.teacherId === user.id;
+        }
+
+        if (user.role === UserRole.STUDENT) {
+            return homework.studentId === user.id;
+        }
+
+        try {
+            await this.getParentHomeworkContext(user, homework.studentId);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     private serializeLimits() {
@@ -997,6 +1204,18 @@ export class HomeworkService {
 
     private requireParticipant(user: SessionUser): void {
         if (user.role !== UserRole.TEACHER && user.role !== UserRole.STUDENT) {
+            throw new ForbiddenException(
+                'Домашние задания недоступны для этой роли',
+            );
+        }
+    }
+
+    private requireViewer(user: SessionUser): void {
+        if (
+            user.role !== UserRole.TEACHER
+            && user.role !== UserRole.STUDENT
+            && user.role !== UserRole.PARENT
+        ) {
             throw new ForbiddenException(
                 'Домашние задания недоступны для этой роли',
             );

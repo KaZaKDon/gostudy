@@ -6,6 +6,8 @@ import {
     LessonChangeType,
     LessonSessionStatus,
     LessonStatus,
+    ParentChildVerificationStatus,
+    ParentStudentStatus,
     UserRole,
     UserStatus,
 } from '../../generated/prisma/enums';
@@ -24,6 +26,14 @@ const teacher: SessionUser = {
     profileCompleted: true,
 };
 
+const parent: SessionUser = {
+    ...teacher,
+    id: 15,
+    role: UserRole.PARENT,
+    email: 'parent@example.com',
+    fullName: 'Николай Внуков',
+};
+
 function createPrisma() {
     return {
         teacherProfile: {
@@ -34,7 +44,14 @@ function createPrisma() {
         studentProfile: {
             findUnique: vi.fn(),
         },
+        parentStudent: {
+            findMany: vi.fn().mockResolvedValue([]),
+        },
+        parentChildProfile: {
+            findMany: vi.fn().mockResolvedValue([]),
+        },
         lesson: {
+            findFirst: vi.fn(),
             findMany: vi.fn().mockResolvedValue([
                 {
                     id: 12,
@@ -115,6 +132,99 @@ describe('ScheduleService', () => {
         );
     });
 
+    it('returns a selected child schedule to the verified parent in read-only mode', async () => {
+        const prisma = createPrisma() as any;
+        prisma.parentStudent.findMany.mockResolvedValue([
+            { studentId: 9 },
+            { studentId: 10 },
+        ]);
+        prisma.parentChildProfile.findMany.mockResolvedValue([
+            {
+                studentId: 9,
+                firstName: 'Иван',
+                lastName: 'Ученик',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            },
+            {
+                studentId: 10,
+                firstName: 'Мария',
+                lastName: 'Ученица',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            },
+        ]);
+        const service = new ScheduleService(prisma);
+        const result = await service.getSchedule(parent, {
+            from: '2026-08-31',
+            to: '2026-09-06',
+            student_id: 9,
+        });
+        const schedule = result.schedule as Array<Record<string, any>>;
+
+        expect(result).toMatchObject({
+            selected_student_id: 9,
+            read_only: true,
+            children: [
+                { student_id: 9, full_name: 'Ученик Иван' },
+                { student_id: 10, full_name: 'Ученица Мария' },
+            ],
+        });
+        expect(schedule[0].change_request).toMatchObject({
+            can_respond: false,
+            can_withdraw: false,
+        });
+        expect(prisma.lesson.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({ studentId: 9 }),
+            }),
+        );
+        expect(prisma.parentStudent.findMany).toHaveBeenCalledWith({
+            where: {
+                parentId: 15,
+                status: ParentStudentStatus.ACTIVE,
+                verifiedAt: { not: null },
+            },
+            select: { studentId: true },
+        });
+        expect(prisma.parentChildProfile.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    parentId: 15,
+                    verificationStatus:
+                        ParentChildVerificationStatus.VERIFIED,
+                }),
+            }),
+        );
+    });
+
+    it('does not expose another student schedule to a parent', async () => {
+        const prisma = createPrisma() as any;
+        prisma.parentStudent.findMany.mockResolvedValue([{ studentId: 9 }]);
+        prisma.parentChildProfile.findMany.mockResolvedValue([{
+            studentId: 9,
+            firstName: 'Иван',
+            lastName: 'Ученик',
+            middleName: null,
+            timezone: 'Europe/Moscow',
+            student: { studentProfile: { timezone: 'Europe/Moscow' } },
+        }]);
+        const service = new ScheduleService(prisma);
+
+        await expect(service.getSchedule(parent, {
+            from: '2026-08-31',
+            to: '2026-09-06',
+            student_id: 999,
+        })).rejects.toThrow('недоступно родителю');
+        expect(prisma.lesson.findMany).not.toHaveBeenCalled();
+    });
+
     it('rejects a request longer than 32 calendar days', async () => {
         const service = new ScheduleService(createPrisma());
 
@@ -122,5 +232,63 @@ describe('ScheduleService', () => {
             from: '2026-01-01',
             to: '2026-02-02',
         })).rejects.toThrow('не более 32 дней');
+    });
+
+    it('opens a notification on the exact linked child and lesson', async () => {
+        const prisma = createPrisma() as any;
+        prisma.parentStudent.findMany.mockResolvedValue([
+            { studentId: 9 },
+            { studentId: 10 },
+        ]);
+        prisma.parentChildProfile.findMany.mockResolvedValue([
+            {
+                studentId: 9,
+                firstName: 'Иван',
+                lastName: 'Ученик',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            },
+            {
+                studentId: 10,
+                firstName: 'Мария',
+                lastName: 'Ученица',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            },
+        ]);
+        prisma.lesson.findFirst.mockResolvedValue({ studentId: 10 });
+        const service = new ScheduleService(prisma);
+
+        const result = await service.getSchedule(parent, {
+            from: '2026-08-31',
+            to: '2026-09-06',
+            lesson_id: 55,
+        });
+
+        expect(result).toMatchObject({ selected_student_id: 10 });
+        expect(prisma.lesson.findFirst).toHaveBeenCalledWith({
+            where: {
+                id: 55,
+                studentId: { in: [9, 10] },
+            },
+            select: { studentId: true },
+        });
+        expect(prisma.lesson.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    studentId: 10,
+                    OR: [
+                        { status: { not: LessonStatus.CANCELLED } },
+                        { id: 55 },
+                    ],
+                }),
+            }),
+        );
     });
 });

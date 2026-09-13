@@ -5,13 +5,18 @@ import { HomeworkModule } from '../homework/homework.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import {
     JournalController,
+    ParentDiaryController,
     StudentDiaryController,
 } from './journal.controller';
 import { JournalService } from './journal.service';
 
 @Module({
     imports: [AuthModule, HomeworkModule, NotificationsModule],
-    controllers: [JournalController, StudentDiaryController],
+    controllers: [
+        JournalController,
+        StudentDiaryController,
+        ParentDiaryController,
+    ],
     providers: [JournalService],
     exports: [JournalService],
 })

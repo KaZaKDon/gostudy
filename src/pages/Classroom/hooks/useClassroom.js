@@ -16,6 +16,7 @@ import {
     CLASSROOM_UPLOAD_LIMITS,
     mergeClassroomMessages,
 } from '../utils/classroom.js';
+import { subscribeClassroomEvents } from '../api/classroomEvents.js';
 
 export function useClassroom(lessonId) {
     const [classroom, setClassroom] = useState(null);
@@ -23,8 +24,11 @@ export function useClassroom(lessonId) {
     const [errorMessage, setErrorMessage] = useState('');
     const [actionError, setActionError] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [realtimeStatus, setRealtimeStatus] = useState('connecting');
     const lastMessageIdRef = useRef(0);
     const syncRequestRef = useRef(false);
+    const mediaSignalListenersRef = useRef(new Set());
+    const boardEventListenersRef = useRef(new Set());
 
     const applyRealtimeResult = useCallback((result) => {
         setClassroom((current) => {
@@ -134,6 +138,36 @@ export function useClassroom(lessonId) {
             syncRequestRef.current = false;
         }
     }, [applyRealtimeResult, lessonId]);
+
+    const subscribeMediaSignals = useCallback((listener) => {
+        mediaSignalListenersRef.current.add(listener);
+
+        return () => mediaSignalListenersRef.current.delete(listener);
+    }, []);
+
+    const subscribeBoardEvents = useCallback((listener) => {
+        boardEventListenersRef.current.add(listener);
+
+        return () => boardEventListenersRef.current.delete(listener);
+    }, []);
+
+    const handleRealtimeEvent = useCallback((event) => {
+        if (event.reason === 'media_signal') {
+            for (const listener of mediaSignalListenersRef.current) {
+                listener(event.payload);
+            }
+            return;
+        }
+
+        if (event.reason === 'board') {
+            for (const listener of boardEventListenersRef.current) {
+                listener(event.payload);
+            }
+            return;
+        }
+
+        syncClassroom();
+    }, [syncClassroom]);
 
     const runAction = useCallback(async (action) => {
         setIsSaving(true);
@@ -287,6 +321,18 @@ export function useClassroom(lessonId) {
             return undefined;
         }
 
+        return subscribeClassroomEvents({
+            lessonId,
+            onEvent: handleRealtimeEvent,
+            onStatus: setRealtimeStatus,
+        });
+    }, [handleRealtimeEvent, lessonId, status]);
+
+    useEffect(() => {
+        if (status !== 'success') {
+            return undefined;
+        }
+
         const immediateTimer = window.setTimeout(syncClassroom, 0);
         const intervalId = window.setInterval(() => {
             if (document.visibilityState === 'visible') {
@@ -310,6 +356,9 @@ export function useClassroom(lessonId) {
         errorMessage,
         actionError,
         isSaving,
+        realtimeStatus,
+        subscribeMediaSignals,
+        subscribeBoardEvents,
         retry: loadClassroom,
         clearActionError: () => setActionError(''),
         startLesson,

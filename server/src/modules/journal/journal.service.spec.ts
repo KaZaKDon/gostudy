@@ -36,6 +36,40 @@ const student: SessionUser = {
     fullName: 'Иван Ученик',
 };
 
+const parent: SessionUser = {
+    ...teacher,
+    id: 15,
+    role: UserRole.PARENT,
+    email: 'parent@example.com',
+    fullName: 'Николай Внуков',
+};
+
+function parentAccessPrisma(lesson: unknown = lessonRecord()) {
+    return {
+        parentStudent: {
+            findMany: vi.fn().mockResolvedValue([{ studentId: 9 }]),
+        },
+        parentChildProfile: {
+            findMany: vi.fn().mockResolvedValue([{
+                studentId: 9,
+                firstName: 'Иван',
+                lastName: 'Ученик',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            }]),
+        },
+        lesson: {
+            findMany: vi.fn()
+                .mockResolvedValueOnce([lesson])
+                .mockResolvedValueOnce([lesson]),
+            findFirst: vi.fn(),
+        },
+    } as unknown as PrismaService;
+}
+
 function lessonRecord() {
     return {
         id: 12,
@@ -99,6 +133,9 @@ describe('JournalService', () => {
             },
             notification: {
                 upsert: vi.fn().mockResolvedValue(undefined),
+            },
+            parentStudent: {
+                findMany: vi.fn().mockResolvedValue([]),
             },
         };
         const prisma = {
@@ -216,5 +253,125 @@ describe('JournalService', () => {
             lesson_result: 'Тема усвоена',
             teacher_comment: 'Хорошая работа',
         });
+    });
+
+    it('returns a selected child diary to a verified parent without the private teacher note', async () => {
+        const publishedLesson = {
+            ...lessonRecord(),
+            result: {
+                id: 1,
+                lessonId: 12,
+                attendance: 'present',
+                grade: '5',
+                lessonResult: 'Тема усвоена',
+                teacherComment: 'Хорошая работа',
+                teacherNote: 'Личная заметка',
+                publishedAt: new Date('2026-09-03T13:00:00.000Z'),
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        };
+        const prisma = parentAccessPrisma(publishedLesson) as any;
+        const service = createService(prisma);
+
+        const response = await service.listParentDiary(parent, {
+            student_id: 9,
+            limit: 30,
+        });
+
+        expect(response).toMatchObject({
+            read_only: true,
+            selected_student_id: 9,
+            children: [{ student_id: 9, full_name: 'Ученик Иван' }],
+        });
+        expect(response.lessons).toHaveLength(1);
+        expect(response.lessons[0]).not.toHaveProperty('teacher_note');
+        expect(response.lessons[0]).toMatchObject({
+            student_id: 9,
+            lesson_result: 'Тема усвоена',
+            teacher_comment: 'Хорошая работа',
+        });
+        expect(prisma.lesson.findMany).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                where: expect.objectContaining({ studentId: 9 }),
+            }),
+        );
+    });
+
+    it('does not expose another student diary to a parent', async () => {
+        const prisma = parentAccessPrisma() as any;
+        const service = createService(prisma);
+
+        await expect(service.listParentDiary(parent, {
+            student_id: 999,
+            limit: 30,
+        })).rejects.toThrow('недоступен родителю');
+        expect(prisma.lesson.findMany).not.toHaveBeenCalled();
+    });
+
+    it('opens a diary notification for the exact linked child', async () => {
+        const publishedLesson = {
+            ...lessonRecord(),
+            id: 22,
+            studentId: 10,
+            result: {
+                id: 2,
+                lessonId: 22,
+                attendance: 'present',
+                grade: '4',
+                lessonResult: 'Тема усвоена',
+                teacherComment: null,
+                teacherNote: 'Личная заметка',
+                publishedAt: new Date('2026-09-03T13:00:00.000Z'),
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        };
+        const prisma = parentAccessPrisma(publishedLesson) as any;
+        prisma.parentStudent.findMany.mockResolvedValue([
+            { studentId: 9 },
+            { studentId: 10 },
+        ]);
+        prisma.parentChildProfile.findMany.mockResolvedValue([
+            {
+                studentId: 9,
+                firstName: 'Иван',
+                lastName: 'Ученик',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            },
+            {
+                studentId: 10,
+                firstName: 'Мария',
+                lastName: 'Ученица',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            },
+        ]);
+        prisma.lesson.findFirst
+            .mockResolvedValueOnce({ studentId: 10 })
+            .mockResolvedValueOnce(publishedLesson);
+        const service = createService(prisma);
+
+        const response = await service.listParentDiary(parent, {
+            lesson_id: 22,
+            limit: 30,
+        });
+
+        expect(response).toMatchObject({
+            selected_student_id: 10,
+            target_lesson: {
+                id: 22,
+                student_id: 10,
+            },
+        });
+        expect(response.target_lesson).not.toHaveProperty('teacher_note');
     });
 });

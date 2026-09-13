@@ -15,6 +15,8 @@ import { ClassroomTools } from './components/ClassroomTools.jsx';
 import { FinishLessonModal } from './components/FinishLessonModal.jsx';
 import { useClassroom } from './hooks/useClassroom.js';
 import { useClassroomFilePreview } from './hooks/useClassroomFilePreview.js';
+import { useClassroomMedia } from './hooks/useClassroomMedia.js';
+import { useClassroomBoard } from './hooks/useClassroomBoard.js';
 
 import './ClassroomPage.css';
 
@@ -39,6 +41,15 @@ export function ClassroomPage() {
         version: 0,
     };
     const viewerRole = classroomData?.viewer?.role || '';
+    const classroomMedia = useClassroomMedia({
+        lessonId,
+        role: viewerRole,
+        subscribeSignals: classroomController.subscribeMediaSignals,
+    });
+    const classroomBoard = useClassroomBoard({
+        lessonId,
+        subscribeEvents: classroomController.subscribeBoardEvents,
+    });
     const selectedFile = classroomFiles.find(
         (file) => Number(file.id) === Number(selectedFileId),
     ) || null;
@@ -219,6 +230,7 @@ export function ClassroomPage() {
                 access={access}
                 role={viewer.role}
                 isSaving={classroomController.isSaving}
+                realtimeStatus={classroomController.realtimeStatus}
                 onBack={handleBackToAccount}
                 onStart={() => classroomController.startLesson().catch(() => {})}
                 onFinish={() => {
@@ -289,6 +301,10 @@ export function ClassroomPage() {
                         onOpenJournal={handleOpenJournal}
                         onCreateHomework={handleCreateHomework}
                         onBackToAccount={handleBackToAccount}
+                        media={classroomMedia}
+                        viewerName={viewer.name}
+                        viewerId={viewer.id}
+                        board={classroomBoard}
                     />
 
                     <ClassroomTools

@@ -128,7 +128,13 @@ export function HomeworkReviewModal({
             <section className="homework-modal__panel" aria-modal="true" role="dialog">
                 <header className="homework-modal__header">
                     <div>
-                        <span>{role === 'teacher' ? 'Домашняя работа ученика' : 'Домашнее задание'}</span>
+                        <span>
+                            {role === 'teacher'
+                                ? 'Домашняя работа ученика'
+                                : role === 'parent'
+                                    ? 'Домашняя работа ребёнка'
+                                    : 'Домашнее задание'}
+                        </span>
                         <h2>{homework.title}</h2>
                     </div>
                     <button type="button" className="homework-modal__close" onClick={onClose}>×</button>
@@ -150,6 +156,13 @@ export function HomeworkReviewModal({
 
                 <div className="homework-modal__content">
                     {error && <p className="homework-form__error">{error}</p>}
+
+                    {role === 'parent' && (
+                        <p className="homework-modal__readonly">
+                            Переписка по заданию, ответы и файлы доступны
+                            родителю только для просмотра.
+                        </p>
+                    )}
 
                     <section>
                         <h3>Задание</h3>

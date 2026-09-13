@@ -79,8 +79,13 @@ export function ConversationModal({
                     <div>
                         <span>Переписка</span>
                         <h2>{conversation.name}</h2>
-                        <p>{conversation.subtitle}</p>
-                    </div>
+                    <p>{conversation.subtitle}</p>
+                    {conversation.parentAccessNotice && (
+                        <small className="conversation-modal__notice">
+                            {conversation.parentAccessNotice}
+                        </small>
+                    )}
+                </div>
 
                     <button
                         type="button"
@@ -117,7 +122,7 @@ export function ConversationModal({
 
                     {threadStatus !== 'loading' && !messages.length && !errorMessage && (
                         <p className="conversation-modal__state">
-                            Сообщений пока нет. Начните переписку.
+                            Сообщений пока нет.
                         </p>
                     )}
 

@@ -107,6 +107,10 @@ function getTabId(role, channelType) {
         return channelType === 'parent' ? 'parents' : 'students';
     }
 
+    if (role === 'parent') {
+        return channelType === 'student' ? 'children' : 'teachers';
+    }
+
     return 'teachers';
 }
 
@@ -127,6 +131,7 @@ export function mapConversation(dialog, role) {
         time: formatConversationTime(dialog.last_message_at),
         unreadCount: Number(dialog.unread_count) || 0,
         canSend: Boolean(dialog.can_send),
+        parentAccessNotice: dialog.parent_access_notice || '',
     };
 }
 

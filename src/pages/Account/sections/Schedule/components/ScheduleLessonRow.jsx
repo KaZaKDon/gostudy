@@ -31,13 +31,23 @@ export function ScheduleLessonRow({
 
     return (
         <article className="schedule-lesson-wrap">
-            <div className="schedule-lesson">
+            <div
+                className={
+                    role === 'parent'
+                        ? 'schedule-lesson schedule-lesson--read-only'
+                        : 'schedule-lesson'
+                }
+            >
                 <span className="schedule-lesson__time">
                     {lesson.time}
                 </span>
 
                 <span className="schedule-lesson__person">
                     {personName}
+
+                    {role === 'parent' && (
+                        <small>Ребёнок: {lesson.studentName}</small>
+                    )}
                 </span>
 
                 <span className="schedule-lesson__info">
@@ -51,70 +61,78 @@ export function ScheduleLessonRow({
                     {lesson.duration}
                 </span>
 
-                <div className="schedule-lesson__actions">
-                    <button
-                        type="button"
-                        className="schedule-lesson__action schedule-lesson__action--primary"
-                        disabled={!isClassAvailable}
-                        onClick={() => onEnterClass?.(lesson)}
-                    >
-                        {classButtonText}
-                    </button>
+                {role !== 'parent' && (
+                    <div className="schedule-lesson__actions">
+                        <button
+                            type="button"
+                            className="schedule-lesson__action schedule-lesson__action--primary"
+                            disabled={!isClassAvailable}
+                            onClick={() => onEnterClass?.(lesson)}
+                        >
+                            {classButtonText}
+                        </button>
 
-                    {canChangeLesson && (
-                        <>
+                        {canChangeLesson && (
+                            <>
+                                <button
+                                    type="button"
+                                    className="schedule-lesson__action"
+                                    onClick={() =>
+                                        onOpenChange(lesson, 'reschedule')
+                                    }
+                                >
+                                    Предложить перенос
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="schedule-lesson__action schedule-lesson__action--danger"
+                                    onClick={() =>
+                                        onOpenChange(lesson, 'cancel')
+                                    }
+                                >
+                                    Предложить отмену
+                                </button>
+                            </>
+                        )}
+
+                        {onOpenChange && changeRequest?.canRespond && (
                             <button
                                 type="button"
                                 className="schedule-lesson__action"
                                 onClick={() =>
-                                    onOpenChange(lesson, 'reschedule')
+                                    onOpenChange(lesson, 'review')
                                 }
                             >
-                                Предложить перенос
+                                Рассмотреть
                             </button>
+                        )}
 
+                        {onOpenChange && changeRequest?.canWithdraw && (
                             <button
                                 type="button"
                                 className="schedule-lesson__action schedule-lesson__action--danger"
                                 onClick={() =>
-                                    onOpenChange(lesson, 'cancel')
+                                    onOpenChange(lesson, 'withdraw')
                                 }
                             >
-                                Предложить отмену
+                                Отозвать
                             </button>
-                        </>
-                    )}
-
-                    {onOpenChange && changeRequest?.canRespond && (
-                        <button
-                            type="button"
-                            className="schedule-lesson__action"
-                            onClick={() =>
-                                onOpenChange(lesson, 'review')
-                            }
-                        >
-                            Рассмотреть
-                        </button>
-                    )}
-
-                    {onOpenChange && changeRequest?.canWithdraw && (
-                        <button
-                            type="button"
-                            className="schedule-lesson__action schedule-lesson__action--danger"
-                            onClick={() =>
-                                onOpenChange(lesson, 'withdraw')
-                            }
-                        >
-                            Отозвать
-                        </button>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {changeRequest && (
                 <div className="schedule-lesson__request">
                     <strong>
-                        {changeRequest.canRespond
+                        {role === 'parent'
+                            ? `${changeRequest.requesterName} предлагает ${
+                                changeRequest.type === 'reschedule'
+                                    ? 'перенести урок'
+                                    : 'отменить урок'
+                            }`
+                            : changeRequest.canRespond
                             ? `${changeRequest.requesterName} предлагает ${
                                 changeRequest.type === 'reschedule'
                                     ? 'перенести урок'

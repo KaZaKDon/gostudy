@@ -17,19 +17,17 @@ import { useMessages } from './sections/Messages/useMessages.js';
 import { useNotifications } from './sections/Notifications/useNotifications.js';
 import { useHomework } from './sections/Homework/useHomework.js';
 import { useMaterials } from './sections/Materials/useMaterials.js';
+import { useTeacherDashboardStats } from './hooks/useTeacherDashboardStats.js';
 
 import {
+    PARENT_NAVIGATION,
     STUDENT_NAVIGATION,
     TEACHER_NAVIGATION,
 } from './data/accountNavigation.js';
 
 import { createAccountIdentity } from './utils/accountIdentity.js';
 
-import {
-    teacherDemoStats,
-    teacherPayments,
-    studentPayments,
-} from './data/demoAccountData.js';
+import { teacherPayments, studentPayments } from './data/demoAccountData.js';
 
 import './Account.css';
 
@@ -44,6 +42,7 @@ export function Account() {
     const [lessonCreation, setLessonCreation] = useState(null);
     const [scheduleRevision, setScheduleRevision] = useState(0);
     const [scheduleFocusDate, setScheduleFocusDate] = useState(null);
+    const [scheduleFocusLessonId, setScheduleFocusLessonId] = useState(null);
     const [messageTarget, setMessageTarget] = useState(null);
 
     const messagesController = useMessages(
@@ -56,13 +55,18 @@ export function Account() {
     );
     const homeworkController = useHomework(
         API_FEATURES.homework
+            && ['student', 'teacher', 'parent'].includes(authData?.user?.role)
             ? authData?.user?.role ?? null
             : null,
     );
     const materialsController = useMaterials(
         API_FEATURES.materials
+            && ['student', 'teacher'].includes(authData?.user?.role)
             ? authData?.user?.role ?? null
             : null,
+    );
+    const teacherStats = useTeacherDashboardStats(
+        authData?.user?.role === 'teacher',
     );
 
     useEffect(() => {
@@ -129,7 +133,9 @@ export function Account() {
     const baseNavigation =
         role === 'teacher'
             ? TEACHER_NAVIGATION
-            : STUDENT_NAVIGATION;
+            : role === 'parent'
+                ? PARENT_NAVIGATION
+                : STUDENT_NAVIGATION;
 
     const navigation = baseNavigation.map((item) => {
         if (item.id === 'messages') {
@@ -176,13 +182,15 @@ export function Account() {
 
     const stats =
         role === 'teacher'
-            ? teacherDemoStats
+            ? teacherStats
             : [];
 
     const payments =
         role === 'teacher'
             ? teacherPayments
-            : studentPayments;
+            : role === 'student'
+                ? studentPayments
+                : [];
 
     const activeNavigationItem =
         navigation.find((item) => item.id === activeSection) ?? navigation[0];
@@ -222,6 +230,11 @@ export function Account() {
 
         if (targetSection === 'schedule' && notification.targetDate) {
             setScheduleFocusDate(notification.targetDate);
+            setScheduleFocusLessonId(
+                notification.targetEntityType === 'lesson'
+                    ? notification.targetEntityId
+                    : null,
+            );
             setScheduleRevision((revision) => revision + 1);
         }
 
@@ -294,7 +307,9 @@ export function Account() {
             className={
                 role === 'teacher'
                     ? 'account account--teacher'
-                    : 'account account--student'
+                    : role === 'parent'
+                        ? 'account account--parent'
+                        : 'account account--student'
             }
         >
             <button
@@ -387,6 +402,7 @@ export function Account() {
                     payments={payments}
                     scheduleRevision={scheduleRevision}
                     scheduleFocusDate={scheduleFocusDate}
+                    scheduleFocusLessonId={scheduleFocusLessonId}
                     onAddLesson={
                         role === 'teacher' && API_FEATURES.lessonCreation
                             ? handleOpenLessonCreation
@@ -405,6 +421,22 @@ export function Account() {
                         setSearchParams(nextParams);
                         setIsSidebarOpen(false);
                     }}
+                    onOpenParentSchedule={(lesson) => {
+                        setScheduleFocusDate(
+                            lesson.lesson_date?.slice(0, 10) || null,
+                        );
+                        setScheduleFocusLessonId(lesson.id);
+                        setScheduleRevision((revision) => revision + 1);
+                        handleSelectSection('schedule');
+                    }}
+                    onOpenParentDiary={(lessonId) => {
+                        setSearchParams({
+                            section: 'diary',
+                            lesson: String(lessonId),
+                        });
+                        setIsSidebarOpen(false);
+                    }}
+                    onOpenSection={handleSelectSection}
                     onOpenStudentMessage={(student) => {
                         setMessageTarget({
                             studentId: student.studentId,

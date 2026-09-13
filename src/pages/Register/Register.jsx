@@ -11,12 +11,16 @@ export function Register() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const initialRole =
-        searchParams.get('role') === 'teacher'
-            ? 'teacher'
-            : 'student';
+    const requestedRole = searchParams.get('role');
+    const initialRole = ['student', 'teacher', 'parent'].includes(
+        requestedRole,
+    )
+        ? requestedRole
+        : 'student';
 
     const [role, setRole] = useState(initialRole);
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordRepeat, setPasswordRepeat] = useState('');
@@ -38,6 +42,19 @@ export function Register() {
         setSuccessMessage('');
 
         const normalizedEmail = email.trim().toLowerCase();
+
+        if (role === 'parent' && fullName.trim().length < 3) {
+            setErrorMessage('Укажите полное имя родителя.');
+            return;
+        }
+
+        if (
+            role === 'parent'
+            && !/^[0-9+\s().-]{7,40}$/.test(phone.trim())
+        ) {
+            setErrorMessage('Укажите корректный телефон родителя.');
+            return;
+        }
 
         if (!arePlatformDocumentsAccepted) {
             setErrorMessage(
@@ -75,6 +92,12 @@ export function Register() {
                     role,
                     email: normalizedEmail,
                     password,
+                    ...(role === 'parent'
+                        ? {
+                            full_name: fullName.trim(),
+                            phone: phone.trim(),
+                        }
+                        : {}),
                     legal_acceptances: buildRegistrationLegalAcceptances({
                         platformDocumentsAccepted:
                             arePlatformDocumentsAccepted,
@@ -140,12 +163,65 @@ export function Register() {
                     >
                         Учитель
                     </button>
+
+                    <button
+                        type="button"
+                        className={role === 'parent' ? 'is-active' : ''}
+                        onClick={() => setRole('parent')}
+                    >
+                        Родитель
+                    </button>
                 </div>
 
                 <form
                     className="auth-card__form"
                     onSubmit={handleRegister}
                 >
+                    {role === 'parent' && (
+                        <>
+                            <p className="auth-card__role-note">
+                                Создайте свой аккаунт. Данные ребёнка и
+                                документы добавим отдельно после
+                                подтверждения почты.
+                            </p>
+
+                            <label>
+                                <span>Фамилия, имя и отчество</span>
+
+                                <input
+                                    type="text"
+                                    value={fullName}
+                                    onChange={(event) =>
+                                        setFullName(event.target.value)
+                                    }
+                                    placeholder="Иванова Мария Сергеевна"
+                                    autoComplete="name"
+                                    minLength={3}
+                                    maxLength={255}
+                                    disabled={isLoading}
+                                    required
+                                />
+                            </label>
+
+                            <label>
+                                <span>Телефон</span>
+
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(event) =>
+                                        setPhone(event.target.value)
+                                    }
+                                    placeholder="+7 900 000-00-00"
+                                    autoComplete="tel"
+                                    maxLength={40}
+                                    disabled={isLoading}
+                                    required
+                                />
+                            </label>
+                        </>
+                    )}
+
                     <label>
                         <span>Почта</span>
 
@@ -312,7 +388,9 @@ export function Register() {
                             ? 'Регистрируем...'
                             : role === 'student'
                                 ? 'Зарегистрироваться как ученик'
-                                : 'Зарегистрироваться как учитель'}
+                                : role === 'teacher'
+                                    ? 'Зарегистрироваться как учитель'
+                                    : 'Зарегистрироваться как родитель'}
                     </button>
                 </form>
 

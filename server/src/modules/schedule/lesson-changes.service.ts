@@ -312,6 +312,38 @@ export class LessonChangesService {
                 dedupeKey: `lesson-change-response:${request.id}`,
             });
 
+            if (input.decision === 'approve') {
+                const rescheduled = request.requestType
+                    === LessonChangeType.RESCHEDULE;
+                await this.notifications.createForActiveParents(
+                    transaction,
+                    request.lesson.studentId,
+                    {
+                        category: 'schedule',
+                        type: rescheduled
+                            ? 'parent_lesson_rescheduled'
+                            : 'parent_lesson_cancelled',
+                        title: rescheduled
+                            ? 'Урок перенесён'
+                            : 'Урок отменён',
+                        message:
+                            request.lesson.subject?.name
+                            || request.lesson.title
+                            || 'Занятие',
+                        targetSection: 'schedule',
+                        targetEntityType: 'lesson',
+                        targetEntityId: request.lesson.id,
+                        targetDate: await this.targetDate(
+                            transaction,
+                            request.lesson.studentId,
+                            UserRole.STUDENT,
+                            targetDate,
+                        ),
+                        dedupeKey: `lesson-change-approved:${request.id}`,
+                    },
+                );
+            }
+
             return {
                 success: true,
                 message: input.decision === 'approve'

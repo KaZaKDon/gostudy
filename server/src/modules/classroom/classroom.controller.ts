@@ -3,10 +3,12 @@ import {
     Controller,
     Get,
     Header,
+    type MessageEvent,
     Post,
     Query,
     Res,
     StreamableFile,
+    Sse,
     UploadedFiles,
     UseGuards,
     UseInterceptors,
@@ -14,6 +16,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { createReadStream } from 'node:fs';
 import type { Response } from 'express';
+import type { Observable } from 'rxjs';
 
 import { CurrentUser } from '../auth/current-user.decorator';
 import { SessionAuthGuard } from '../auth/session-auth.guard';
@@ -30,11 +33,16 @@ import { SaveClassroomNoteDto } from './dto/save-classroom-note.dto';
 import { SendClassroomMessageDto } from './dto/send-classroom-message.dto';
 import { ShareClassroomMaterialDto } from './dto/share-classroom-material.dto';
 import { SyncClassroomDto } from './dto/sync-classroom.dto';
+import { ClassroomMediaSignalDto } from './dto/classroom-media-signal.dto';
+import { ClassroomRealtimeService } from './classroom-realtime.service';
 
 @Controller('classroom')
 @UseGuards(SessionAuthGuard)
 export class ClassroomController {
-    constructor(private readonly classroom: ClassroomService) {}
+    constructor(
+        private readonly classroom: ClassroomService,
+        private readonly realtime: ClassroomRealtimeService,
+    ) {}
 
     @Get('show')
     show(
@@ -42,6 +50,17 @@ export class ClassroomController {
         @Query() query: ClassroomLessonDto,
     ) {
         return this.classroom.show(user, query.lesson_id);
+    }
+
+    @Sse('events')
+    @Header('X-Accel-Buffering', 'no')
+    async events(
+        @CurrentUser() user: SessionUser,
+        @Query() query: ClassroomLessonDto,
+    ): Promise<Observable<MessageEvent>> {
+        await this.classroom.authorizeRealtime(user, query.lesson_id);
+
+        return this.realtime.stream(query.lesson_id, user.id);
     }
 
     @Post('sync')
@@ -74,6 +93,14 @@ export class ClassroomController {
         @Body() input: SendClassroomMessageDto,
     ) {
         return this.classroom.sendMessage(user, input);
+    }
+
+    @Post('media-signal')
+    mediaSignal(
+        @CurrentUser() user: SessionUser,
+        @Body() input: ClassroomMediaSignalDto,
+    ) {
+        return this.classroom.relayMediaSignal(user, input);
     }
 
     @Post('save-note')

@@ -32,7 +32,7 @@ function mapSummary(summary) {
     };
 }
 
-export function useDiary(targetLessonId = null) {
+export function useDiary(role = 'student', targetLessonId = null) {
     const [subjects, setSubjects] = useState([]);
     const [activeSubject, setActiveSubject] = useState(null);
     const [lessons, setLessons] = useState([]);
@@ -41,6 +41,9 @@ export function useDiary(targetLessonId = null) {
     const [status, setStatus] = useState('loading');
     const [errorMessage, setErrorMessage] = useState('');
     const [hasMore, setHasMore] = useState(false);
+    const [children, setChildren] = useState([]);
+    const [parentStudentId, setParentStudentId] = useState(null);
+    const [resolvedStudentId, setResolvedStudentId] = useState(null);
     const cursorRef = useRef(null);
     const requestControllerRef = useRef(null);
 
@@ -69,13 +72,21 @@ export function useDiary(targetLessonId = null) {
                 params.set('lesson_id', String(lessonId));
             }
 
+            if (role === 'parent' && parentStudentId) {
+                params.set('student_id', String(parentStudentId));
+            }
+
             if (append && cursorRef.current) {
                 params.set('before_date', cursorRef.current.date);
                 params.set('before_id', String(cursorRef.current.id));
             }
 
             const result = await apiRequest(
-                `${API.studentDiary}?${params.toString()}`,
+                `${
+                    role === 'parent'
+                        ? API.parentDiary
+                        : API.studentDiary
+                }?${params.toString()}`,
                 { signal: controller.signal },
             );
             const loadedSubjects = Array.isArray(result.subjects)
@@ -95,6 +106,12 @@ export function useDiary(targetLessonId = null) {
                 ? mergeLearningLessons(current, loadedLessons)
                 : loadedLessons);
             setSummary(mapSummary(result.summary));
+            setChildren(
+                Array.isArray(result.children) ? result.children : [],
+            );
+            setResolvedStudentId(
+                Number(result.selected_student_id) || null,
+            );
             setTargetLesson(
                 result.target_lesson
                     ? mapLearningLesson(result.target_lesson)
@@ -121,7 +138,7 @@ export function useDiary(targetLessonId = null) {
             );
             setStatus('error');
         }
-    }, []);
+    }, [parentStudentId, role]);
 
     useEffect(() => {
         const requestTimer = window.setTimeout(() => {
@@ -143,6 +160,17 @@ export function useDiary(targetLessonId = null) {
         }
     }, [activeSubject?.id, loadDiary, subjects]);
 
+    const selectParentStudent = useCallback((studentId) => {
+        cursorRef.current = null;
+        setParentStudentId(Number(studentId) || null);
+        setSubjects([]);
+        setActiveSubject(null);
+        setLessons([]);
+        setSummary(mapSummary(null));
+        setTargetLesson(null);
+        setErrorMessage('');
+    }, []);
+
     return {
         subjects,
         activeSubject,
@@ -152,8 +180,11 @@ export function useDiary(targetLessonId = null) {
         status,
         errorMessage,
         hasMore,
+        children,
+        selectedStudentId: parentStudentId || resolvedStudentId,
         retry: () => loadDiary({ subject: activeSubject }),
         selectSubject,
+        selectParentStudent,
         loadMore: () => loadDiary({
             subject: activeSubject,
             append: true,

@@ -32,7 +32,9 @@ import {
     ClassroomFileStorageService,
     type ClassroomUploadFile,
 } from './classroom-file-storage.service';
+import { ClassroomRealtimeService } from './classroom-realtime.service';
 import type { ClassroomFileDto } from './dto/classroom-file.dto';
+import type { ClassroomMediaSignalDto } from './dto/classroom-media-signal.dto';
 import type { SaveClassroomNoteDto } from './dto/save-classroom-note.dto';
 import type { SendClassroomMessageDto } from './dto/send-classroom-message.dto';
 import type { ShareClassroomMaterialDto } from './dto/share-classroom-material.dto';
@@ -50,7 +52,42 @@ export class ClassroomService {
         private readonly notifications: NotificationsService,
         private readonly fileStorage: ClassroomFileStorageService,
         private readonly homework: HomeworkService,
+        private readonly realtime: ClassroomRealtimeService,
     ) {}
+
+    async authorizeRealtime(user: SessionUser, lessonId: number): Promise<void> {
+        this.requireParticipantRole(user);
+        await this.findLesson(this.prisma, lessonId, user);
+    }
+
+    async relayMediaSignal(
+        user: SessionUser,
+        input: ClassroomMediaSignalDto,
+    ) {
+        this.requireParticipantRole(user);
+        const lesson = await this.findLesson(this.prisma, input.lesson_id, user);
+        const access = this.accessFor(lesson, user);
+
+        if (!access.canJoin || lesson.session?.status !== LessonSessionStatus.ACTIVE) {
+            throw new ConflictException('Видеосвязь доступна только во время урока');
+        }
+
+        if (JSON.stringify(input.payload).length > 65_536) {
+            throw new PayloadTooLargeException('Сигнал видеосвязи слишком большой');
+        }
+
+        const recipientId = user.role === UserRole.TEACHER
+            ? lesson.studentId
+            : lesson.teacherId;
+
+        this.realtime.publishToUser(input.lesson_id, recipientId, {
+            sender_id: user.id,
+            signal_type: input.signal_type,
+            data: input.payload,
+        });
+
+        return { success: true };
+    }
 
     async show(user: SessionUser, lessonId: number) {
         this.requireParticipantRole(user);
@@ -103,10 +140,21 @@ export class ClassroomService {
             const lesson = await this.findLesson(transaction, input.lesson_id, user);
             let session = lesson.session;
             let access = this.accessFor(lesson, user);
+            let presenceChanged = false;
 
             if (access.canJoin) {
+                const wasPresent = user.role === UserRole.TEACHER
+                    ? isClassroomParticipantPresent(
+                        session?.teacherLastSeenAt,
+                        new Date(),
+                    )
+                    : isClassroomParticipantPresent(
+                        session?.studentLastSeenAt,
+                        new Date(),
+                    );
                 session = await this.ensureSession(transaction, lesson.id);
                 session = await this.touchPresence(transaction, session, user.role);
+                presenceChanged = !wasPresent;
                 access = calculateClassroomAccess({
                     lessonDate: lesson.lessonDate,
                     durationMinutes: lesson.durationMinutes,
@@ -116,7 +164,7 @@ export class ClassroomService {
                 });
             }
 
-            return { lesson, session, access };
+            return { lesson, session, access, presenceChanged };
         });
         const timezone = await this.getViewerTimezone(user);
         const [workspace, files, messages, homework] = await Promise.all([
@@ -133,6 +181,10 @@ export class ClassroomService {
             ),
             this.homework.listForLesson(user, input.lesson_id),
         ]);
+
+        if (state.presenceChanged) {
+            this.realtime.publish(input.lesson_id, 'presence');
+        }
 
         return {
             success: true,
@@ -206,6 +258,7 @@ export class ClassroomService {
             sessionStatus: state.session.status,
             role: user.role,
         });
+        this.realtime.publish(lessonId, 'lesson');
 
         return {
             success: true,
@@ -287,6 +340,7 @@ export class ClassroomService {
             sessionStatus: LessonSessionStatus.ENDED,
             role: user.role,
         });
+        this.realtime.publish(lessonId, 'lesson');
 
         return {
             success: true,
@@ -327,6 +381,7 @@ export class ClassroomService {
             });
         });
         const timezone = await this.getViewerTimezone(user);
+        this.realtime.publish(input.lesson_id, 'message');
 
         return {
             success: true,
@@ -413,6 +468,7 @@ export class ClassroomService {
 
         const timezone = await this.getViewerTimezone(user);
         const savedFiles = await this.loadFiles(lessonId);
+        this.realtime.publish(lessonId, 'files');
         return {
             success: true,
             message: stored.length === 1
@@ -460,6 +516,7 @@ export class ClassroomService {
                 where: { lessonId: input.lesson_id },
             }),
         ]);
+        this.realtime.publish(input.lesson_id, 'files');
 
         return {
             success: true,
@@ -537,6 +594,7 @@ export class ClassroomService {
                 },
             });
         });
+        this.realtime.publish(input.lesson_id, 'workspace');
 
         return {
             success: true,
@@ -574,6 +632,7 @@ export class ClassroomService {
                 },
             });
         });
+        this.realtime.publish(lessonId, 'workspace');
 
         return {
             success: true,

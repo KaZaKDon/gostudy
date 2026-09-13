@@ -50,3 +50,17 @@ export class StudentDiaryController {
         return this.journal.listStudentDiary(user, query);
     }
 }
+
+@Controller('parent/children/diary')
+@UseGuards(SessionAuthGuard)
+export class ParentDiaryController {
+    constructor(private readonly journal: JournalService) {}
+
+    @Get()
+    list(
+        @CurrentUser() user: SessionUser,
+        @Query() query: ListDiaryQueryDto,
+    ) {
+        return this.journal.listParentDiary(user, query);
+    }
+}

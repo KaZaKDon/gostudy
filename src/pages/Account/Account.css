@@ -13,6 +13,10 @@
     --account-accent: var(--color-teacher);
 }
 
+.account--parent {
+    --account-accent: var(--color-parent);
+}
+
 .account__layout {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
@@ -74,7 +78,7 @@
 
     border-radius: 50%;
 
-    color: #fff8ec;
+    color: var(--color-on-accent);
     background: var(--account-accent);
 
     font-size: 28px;
@@ -135,12 +139,12 @@
 }
 
 .account-sidebar__link--active {
-    color: #fff8ec;
+    color: var(--color-on-accent);
     background: var(--account-accent);
 }
 
 .account-sidebar__link--active:hover {
-    color: #fff8ec;
+    color: var(--color-on-accent);
     background: var(--account-accent);
 }
 
@@ -156,7 +160,7 @@
     border-radius: var(--radius-pill);
 
     color: var(--account-accent);
-    background: #fff8ec;
+    background: var(--color-on-accent);
 
     font-size: 12px;
 }
@@ -198,7 +202,7 @@
 
     border-radius: var(--radius-pill);
 
-    color: #fff8ec;
+    color: var(--color-on-accent);
     background: var(--account-accent);
 
     font-size: 14px;
@@ -433,7 +437,7 @@
     border: 0;
     border-radius: var(--radius-pill);
 
-    color: #fff8ec;
+    color: var(--color-on-accent);
     background: var(--account-accent);
 
     cursor: pointer;

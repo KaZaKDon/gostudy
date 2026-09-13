@@ -60,6 +60,7 @@ import {
 
 import { MaterialsPage } from './pages/Materials/MaterialsPage.jsx';
 import { MessagesPage } from './pages/Messages/MessagesPage.jsx';
+import { ParentChildrenAdminPage } from './pages/ParentChildren/ParentChildrenAdminPage.jsx';
 
 export function AdminApp() {
     return (
@@ -100,6 +101,11 @@ export function AdminApp() {
                         <Route
                             path="students/:studentId"
                             element={<StudentsPage />}
+                        />
+
+                        <Route
+                            path="parent-children"
+                            element={<ParentChildrenAdminPage />}
                         />
 
                         <Route

@@ -2,9 +2,9 @@ const CLASSROOM_TOOLS = [
     { id: 'lesson', label: 'Урок' },
     { id: 'material', label: 'Материал' },
     { id: 'calculator', label: 'Калькулятор' },
-    { id: 'video', label: 'Видео', future: true },
-    { id: 'screen', label: 'Показать экран', future: true },
-    { id: 'board', label: 'Доска', future: true },
+    { id: 'video', label: 'Видео' },
+    { id: 'screen', label: 'Показать экран' },
+    { id: 'board', label: 'Доска' },
 ];
 
 export function ClassroomTools({ activeTool, onChangeTool }) {

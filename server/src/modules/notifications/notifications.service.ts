@@ -5,16 +5,31 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { UserRole } from '../../generated/prisma/enums';
+import {
+    ParentChildVerificationStatus,
+    ParentStudentStatus,
+    UserRole,
+    UserStatus,
+} from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import type { ClearNotificationsDto } from './dto/clear-notifications.dto';
 import type { DeleteNotificationDto } from './dto/delete-notification.dto';
 import type { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
 import type { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
+import type { UpdateParentNotificationSettingsDto } from './dto/update-parent-notification-settings.dto';
 import type {
     CreateNotificationInput,
+    CreateParentNotificationInput,
     NotificationWriteClient,
+    ParentNotificationCategory,
 } from './notifications.types';
+
+const PARENT_PREFERENCE_FIELD = {
+    homework: 'homeworkEnabled',
+    diary: 'diaryEnabled',
+    schedule: 'scheduleEnabled',
+    messages: 'messagesEnabled',
+} as const satisfies Record<ParentNotificationCategory, string>;
 
 @Injectable()
 export class NotificationsService {
@@ -144,6 +159,83 @@ export class NotificationsService {
         };
     }
 
+    async listParentSettings(
+        user: SessionUser,
+    ): Promise<Record<string, unknown>> {
+        this.requireParent(user);
+        const children = await this.activeParentChildren(user.id);
+        const preferences = children.length
+            ? await this.prisma.parentNotificationPreference.findMany({
+                where: {
+                    parentId: user.id,
+                    studentId: {
+                        in: children.map((child) => child.studentId),
+                    },
+                },
+            })
+            : [];
+        const byStudentId = new Map(
+            preferences.map((preference) => [
+                preference.studentId,
+                preference,
+            ]),
+        );
+
+        return {
+            success: true,
+            settings: children.map((child) => this.serializeParentSetting(
+                child,
+                byStudentId.get(child.studentId),
+            )),
+        };
+    }
+
+    async updateParentSettings(
+        user: SessionUser,
+        input: UpdateParentNotificationSettingsDto,
+    ): Promise<Record<string, unknown>> {
+        this.requireParent(user);
+        const children = await this.activeParentChildren(user.id);
+        const child = children.find(
+            (item) => item.studentId === input.student_id,
+        );
+
+        if (!child) {
+            throw new NotFoundException(
+                'Настройки уведомлений этого ребёнка недоступны',
+            );
+        }
+
+        const preference = await this.prisma.parentNotificationPreference.upsert({
+            where: {
+                parentId_studentId: {
+                    parentId: user.id,
+                    studentId: child.studentId,
+                },
+            },
+            update: {
+                homeworkEnabled: input.homework_enabled,
+                diaryEnabled: input.diary_enabled,
+                scheduleEnabled: input.schedule_enabled,
+                messagesEnabled: input.messages_enabled,
+            },
+            create: {
+                parentId: user.id,
+                studentId: child.studentId,
+                homeworkEnabled: input.homework_enabled,
+                diaryEnabled: input.diary_enabled,
+                scheduleEnabled: input.schedule_enabled,
+                messagesEnabled: input.messages_enabled,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Настройки уведомлений сохранены',
+            setting: this.serializeParentSetting(child, preference),
+        };
+    }
+
     async create(
         client: NotificationWriteClient,
         input: CreateNotificationInput,
@@ -182,6 +274,109 @@ export class NotificationsService {
         await client.notification.create({ data });
     }
 
+    async createForActiveParents(
+        client: NotificationWriteClient,
+        studentId: number,
+        input: CreateParentNotificationInput,
+    ): Promise<void> {
+        const links = await client.parentStudent.findMany({
+            where: {
+                studentId,
+                status: ParentStudentStatus.ACTIVE,
+                verifiedAt: { not: null },
+                parent: {
+                    role: UserRole.PARENT,
+                    status: UserStatus.ACTIVE,
+                },
+            },
+            select: { parentId: true },
+        });
+
+        if (!links.length) {
+            return;
+        }
+
+        const adultBirthDate = new Date();
+        adultBirthDate.setUTCHours(0, 0, 0, 0);
+        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+
+        const childProfiles = await client.parentChildProfile.findMany({
+            where: {
+                studentId,
+                parentId: { in: links.map((link) => link.parentId) },
+                verificationStatus: ParentChildVerificationStatus.VERIFIED,
+                verifiedAt: { not: null },
+                archivedAt: null,
+                birthDate: { gt: adultBirthDate },
+            },
+            select: {
+                parentId: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+            },
+        });
+
+        const preferences = childProfiles.length
+            ? await client.parentNotificationPreference.findMany({
+                where: {
+                    studentId,
+                    parentId: {
+                        in: childProfiles.map((child) => child.parentId),
+                    },
+                },
+            })
+            : [];
+        const preferenceByParentId = new Map(
+            preferences.map((preference) => [
+                preference.parentId,
+                preference,
+            ]),
+        );
+        const preferenceField = PARENT_PREFERENCE_FIELD[input.category];
+        const { category: _category, ...notificationInput } = input;
+
+        await Promise.all(childProfiles.map(async (child) => {
+            const preference = preferenceByParentId.get(child.parentId);
+
+            if (preference && !preference[preferenceField]) {
+                return;
+            }
+
+            const childName = [
+                child.lastName,
+                child.firstName,
+                child.middleName,
+            ].filter(Boolean).join(' ') || 'Ребёнок';
+
+            await this.create(client, {
+                ...notificationInput,
+                userId: child.parentId,
+                message: `${childName}: ${input.message}`.slice(0, 500),
+                dedupeKey: input.dedupeKey
+                    ? `parent:${studentId}:${input.dedupeKey}`
+                    : null,
+            });
+        }));
+    }
+
+    async isParentCategoryEnabled(
+        client: NotificationWriteClient,
+        parentId: number,
+        studentId: number,
+        category: ParentNotificationCategory,
+    ): Promise<boolean> {
+        const preference = await client.parentNotificationPreference.findUnique({
+            where: {
+                parentId_studentId: { parentId, studentId },
+            },
+        });
+
+        return preference
+            ? preference[PARENT_PREFERENCE_FIELD[category]]
+            : true;
+    }
+
     async markDedupeRead(
         client: NotificationWriteClient,
         userId: number,
@@ -214,5 +409,85 @@ export class NotificationsService {
         return this.prisma.notification.count({
             where: { userId, isRead: false },
         });
+    }
+
+    private requireParent(user: SessionUser): void {
+        if (user.role !== UserRole.PARENT) {
+            throw new BadRequestException(
+                'Настройки детей доступны только родителю',
+            );
+        }
+    }
+
+    private async activeParentChildren(parentId: number) {
+        const links = await this.prisma.parentStudent.findMany({
+            where: {
+                parentId,
+                status: ParentStudentStatus.ACTIVE,
+                verifiedAt: { not: null },
+            },
+            select: { studentId: true },
+        });
+
+        if (!links.length) {
+            return [];
+        }
+
+        const adultBirthDate = new Date();
+        adultBirthDate.setUTCHours(0, 0, 0, 0);
+        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+
+        const profiles = await this.prisma.parentChildProfile.findMany({
+            where: {
+                parentId,
+                studentId: {
+                    in: links.map((link) => link.studentId),
+                },
+                verificationStatus: ParentChildVerificationStatus.VERIFIED,
+                verifiedAt: { not: null },
+                archivedAt: null,
+                birthDate: { gt: adultBirthDate },
+            },
+            orderBy: [
+                { createdAt: 'asc' },
+                { id: 'asc' },
+            ],
+            select: {
+                studentId: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+            },
+        });
+
+        return profiles.flatMap((profile) => profile.studentId
+            ? [{
+                studentId: profile.studentId,
+                fullName: [
+                    profile.lastName,
+                    profile.firstName,
+                    profile.middleName,
+                ].filter(Boolean).join(' '),
+            }]
+            : []);
+    }
+
+    private serializeParentSetting(
+        child: { studentId: number; fullName: string },
+        preference?: {
+            homeworkEnabled: boolean;
+            diaryEnabled: boolean;
+            scheduleEnabled: boolean;
+            messagesEnabled: boolean;
+        },
+    ) {
+        return {
+            student_id: child.studentId,
+            full_name: child.fullName,
+            homework_enabled: preference?.homeworkEnabled ?? true,
+            diary_enabled: preference?.diaryEnabled ?? true,
+            schedule_enabled: preference?.scheduleEnabled ?? true,
+            messages_enabled: preference?.messagesEnabled ?? true,
+        };
     }
 }

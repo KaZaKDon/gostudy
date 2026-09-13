@@ -18,8 +18,12 @@ export const STUDENT_MESSAGE_TABS = [
 
 export const PARENT_MESSAGE_TABS = [
     {
+        id: 'children',
+        label: 'Чаты детей',
+    },
+    {
         id: 'teachers',
-        label: 'Преподаватели детей',
+        label: 'Мои чаты с преподавателями',
     },
 ];
 

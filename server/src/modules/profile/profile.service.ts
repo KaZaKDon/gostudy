@@ -13,6 +13,7 @@ import {
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import { toPublicUser } from '../auth/session-user';
+import type { UpdateAccountDto } from './dto/update-account.dto';
 import type { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
 import type { UpdateTeacherProfileDto } from './dto/update-teacher-profile.dto';
 import type { UpdateTeacherVisibilityDto } from './dto/update-teacher-visibility.dto';
@@ -49,6 +50,41 @@ export class ProfileService {
             success: true,
             user: toPublicUser(user),
             profile: null,
+        };
+    }
+
+    async updateAccount(
+        user: SessionUser,
+        input: UpdateAccountDto,
+    ): Promise<Record<string, unknown>> {
+        const phone = input.phone.trim() || null;
+
+        if (user.role === UserRole.PARENT && !phone) {
+            throw new BadRequestException(
+                'Для аккаунта родителя необходимо указать телефон',
+            );
+        }
+
+        const savedUser = await this.prisma.user.update({
+            where: { id: user.id },
+            data: { phone },
+            select: {
+                id: true,
+                role: true,
+                email: true,
+                fullName: true,
+                phone: true,
+                avatarUrl: true,
+                status: true,
+                emailVerifiedAt: true,
+                profileCompleted: true,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Контактные данные сохранены',
+            user: toPublicUser(savedUser),
         };
     }
 

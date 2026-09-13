@@ -32,6 +32,8 @@ const student: SessionUser = {
 function createService(prisma: PrismaService) {
     const notifications = {
         create: vi.fn().mockResolvedValue(undefined),
+        createForActiveParents: vi.fn().mockResolvedValue(undefined),
+        isParentCategoryEnabled: vi.fn().mockResolvedValue(true),
         markEntityRead: vi.fn().mockResolvedValue(undefined),
     } as unknown as NotificationsService;
     const files = {

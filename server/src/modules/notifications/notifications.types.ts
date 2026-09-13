@@ -13,3 +13,16 @@ export type CreateNotificationInput = {
     targetDate?: string | null;
     dedupeKey?: string | null;
 };
+
+export type CreateParentNotificationInput = Omit<
+    CreateNotificationInput,
+    'userId'
+> & {
+    category: ParentNotificationCategory;
+};
+
+export type ParentNotificationCategory =
+    | 'homework'
+    | 'diary'
+    | 'schedule'
+    | 'messages';

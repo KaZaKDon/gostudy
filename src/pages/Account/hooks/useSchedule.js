@@ -15,7 +15,10 @@ import { getCurrentWeekRange } from '../utils/schedule.js';
 export function useSchedule(
     displayedDate = null,
     refreshKey = 0,
+    options = {},
 ) {
+    const studentId = Number(options.studentId) || null;
+    const lessonId = Number(options.lessonId) || null;
     const defaultDate = useMemo(() => new Date(), []);
     const scheduleDate = displayedDate || defaultDate;
     const period = useMemo(
@@ -28,6 +31,8 @@ export function useSchedule(
         API_FEATURES.schedule ? 'loading' : 'success',
     );
     const [errorMessage, setErrorMessage] = useState('');
+    const [children, setChildren] = useState([]);
+    const [selectedStudentId, setSelectedStudentId] = useState(null);
 
     useEffect(() => {
         if (!API_FEATURES.schedule) {
@@ -42,6 +47,14 @@ export function useSchedule(
 
             try {
                 const params = new URLSearchParams(period);
+
+                if (studentId) {
+                    params.set('student_id', String(studentId));
+                }
+
+                if (lessonId) {
+                    params.set('lesson_id', String(lessonId));
+                }
 
                 const response = await fetch(
                     `${API.schedule}?${params.toString()}`,
@@ -73,6 +86,12 @@ export function useSchedule(
                         }))
                         : [],
                 );
+                setChildren(
+                    Array.isArray(result.children) ? result.children : [],
+                );
+                setSelectedStudentId(
+                    Number(result.selected_student_id) || null,
+                );
                 setRequestStatus('success');
             } catch (error) {
                 if (
@@ -96,12 +115,14 @@ export function useSchedule(
         return () => {
             controller.abort();
         };
-    }, [period, refreshKey]);
+    }, [lessonId, period, refreshKey, studentId]);
 
     return {
         schedule,
         requestStatus,
         errorMessage,
         period,
+        children,
+        selectedStudentId,
     };
 }

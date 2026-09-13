@@ -7,7 +7,10 @@ import { AuthModule } from '../auth/auth.module';
 import { HomeworkModule } from '../homework/homework.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ClassroomController } from './classroom.controller';
+import { ClassroomBoardController } from './classroom-board.controller';
+import { ClassroomBoardService } from './classroom-board.service';
 import { ClassroomFileStorageService } from './classroom-file-storage.service';
+import { ClassroomRealtimeService } from './classroom-realtime.service';
 import { ClassroomService } from './classroom.service';
 
 @Module({
@@ -37,8 +40,13 @@ import { ClassroomService } from './classroom.service';
             },
         }),
     ],
-    controllers: [ClassroomController],
-    providers: [ClassroomService, ClassroomFileStorageService],
+    controllers: [ClassroomController, ClassroomBoardController],
+    providers: [
+        ClassroomService,
+        ClassroomFileStorageService,
+        ClassroomRealtimeService,
+        ClassroomBoardService,
+    ],
     exports: [ClassroomService],
 })
 export class ClassroomModule {}

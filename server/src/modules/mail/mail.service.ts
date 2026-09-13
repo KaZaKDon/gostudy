@@ -75,6 +75,59 @@ export class MailService {
         }
     }
 
+    async sendPasswordResetEmail(
+        email: string,
+        displayName: string,
+        resetUrl: string,
+        expiresInMinutes: number,
+    ): Promise<boolean> {
+        if (!this.transporter) {
+            if (this.config.get('NODE_ENV') === 'development') {
+                this.logger.log(
+                    `Локальный режим: ссылка восстановления для ${email}: ${resetUrl}`,
+                );
+            } else {
+                this.logger.warn(
+                    'SMTP не настроен. Письмо восстановления не отправлено.',
+                );
+            }
+            return false;
+        }
+
+        try {
+            await this.transporter.sendMail({
+                from: this.getFrom(),
+                to: email,
+                subject: 'Восстановление пароля — GoStudy',
+                text: [
+                    `Здравствуйте, ${displayName}!`,
+                    '',
+                    'Для установки нового пароля перейдите по ссылке:',
+                    resetUrl,
+                    '',
+                    `Ссылка действует ${expiresInMinutes} минут.`,
+                    'Если вы не запрашивали восстановление, просто проигнорируйте это письмо.',
+                    `Поддержка: ${this.config.get('SUPPORT_EMAIL')}`,
+                ].join('\n'),
+                html: [
+                    `<p>Здравствуйте, ${this.escapeHtml(displayName)}!</p>`,
+                    '<p>Для установки нового пароля GoStudy перейдите по ссылке:</p>',
+                    `<p><a href="${this.escapeHtml(resetUrl)}">Установить новый пароль</a></p>`,
+                    `<p>Ссылка действует ${expiresInMinutes} минут.</p>`,
+                    '<p>Если вы не запрашивали восстановление, просто проигнорируйте это письмо.</p>',
+                ].join(''),
+            });
+
+            return true;
+        } catch (error) {
+            this.logger.error(
+                `Не удалось отправить письмо восстановления на ${email}`,
+                error instanceof Error ? error.stack : undefined,
+            );
+            return false;
+        }
+    }
+
     private getFrom(): string {
         return `GoStudy <${this.config.get<string>('MAIL_FROM', 'noreply@gostudyonline.ru')}>`;
     }

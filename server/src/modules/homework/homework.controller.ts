@@ -24,6 +24,7 @@ import {
     HomeworkIdDto,
     HomeworkIdQueryDto,
 } from './dto/homework-id.dto';
+import { ListHomeworkQueryDto } from './dto/list-homework-query.dto';
 import { ReviewHomeworkDto } from './dto/review-homework.dto';
 import { SubmitHomeworkDto } from './dto/submit-homework.dto';
 import {
@@ -38,8 +39,11 @@ export class HomeworkController {
     constructor(private readonly homework: HomeworkService) {}
 
     @Get()
-    list(@CurrentUser() user: SessionUser) {
-        return this.homework.list(user);
+    list(
+        @CurrentUser() user: SessionUser,
+        @Query() query: ListHomeworkQueryDto,
+    ) {
+        return this.homework.list(user, query.student_id);
     }
 
     @Get('options')

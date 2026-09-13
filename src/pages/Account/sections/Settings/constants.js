@@ -15,6 +15,12 @@ export const TEACHER_SETTINGS_TABS = [
     { id: 'payouts', label: 'Платёжные данные' },
 ];
 
+export const PARENT_SETTINGS_TABS = [
+    { id: 'contacts', label: 'Контакты' },
+    { id: 'security', label: 'Безопасность' },
+    { id: 'notifications', label: 'Уведомления' },
+];
+
 export const VERIFICATION_LABELS = {
     draft: 'Черновик',
     pending: 'Ожидает проверки',

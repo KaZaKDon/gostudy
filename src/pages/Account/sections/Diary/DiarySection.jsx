@@ -9,10 +9,12 @@ import { useDiary } from './useDiary.js';
 import './DiarySection.css';
 
 export function DiarySection({
+    role,
     targetLessonId,
     onOpenHomework,
 }) {
-    const diary = useDiary(targetLessonId);
+    const diary = useDiary(role, targetLessonId);
+    const isParent = role === 'parent';
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [dismissedTargetId, setDismissedTargetId] = useState(null);
     const targetLesson = diary.targetLesson
@@ -33,10 +35,41 @@ export function DiarySection({
         <section className="diary-section">
             <header className="diary-section__header">
                 <div>
-                    <span>Дневник обучения</span>
-                    <h2>История занятий</h2>
+                    <span>{isParent ? 'Семья' : 'Дневник обучения'}</span>
+                    <h2>
+                        {isParent ? 'Дневник детей' : 'История занятий'}
+                    </h2>
                 </div>
             </header>
+
+            {isParent && diary.children.length > 0 && (
+                <div className="diary-section__parent-controls">
+                    <label>
+                        <span>Ребёнок</span>
+
+                        <select
+                            value={diary.selectedStudentId || ''}
+                            onChange={(event) => diary.selectParentStudent(
+                                event.target.value,
+                            )}
+                        >
+                            {diary.children.map((child) => (
+                                <option
+                                    key={child.student_id}
+                                    value={child.student_id}
+                                >
+                                    {child.full_name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <p>
+                        Только просмотр. Личная заметка преподавателя
+                        родителю и ученику не показывается.
+                    </p>
+                </div>
+            )}
 
             {diary.status === 'loading' && !diary.subjects.length ? (
                 <div className="diary-table__empty">
@@ -53,8 +86,9 @@ export function DiarySection({
                 <div className="diary-table__empty">
                     <h3>В дневнике пока нет записей</h3>
                     <p>
-                        После публикации результатов занятий здесь появятся
-                        темы, оценки и комментарии преподавателей.
+                        {isParent
+                            ? 'После публикации результатов здесь появятся темы, оценки и комментарии преподавателей.'
+                            : 'После публикации результатов занятий здесь появятся темы, оценки и комментарии преподавателей.'}
                     </p>
                 </div>
             ) : (
@@ -81,6 +115,7 @@ export function DiarySection({
             )}
 
             <DiaryLessonModal
+                role={role}
                 lesson={openLesson}
                 onOpenHomework={onOpenHomework}
                 onClose={handleCloseLesson}

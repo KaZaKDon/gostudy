@@ -28,6 +28,7 @@ export function HomeworkSection({
     onCloseCreate,
 }) {
     const isTeacher = role === 'teacher';
+    const isParent = role === 'parent';
     const [activeStatus, setActiveStatus] = useState(
         isTeacher ? HOMEWORK_STATUSES[0].id : 'progress',
     );
@@ -42,9 +43,17 @@ export function HomeworkSection({
     const decoratedHomework = useMemo(() => controller.homework.map((item) => ({
         ...item,
         display_status_label:
-            HOMEWORK_STATUS_LABELS[item.display_status] || item.display_status,
+            isParent && item.submission_status === 'returned'
+                ? 'На доработке'
+                : isParent
+                    && item.status === 'active'
+                    && !item.viewed_at
+                    && !item.submission_status
+                    ? 'Новое'
+                    : HOMEWORK_STATUS_LABELS[item.display_status]
+                        || item.display_status,
         due_date_label: formatHomeworkDate(item.due_date),
-    })), [controller.homework]);
+    })), [controller.homework, isParent]);
 
     const filteredHomework = useMemo(
         () => getHomeworkByStatus(decoratedHomework, activeStatus),
@@ -77,8 +86,14 @@ export function HomeworkSection({
         <section className="homework-section">
             <header className="homework-section__header homework-section__header--actions">
                 <div>
-                    <span>Домашние работы</span>
-                    <h2>{isTeacher ? 'Задания учеников' : 'Мои задания'}</h2>
+                    <span>{isParent ? 'Семья' : 'Домашние работы'}</span>
+                    <h2>
+                        {isTeacher
+                            ? 'Задания учеников'
+                            : isParent
+                                ? 'Домашние задания детей'
+                                : 'Мои задания'}
+                    </h2>
                 </div>
 
                 {isTeacher && (
@@ -91,6 +106,38 @@ export function HomeworkSection({
                     </button>
                 )}
             </header>
+
+            {isParent && controller.children.length > 0 && (
+                <div className="homework-section__parent-controls">
+                    <label>
+                        <span>Ребёнок</span>
+
+                        <select
+                            value={controller.selectedStudentId || ''}
+                            onChange={(event) => {
+                                setActiveStatus('progress');
+                                controller.selectParentStudent(
+                                    event.target.value,
+                                );
+                            }}
+                        >
+                            {controller.children.map((child) => (
+                                <option
+                                    key={child.student_id}
+                                    value={child.student_id}
+                                >
+                                    {child.full_name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <p>
+                        Только просмотр. Отправить решение или доработку
+                        может только ребёнок из своего кабинета.
+                    </p>
+                </div>
+            )}
 
             {(controller.errorMessage || detailsError) && (
                 <p className="homework-form__error">

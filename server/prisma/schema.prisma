@@ -159,6 +159,26 @@ enum ParentStudentStatus {
   ARCHIVED
 }
 
+enum LegalRepresentativeType {
+  PARENT
+  GUARDIAN
+  TRUSTEE
+}
+
+enum ParentChildVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ParentStudentLinkRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
 enum MessageChannelType {
   STUDENT
   PARENT
@@ -221,6 +241,8 @@ model User {
   lessonMessages              LessonMessage[]
   lessonFiles                 LessonFile[]                @relation("LessonFileUploader")
   lessonWorkspaceUpdates      LessonWorkspaceState[]      @relation("LessonWorkspaceUpdater")
+  lessonBoardStrokes          LessonBoardStroke[]         @relation("LessonBoardAuthor")
+  lessonBoardTexts            LessonBoardText[]           @relation("LessonBoardTextAuthor")
   homeworkAssigned            Homework[]                  @relation("HomeworkTeacher")
   homeworkReceived            Homework[]                  @relation("HomeworkStudent")
   homeworkSubmissions         HomeworkSubmission[]
@@ -249,6 +271,9 @@ model User {
   materialReportsHandled      MaterialReport[]            @relation("MaterialReportHandler")
   parentLinks                 ParentStudent[]             @relation("ParentStudentParent")
   childLinks                  ParentStudent[]             @relation("ParentStudentChild")
+  managedChildProfiles        ParentChildProfile[]        @relation("ParentChildProfileParent")
+  linkedChildProfile          ParentChildProfile?         @relation("ParentChildProfileStudent")
+  parentLinkRequests          ParentStudentLinkRequest[]  @relation("ParentStudentLinkRequestStudent")
   messageDialogsAsTeacher     MessageDialog[]             @relation("MessageDialogTeacher")
   messageDialogsAsStudent     MessageDialog[]             @relation("MessageDialogStudent")
   messageDialogsAsParent      MessageDialog[]             @relation("MessageDialogParent")
@@ -303,19 +328,82 @@ model Notification {
 }
 
 model ParentStudent {
-  id         Int                 @id @default(autoincrement())
-  parentId   Int                 @map("parent_id")
-  studentId  Int                 @map("student_id")
-  status     ParentStudentStatus @default(ACTIVE)
-  verifiedAt DateTime?           @map("verified_at") @db.Timestamptz(3)
-  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt  DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
-  parent     User                @relation("ParentStudentParent", fields: [parentId], references: [id], onDelete: Restrict)
-  student    User                @relation("ParentStudentChild", fields: [studentId], references: [id], onDelete: Restrict)
+  id                     Int                           @id @default(autoincrement())
+  parentId               Int                           @map("parent_id")
+  studentId              Int                           @map("student_id")
+  status                 ParentStudentStatus           @default(ACTIVE)
+  verifiedAt             DateTime?                     @map("verified_at") @db.Timestamptz(3)
+  createdAt              DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  parent                 User                          @relation("ParentStudentParent", fields: [parentId], references: [id], onDelete: Restrict)
+  student                User                          @relation("ParentStudentChild", fields: [studentId], references: [id], onDelete: Restrict)
+  notificationPreference ParentNotificationPreference?
 
   @@unique([parentId, studentId])
   @@index([studentId, status])
   @@map("parent_students")
+}
+
+model ParentNotificationPreference {
+  id              Int           @id @default(autoincrement())
+  parentId        Int           @map("parent_id")
+  studentId       Int           @map("student_id")
+  homeworkEnabled Boolean       @default(true) @map("homework_enabled")
+  diaryEnabled    Boolean       @default(true) @map("diary_enabled")
+  scheduleEnabled Boolean       @default(true) @map("schedule_enabled")
+  messagesEnabled Boolean       @default(true) @map("messages_enabled")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  parentStudent   ParentStudent @relation(fields: [parentId, studentId], references: [parentId, studentId], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@map("parent_notification_preferences")
+}
+
+model ParentChildProfile {
+  id                  Int                           @id @default(autoincrement())
+  parentId            Int                           @map("parent_id")
+  studentId           Int?                          @unique @map("student_id")
+  firstName           String                        @map("first_name") @db.VarChar(120)
+  lastName            String                        @map("last_name") @db.VarChar(120)
+  middleName          String?                       @map("middle_name") @db.VarChar(120)
+  birthDate           DateTime                      @map("birth_date") @db.Date
+  city                String?                       @db.VarChar(120)
+  timezone            String?                       @db.VarChar(80)
+  classLevel          String?                       @map("class_level") @db.VarChar(120)
+  representativeType  LegalRepresentativeType       @map("representative_type")
+  verificationStatus  ParentChildVerificationStatus @default(PENDING) @map("verification_status")
+  verificationComment String?                       @map("verification_comment") @db.VarChar(1000)
+  consentAcceptanceId String                        @unique @map("consent_acceptance_id") @db.Uuid
+  verifiedAt          DateTime?                     @map("verified_at") @db.Timestamptz(3)
+  archivedAt          DateTime?                     @map("archived_at") @db.Timestamptz(3)
+  createdAt           DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  parent              User                          @relation("ParentChildProfileParent", fields: [parentId], references: [id], onDelete: Restrict)
+  student             User?                         @relation("ParentChildProfileStudent", fields: [studentId], references: [id], onDelete: SetNull)
+  consentAcceptance   LegalAcceptance               @relation(fields: [consentAcceptanceId], references: [id], onDelete: Restrict)
+  linkRequests        ParentStudentLinkRequest[]
+
+  @@index([parentId, archivedAt, createdAt])
+  @@index([verificationStatus, createdAt])
+  @@map("parent_child_profiles")
+}
+
+model ParentStudentLinkRequest {
+  id             Int                            @id @default(autoincrement())
+  childProfileId Int                            @map("child_profile_id")
+  studentId      Int                            @map("student_id")
+  status         ParentStudentLinkRequestStatus @default(PENDING)
+  expiresAt      DateTime                       @map("expires_at") @db.Timestamptz(3)
+  respondedAt    DateTime?                      @map("responded_at") @db.Timestamptz(3)
+  createdAt      DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  childProfile   ParentChildProfile             @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+  student        User                           @relation("ParentStudentLinkRequestStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([childProfileId, createdAt])
+  @@index([studentId, status, expiresAt])
+  @@map("parent_student_link_requests")
 }
 
 model MessageDialog {
@@ -716,6 +804,8 @@ model Lesson {
   messages        LessonMessage[]
   files           LessonFile[]
   workspace       LessonWorkspaceState?
+  boardStrokes    LessonBoardStroke[]
+  boardTexts      LessonBoardText[]
   result          LessonResult?
   homework        Homework[]
   changeRequests  LessonChangeRequest[]
@@ -798,6 +888,40 @@ model LessonWorkspaceState {
   @@index([sharedFileId])
   @@index([updatedById])
   @@map("lesson_workspace_state")
+}
+
+model LessonBoardStroke {
+  id        Int      @id @default(autoincrement())
+  lessonId  Int      @map("lesson_id")
+  authorId  Int      @map("author_id")
+  color     String   @db.VarChar(20)
+  width     Int
+  points    Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  author    User     @relation("LessonBoardAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([lessonId, id])
+  @@index([authorId, id])
+  @@map("lesson_board_strokes")
+}
+
+model LessonBoardText {
+  id        Int      @id @default(autoincrement())
+  lessonId  Int      @map("lesson_id")
+  authorId  Int      @map("author_id")
+  content   String   @db.VarChar(1000)
+  color     String   @db.VarChar(20)
+  x         Float
+  y         Float
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  author    User     @relation("LessonBoardTextAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([lessonId, id])
+  @@index([authorId, id])
+  @@map("lesson_board_texts")
 }
 
 model Homework {
@@ -1066,18 +1190,19 @@ model PasswordResetToken {
 }
 
 model LegalAcceptance {
-  id          String                    @id @default(uuid()) @db.Uuid
-  userId      Int                       @map("user_id")
-  type        LegalAcceptanceType
-  source      LegalAcceptanceSource
-  accepted    Boolean
-  consentText String                    @map("consent_text") @db.Text
-  ipAddress   String?                   @map("ip_address") @db.VarChar(45)
-  userAgent   String?                   @map("user_agent") @db.Text
-  withdrawnAt DateTime?                 @map("withdrawn_at")
-  createdAt   DateTime                  @default(now()) @map("created_at")
-  user        User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  documents   LegalAcceptanceDocument[]
+  id           String                    @id @default(uuid()) @db.Uuid
+  userId       Int                       @map("user_id")
+  type         LegalAcceptanceType
+  source       LegalAcceptanceSource
+  accepted     Boolean
+  consentText  String                    @map("consent_text") @db.Text
+  ipAddress    String?                   @map("ip_address") @db.VarChar(45)
+  userAgent    String?                   @map("user_agent") @db.Text
+  withdrawnAt  DateTime?                 @map("withdrawn_at")
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  user         User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  documents    LegalAcceptanceDocument[]
+  childProfile ParentChildProfile?
 
   @@index([userId, type, createdAt])
   @@map("legal_acceptances")

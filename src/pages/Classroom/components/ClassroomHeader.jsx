@@ -11,6 +11,7 @@ export function ClassroomHeader({
     access,
     role,
     isSaving,
+    realtimeStatus,
     onBack,
     onStart,
     onFinish,
@@ -37,6 +38,11 @@ export function ClassroomHeader({
     const participantName = role === 'teacher'
         ? lesson.student.name
         : lesson.teacher.name;
+    const realtimeLabel = {
+        connected: 'Связь в реальном времени',
+        fallback: 'Резервная синхронизация',
+        connecting: 'Подключение...',
+    }[realtimeStatus] || 'Подключение...';
 
     return (
         <header className={`classroom-header classroom-header--${role}`}>
@@ -61,6 +67,15 @@ export function ClassroomHeader({
                         {' · '}
                         <span>{getClassroomStatusLabel(session.status)}</span>
                     </p>
+
+                    <span
+                        className={`classroom-header__connection classroom-header__connection--${realtimeStatus}`}
+                        title={realtimeStatus === 'fallback'
+                            ? 'Класс продолжает обновляться автоматически'
+                            : realtimeLabel}
+                    >
+                        {realtimeLabel}
+                    </span>
                 </div>
             </div>
 

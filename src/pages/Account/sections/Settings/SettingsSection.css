@@ -10,6 +10,10 @@
     --settings-accent: var(--color-teacher);
 }
 
+.account--parent .settings-section {
+    --settings-accent: var(--color-parent);
+}
+
 .settings-section__header span,
 .settings-panel__header span {
     display: block;
@@ -225,6 +229,10 @@
     color: var(--color-teacher);
 }
 
+.account--parent .settings-panel__message--success {
+    color: var(--color-parent);
+}
+
 .settings-panel__message--error {
     color: var(--color-error, #a33a32);
     font-weight: 700;
@@ -242,6 +250,64 @@
     width: 22px;
     height: 22px;
     accent-color: var(--settings-accent);
+}
+
+.settings-child-notifications {
+    display: grid;
+    gap: 16px;
+}
+
+.settings-child-notifications__card {
+    display: grid;
+    gap: 14px;
+    border-radius: var(--radius-md);
+    padding: 18px;
+    background: var(--color-surface-strong);
+}
+
+.settings-child-notifications__heading,
+.settings-child-notifications__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.settings-child-notifications__heading span {
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.settings-child-notifications__heading h4 {
+    margin: 4px 0 0;
+    color: var(--color-text);
+}
+
+.settings-child-notifications__heading small,
+.settings-child-notifications__item small {
+    color: var(--color-ink-muted);
+}
+
+.settings-child-notifications__list {
+    display: grid;
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-border);
+}
+
+.settings-child-notifications__item {
+    padding: 14px;
+    background: var(--color-surface-paper);
+}
+
+.settings-child-notifications__item > span:first-child {
+    display: grid;
+    gap: 4px;
 }
 
 .settings-documents {
@@ -328,6 +394,10 @@
 
 .account--teacher .settings-status--success {
     color: var(--color-teacher);
+}
+
+.account--parent .settings-status--success {
+    color: var(--color-parent);
 }
 
 .settings-status--error {
@@ -482,6 +552,17 @@
     .settings-parent-notifications {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .settings-child-notifications__heading,
+    .settings-child-notifications__item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .settings-child-notifications__item .settings-switch {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .settings-card,

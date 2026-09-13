@@ -20,10 +20,13 @@
   --color-green: #6f8f33;
   --color-student: #6f8f33;
   --color-teacher: #8b5e3c;
+  --color-parent: #3d777d;
   --color-student-soft: rgba(111, 143, 51, 0.14);
   --color-student-border: rgba(111, 143, 51, 0.34);
   --color-teacher-soft: rgba(139, 94, 60, 0.14);
   --color-teacher-border: rgba(139, 94, 60, 0.34);
+  --color-parent-soft: rgba(61, 119, 125, 0.14);
+  --color-parent-border: rgba(61, 119, 125, 0.34);
   --color-pricing: #c59a4b;
   --color-legal: #9b5a6f;
 
@@ -77,10 +80,13 @@
 
   --color-student: #7db157;
   --color-teacher: #d0a36b;
+  --color-parent: #75c2c8;
   --color-student-soft: rgba(125, 177, 87, 0.16);
   --color-student-border: rgba(125, 177, 87, 0.38);
   --color-teacher-soft: rgba(208, 163, 107, 0.16);
   --color-teacher-border: rgba(208, 163, 107, 0.38);
+  --color-parent-soft: rgba(117, 194, 200, 0.16);
+  --color-parent-border: rgba(117, 194, 200, 0.38);
   --color-pricing: #d8b15a;
   --color-legal: #d08aa0;
 

@@ -115,12 +115,31 @@ export class MessagesService {
                 },
             })
             : [];
+        const parentReadLinks = user.role === UserRole.TEACHER
+            ? linksForTeacher
+            : user.role === UserRole.STUDENT
+                ? await this.prisma.parentStudent.findMany({
+                    where: {
+                        studentId: user.id,
+                        verifiedAt: { not: null },
+                        status: {
+                            in: [ParentStudentStatus.ACTIVE, ParentStudentStatus.ARCHIVED],
+                        },
+                    },
+                    select: { studentId: true },
+                })
+                : [];
         const storedDialogs = await this.prisma.messageDialog.findMany({
             where: user.role === UserRole.TEACHER
                 ? { teacherId: user.id }
                 : user.role === UserRole.STUDENT
                     ? { studentId: user.id, channelType: MessageChannelType.STUDENT }
-                    : { parentId: user.id, channelType: MessageChannelType.PARENT },
+                    : {
+                        OR: [
+                            { parentId: user.id, channelType: MessageChannelType.PARENT },
+                            { studentId: { in: childIds }, channelType: MessageChannelType.STUDENT },
+                        ],
+                    },
             include: {
                 teacher: { select: { fullName: true, avatarUrl: true } },
                 student: {
@@ -172,7 +191,31 @@ export class MessagesService {
                     MessageChannelType.STUDENT,
                     null,
                     storedByKey.get(key),
+                    true,
+                    parentReadLinks.some((link) => link.studentId === pair.studentId),
                 ));
+            }
+            if (user.role === UserRole.PARENT) {
+                const parentLink = parentLinks.find(
+                    (link) => link.studentId === pair.studentId,
+                );
+                if (parentLink) {
+                    const key = `${pair.teacherId}:${pair.studentId}:student`;
+                    const stored = storedByKey.get(key);
+                    if (parentLink.status === ParentStudentStatus.ACTIVE
+                        || parentLink.status === ParentStudentStatus.ARCHIVED
+                        || stored) {
+                        dialogsByKey.set(key, this.serializeDialogCandidate(
+                            user,
+                            pair,
+                            MessageChannelType.STUDENT,
+                            null,
+                            stored,
+                            false,
+                            false,
+                        ));
+                    }
+                }
             }
             const availableLinks = user.role === UserRole.TEACHER
                 ? linksForTeacher.filter((link) => link.studentId === pair.studentId)
@@ -358,18 +401,52 @@ export class MessagesService {
                     where: { id: dialog.id },
                     data: { lastMessageAt: now },
                 });
-                await this.notifications.create(transaction, {
-                    userId: recipientId,
-                    type: 'message_received',
-                    title: access.channelType === MessageChannelType.PARENT
-                        ? 'Новое сообщение в родительском чате'
-                        : 'Новое сообщение',
-                    message: `${user.fullName || 'Пользователь'}: ${this.preview(text, stored.length)}`,
-                    targetSection: 'messages',
-                    targetEntityType: 'dialog',
-                    targetEntityId: dialog.id,
-                    dedupeKey: `message:${created.id}`,
-                });
+                const parentRecipient = access.channelType
+                    === MessageChannelType.PARENT
+                    && recipientId === access.parentId;
+                const recipientNotificationsEnabled = parentRecipient
+                    ? await this.notifications.isParentCategoryEnabled(
+                        transaction,
+                        recipientId,
+                        access.studentId,
+                        'messages',
+                    )
+                    : true;
+
+                if (recipientNotificationsEnabled) {
+                    await this.notifications.create(transaction, {
+                        userId: recipientId,
+                        type: 'message_received',
+                        title: access.channelType === MessageChannelType.PARENT
+                            ? 'Новое сообщение в родительском чате'
+                            : 'Новое сообщение',
+                        message: `${user.fullName || 'Пользователь'}: ${this.preview(text, stored.length)}`,
+                        targetSection: 'messages',
+                        targetEntityType: 'dialog',
+                        targetEntityId: dialog.id,
+                        dedupeKey: `message:${created.id}`,
+                    });
+                }
+
+                if (
+                    user.id === access.teacherId
+                    && access.channelType === MessageChannelType.STUDENT
+                ) {
+                    await this.notifications.createForActiveParents(
+                        transaction,
+                        access.studentId,
+                        {
+                            category: 'messages',
+                            type: 'parent_child_message_received',
+                            title: 'Новое сообщение в чате ребёнка',
+                            message: `${user.fullName || 'Преподаватель'}: ${this.preview(text, stored.length)}`,
+                            targetSection: 'messages',
+                            targetEntityType: 'dialog',
+                            targetEntityId: dialog.id,
+                            dedupeKey: `message:${created.id}`,
+                        },
+                    );
+                }
             });
         } catch (error) {
             await this.files.removeStoredPaths(
@@ -540,10 +617,32 @@ export class MessagesService {
             if (input.parent_id) {
                 throw new BadRequestException('Для чата с учеником parent_id не используется');
             }
+            if (user.role === UserRole.PARENT) {
+                const parentLink = await this.prisma.parentStudent.findFirst({
+                    where: {
+                        parentId: user.id,
+                        studentId: input.student_id,
+                        verifiedAt: { not: null },
+                        status: {
+                            in: [ParentStudentStatus.ACTIVE, ParentStudentStatus.ARCHIVED],
+                        },
+                    },
+                });
+                if (!parentLink) {
+                    throw new NotFoundException('Подтверждённая связь с ребёнком не найдена');
+                }
+                return {
+                    teacherId: input.teacher_id,
+                    studentId: input.student_id,
+                    parentId: null,
+                    channelType: MessageChannelType.STUDENT,
+                    channelKey: 'student',
+                    canSend: false,
+                };
+            }
             if (
                 (user.role === UserRole.TEACHER && user.id !== input.teacher_id)
                 || (user.role === UserRole.STUDENT && user.id !== input.student_id)
-                || user.role === UserRole.PARENT
             ) {
                 throw new ForbiddenException('Нет доступа к этой переписке');
             }
@@ -685,6 +784,7 @@ export class MessagesService {
             _count: { messages: number };
         },
         parentCanSend = true,
+        parentCanRead = false,
     ) {
         const isParentChannel = channelType === MessageChannelType.PARENT;
         const channelKey = stored?.channelKey
@@ -694,14 +794,16 @@ export class MessagesService {
             ? isParentChannel
                 ? parent?.fullName || 'Родитель ученика'
                 : pair.student.fullName || 'Ученик'
-            : pair.teacher.fullName || 'Преподаватель';
+            : user.role === UserRole.PARENT && !isParentChannel
+                ? `Чат ребёнка · ${pair.student.fullName || 'ученик'}`
+                : pair.teacher.fullName || 'Преподаватель';
         const subtitleParts = user.role === UserRole.TEACHER
             ? isParentChannel
                 ? [`Родитель · ${pair.student.fullName || 'ученика'}`, ...pair.subjectNames]
                 : [pair.student.studentProfile?.classLevel, ...pair.subjectNames]
             : isParentChannel
                 ? [`Родительский чат · ${pair.student.fullName || 'ученик'}`, ...pair.subjectNames]
-                : ['Преподаватель', ...pair.subjectNames];
+                : [`Преподаватель · ${pair.student.fullName || 'ученик'}`, ...pair.subjectNames];
 
         return {
             id: stored?.id || null,
@@ -720,7 +822,14 @@ export class MessagesService {
                 : last?.messageText || (last?.attachments.length ? 'Вложение' : ''),
             last_message_at: stored?.lastMessageAt || null,
             unread_count: stored?._count.messages || 0,
-            can_send: pair.canSend && (!isParentChannel || parentCanSend),
+            can_send: user.role === UserRole.PARENT && !isParentChannel
+                ? false
+                : pair.canSend && (!isParentChannel || parentCanSend),
+            parent_access_notice: isParentChannel
+                ? null
+                : parentCanRead
+                    ? 'Эту переписку может читать подтверждённый родитель ученика.'
+                    : null,
         };
     }
 

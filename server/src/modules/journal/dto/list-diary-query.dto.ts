@@ -14,6 +14,12 @@ export class ListDiaryQueryDto {
     @Type(() => Number)
     @IsInt()
     @Min(1)
+    student_id?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
     subject_id?: number;
 
     @IsOptional()

@@ -16,6 +16,7 @@ import { ClearNotificationsDto } from './dto/clear-notifications.dto';
 import { DeleteNotificationDto } from './dto/delete-notification.dto';
 import { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
 import { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
+import { UpdateParentNotificationSettingsDto } from './dto/update-parent-notification-settings.dto';
 import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
@@ -56,5 +57,21 @@ export class NotificationsController {
         @Body() input: ClearNotificationsDto,
     ): Promise<Record<string, unknown>> {
         return this.notifications.clear(user, input);
+    }
+
+    @Get('parent-settings')
+    async parentSettings(
+        @CurrentUser() user: SessionUser,
+    ): Promise<Record<string, unknown>> {
+        return this.notifications.listParentSettings(user);
+    }
+
+    @Post('parent-settings')
+    @HttpCode(HttpStatus.OK)
+    async updateParentSettings(
+        @CurrentUser() user: SessionUser,
+        @Body() input: UpdateParentNotificationSettingsDto,
+    ): Promise<Record<string, unknown>> {
+        return this.notifications.updateParentSettings(user, input);
     }
 }

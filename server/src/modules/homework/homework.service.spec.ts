@@ -38,6 +38,35 @@ const student: SessionUser = {
     fullName: 'Иван Ученик',
 };
 
+const parent: SessionUser = {
+    ...teacher,
+    id: 15,
+    role: UserRole.PARENT,
+    email: 'parent@example.com',
+    fullName: 'Николай Внуков',
+};
+
+function parentChildrenPrisma(overrides: Record<string, unknown> = {}) {
+    return {
+        parentStudent: {
+            findMany: vi.fn().mockResolvedValue([{ studentId: 9 }]),
+        },
+        parentChildProfile: {
+            findMany: vi.fn().mockResolvedValue([{
+                studentId: 9,
+                firstName: 'Иван',
+                lastName: 'Ученик',
+                middleName: null,
+                timezone: 'Europe/Moscow',
+                student: {
+                    studentProfile: { timezone: 'Europe/Moscow' },
+                },
+            }]),
+        },
+        ...overrides,
+    } as unknown as PrismaService;
+}
+
 function fileStorage() {
     return {
         limits: vi.fn().mockReturnValue({
@@ -87,6 +116,9 @@ describe('HomeworkService', () => {
             },
             homeworkAttachment: { createMany: vi.fn() },
             notification: { upsert: vi.fn().mockResolvedValue(undefined) },
+            parentStudent: {
+                findMany: vi.fn().mockResolvedValue([]),
+            },
         };
         const prisma = {
             teacherProfile: {
@@ -218,6 +250,9 @@ describe('HomeworkService', () => {
                 update: vi.fn().mockResolvedValue(undefined),
             },
             notification: { upsert: vi.fn().mockResolvedValue(undefined) },
+            parentStudent: {
+                findMany: vi.fn().mockResolvedValue([]),
+            },
         };
         const prisma = {
             $transaction: vi.fn(async (callback) => callback(transaction)),
@@ -241,5 +276,80 @@ describe('HomeworkService', () => {
             where: { id: 21 },
             data: expect.objectContaining({ status: HomeworkStatus.COMPLETED }),
         });
+    });
+
+    it('returns one selected child homework list to a verified parent in read-only mode', async () => {
+        const homework = {
+            id: 21,
+            lessonId: null,
+            teacherId: 7,
+            studentId: 9,
+            subjectId: 11,
+            title: 'Упражнение',
+            description: 'Выполнить упражнение 5',
+            dueDate: new Date('2099-09-10T15:00:00.000Z'),
+            status: HomeworkStatus.ACTIVE,
+            viewedAt: null,
+            completedAt: null,
+            cancelledAt: null,
+            createdAt: new Date('2026-09-09T08:00:00.000Z'),
+            updatedAt: new Date('2026-09-09T08:00:00.000Z'),
+            teacher: { fullName: 'Анна Учитель' },
+            student: { fullName: 'Иван Ученик' },
+            subject: { name: 'Английский язык' },
+            submissions: [],
+        };
+        const prisma = parentChildrenPrisma({
+            homework: {
+                findMany: vi.fn().mockResolvedValue([homework]),
+            },
+        }) as any;
+
+        const result = await service(prisma).list(parent, 9);
+        const resultHomework = result.homework as Array<Record<string, unknown>>;
+
+        expect(result).toMatchObject({
+            read_only: true,
+            selected_student_id: 9,
+            actionable_count: 0,
+            children: [{ student_id: 9, full_name: 'Ученик Иван' }],
+        });
+        expect(resultHomework[0]).toMatchObject({
+            id: 21,
+            student_id: 9,
+            teacher_name: 'Анна Учитель',
+        });
+        expect(prisma.homework.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({ where: { studentId: 9 } }),
+        );
+    });
+
+    it('does not expose another student homework list to a parent', async () => {
+        const prisma = parentChildrenPrisma({
+            homework: { findMany: vi.fn() },
+        }) as any;
+
+        await expect(service(prisma).list(parent, 999))
+            .rejects.toThrow('недоступны родителю');
+        expect(prisma.homework.findMany).not.toHaveBeenCalled();
+    });
+
+    it('does not let a parent download another student homework file', async () => {
+        const prisma = parentChildrenPrisma({
+            homeworkAttachment: {
+                findUnique: vi.fn().mockResolvedValue({
+                    id: 41,
+                    storedPath: 'homework/foreign.pdf',
+                    originalName: 'foreign.pdf',
+                    mimeType: 'application/pdf',
+                    homework: { teacherId: 7, studentId: 999 },
+                }),
+            },
+        });
+
+        await expect(service(prisma).download(parent, {
+            type: 'assignment',
+            id: 41,
+        })).rejects.toThrow('Файл не найден');
     });
 });

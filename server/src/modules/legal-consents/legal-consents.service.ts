@@ -32,6 +32,7 @@ type RegistrationConsentTexts = {
     platformDocuments: string;
     personalData: string;
     marketing: string;
+    parentChildData: string;
 };
 
 @Injectable()
@@ -89,6 +90,21 @@ export class LegalConsentsService {
                 ],
             },
         ];
+    }
+
+    getParentChildDataSnapshot(
+        accepted: boolean,
+    ): LegalAcceptanceSnapshot {
+        return {
+            type: LegalAcceptanceType.PARENT_CHILD_DATA,
+            source: LegalAcceptanceSource.PROFILE,
+            accepted,
+            consentText: this.consentTexts.parentChildData,
+            documents: [
+                this.getDocumentSnapshot('parent_child_data_consent'),
+                this.getDocumentSnapshot('privacy_policy'),
+            ],
+        };
     }
 
     private getDocumentSnapshot(key: string): LegalDocumentSnapshot {

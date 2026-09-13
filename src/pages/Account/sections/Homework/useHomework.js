@@ -21,6 +21,9 @@ export function useHomework(role) {
     const [isSaving, setIsSaving] = useState(false);
     const [options, setOptions] = useState(null);
     const [uploadLimits, setUploadLimits] = useState(DEFAULT_UPLOAD_LIMITS);
+    const [children, setChildren] = useState([]);
+    const [parentStudentId, setParentStudentId] = useState(null);
+    const [resolvedStudentId, setResolvedStudentId] = useState(null);
     const requestRef = useRef(false);
 
     const loadHomework = useCallback(async ({ silent = false } = {}) => {
@@ -36,9 +39,25 @@ export function useHomework(role) {
         }
 
         try {
-            const result = await apiRequest(API.homework);
+            const params = new URLSearchParams();
+
+            if (role === 'parent' && parentStudentId) {
+                params.set('student_id', String(parentStudentId));
+            }
+
+            const result = await apiRequest(
+                params.size
+                    ? `${API.homework}?${params.toString()}`
+                    : API.homework,
+            );
             setHomework(Array.isArray(result.homework) ? result.homework : []);
             setActionableCount(Number(result.actionable_count) || 0);
+            setChildren(
+                Array.isArray(result.children) ? result.children : [],
+            );
+            setResolvedStudentId(
+                Number(result.selected_student_id) || null,
+            );
             setUploadLimits({
                 maxFiles: Number(result.upload_limits?.max_files)
                     || DEFAULT_UPLOAD_LIMITS.maxFiles,
@@ -60,7 +79,7 @@ export function useHomework(role) {
         } finally {
             requestRef.current = false;
         }
-    }, [role]);
+    }, [parentStudentId, role]);
 
     const loadDetails = useCallback(async (homeworkId) => {
         const result = await apiRequest(
@@ -68,6 +87,12 @@ export function useHomework(role) {
         );
 
         setSelectedHomework(result.homework);
+
+        if (role === 'parent' && result.homework.student_id) {
+            setParentStudentId(
+                Number(result.homework.student_id) || null,
+            );
+        }
 
         if (role === 'student' && !result.homework.viewed_at) {
             await apiRequest(API.markHomeworkViewed, {
@@ -149,6 +174,12 @@ export function useHomework(role) {
             body: { homework_id: homeworkId },
         })), [runMutation]);
 
+    const selectParentStudent = useCallback((studentId) => {
+        setParentStudentId(Number(studentId) || null);
+        setSelectedHomework(null);
+        setErrorMessage('');
+    }, []);
+
     useEffect(() => {
         if (!role) {
             return undefined;
@@ -182,6 +213,8 @@ export function useHomework(role) {
         isSaving,
         options,
         uploadLimits,
+        children,
+        selectedStudentId: parentStudentId || resolvedStudentId,
         loadHomework,
         loadDetails,
         closeDetails: () => setSelectedHomework(null),
@@ -190,5 +223,6 @@ export function useHomework(role) {
         submitHomework,
         reviewHomework,
         cancelHomework,
+        selectParentStudent,
     };
 }

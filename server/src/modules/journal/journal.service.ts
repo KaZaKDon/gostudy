@@ -10,6 +10,8 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
 import {
     LessonStatus,
+    ParentChildVerificationStatus,
+    ParentStudentStatus,
     UserRole,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
@@ -77,6 +79,12 @@ type DiarySubject = {
     lessons_count: number;
     attended_count: number;
     average_grade: string | null;
+};
+
+type ParentDiaryChild = {
+    studentId: number;
+    fullName: string;
+    timezone: string;
 };
 
 @Injectable()
@@ -259,6 +267,28 @@ export class JournalService {
                 )?.slice(0, 10) ?? null,
                 dedupeKey: `lesson-result:${lesson.id}`,
             });
+            await this.notifications.createForActiveParents(
+                transaction,
+                lesson.studentId,
+                {
+                    category: 'diary',
+                    type: wasPublished
+                        ? 'parent_lesson_result_updated'
+                        : 'parent_lesson_result_published',
+                    title: wasPublished
+                        ? 'Результат занятия обновлён'
+                        : 'Результат занятия опубликован',
+                    message: `${lesson.subject?.name || 'Занятие'}: ${this.lessonTopic(lesson)}`,
+                    targetSection: 'diary',
+                    targetEntityType: 'lesson',
+                    targetEntityId: lesson.id,
+                    targetDate: formatInTimezone(
+                        lesson.lessonDate,
+                        studentTimezone,
+                    )?.slice(0, 10) ?? null,
+                    dedupeKey: `lesson-result:${lesson.id}`,
+                },
+            );
 
             return {
                 wasPublished,
@@ -281,6 +311,42 @@ export class JournalService {
     ) {
         this.requireStudent(user);
         const timezone = await this.getViewerTimezone(user);
+
+        return this.listDiary(
+            user,
+            query,
+            user.id,
+            timezone,
+        );
+    }
+
+    async listParentDiary(
+        user: SessionUser,
+        query: ListDiaryQueryDto,
+    ) {
+        this.requireParent(user);
+        const context = await this.getParentDiaryContext(
+            user,
+            query.student_id,
+            query.lesson_id,
+        );
+
+        return this.listDiary(
+            user,
+            query,
+            context.selectedStudentId,
+            context.timezone,
+            context.children,
+        );
+    }
+
+    private async listDiary(
+        user: SessionUser,
+        query: ListDiaryQueryDto,
+        studentId: number,
+        timezone: string,
+        parentChildren: ParentDiaryChild[] | null = null,
+    ) {
         const cursor = this.getCursor(
             query.before_date,
             query.before_id,
@@ -288,7 +354,7 @@ export class JournalService {
         );
         const publishedLessons = await this.prisma.lesson.findMany({
             where: {
-                studentId: user.id,
+                studentId,
                 status: LessonStatus.COMPLETED,
                 subjectId: { not: null },
                 result: {
@@ -307,7 +373,7 @@ export class JournalService {
             targetLesson = await this.prisma.lesson.findFirst({
                 where: {
                     id: query.lesson_id,
-                    studentId: user.id,
+                    studentId,
                     status: LessonStatus.COMPLETED,
                     result: {
                         is: {
@@ -323,11 +389,13 @@ export class JournalService {
             }
 
             subjectId = targetLesson.subjectId;
-            await this.notifications.markDedupeRead(
-                this.prisma,
-                user.id,
-                `lesson-result:${targetLesson.id}`,
-            );
+            if (user.role === UserRole.STUDENT) {
+                await this.notifications.markDedupeRead(
+                    this.prisma,
+                    user.id,
+                    `lesson-result:${targetLesson.id}`,
+                );
+            }
         }
 
         if (subjectId === null && subjects.length) {
@@ -347,7 +415,7 @@ export class JournalService {
         const page = activeSubject
             ? await this.loadLessonPage({
                 where: {
-                    studentId: user.id,
+                    studentId,
                     subjectId: activeSubject.id,
                     status: LessonStatus.COMPLETED,
                     result: {
@@ -386,6 +454,141 @@ export class JournalService {
             next_before_date: page.nextBeforeDate,
             next_before_id: page.nextBeforeId,
             timezone,
+            ...(parentChildren
+                ? {
+                    children: parentChildren.map((child) => ({
+                        student_id: child.studentId,
+                        full_name: child.fullName,
+                    })),
+                    selected_student_id: studentId,
+                    read_only: true,
+                }
+                : {}),
+        };
+    }
+
+    private async getParentDiaryContext(
+        user: SessionUser,
+        requestedStudentId?: number,
+        requestedLessonId?: number,
+    ): Promise<{
+        children: ParentDiaryChild[];
+        selectedStudentId: number;
+        timezone: string;
+    }> {
+        const links = await this.prisma.parentStudent.findMany({
+            where: {
+                parentId: user.id,
+                status: ParentStudentStatus.ACTIVE,
+                verifiedAt: { not: null },
+            },
+            select: { studentId: true },
+        });
+        const linkedStudentIds = links.map((link) => link.studentId);
+
+        if (!linkedStudentIds.length) {
+            throw new BadRequestException(
+                'Сначала привяжите подтверждённый аккаунт ребёнка',
+            );
+        }
+
+        const adultBirthDate = new Date();
+        adultBirthDate.setUTCHours(0, 0, 0, 0);
+        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+
+        const childProfiles = await this.prisma.parentChildProfile.findMany({
+            where: {
+                parentId: user.id,
+                studentId: { in: linkedStudentIds },
+                verificationStatus: ParentChildVerificationStatus.VERIFIED,
+                verifiedAt: { not: null },
+                archivedAt: null,
+                birthDate: { gt: adultBirthDate },
+            },
+            orderBy: [
+                { createdAt: 'asc' },
+                { id: 'asc' },
+            ],
+            select: {
+                studentId: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                timezone: true,
+                student: {
+                    select: {
+                        studentProfile: {
+                            select: { timezone: true },
+                        },
+                    },
+                },
+            },
+        });
+        const children = childProfiles.flatMap((child) => {
+            if (!child.studentId) {
+                return [];
+            }
+
+            return [{
+                studentId: child.studentId,
+                fullName: [
+                    child.lastName,
+                    child.firstName,
+                    child.middleName,
+                ].filter(Boolean).join(' '),
+                timezone: resolveTimezone(
+                    child.student?.studentProfile?.timezone
+                    || child.timezone,
+                ),
+            }];
+        });
+
+        if (!children.length) {
+            throw new BadRequestException(
+                'Нет доступных записей несовершеннолетних детей',
+            );
+        }
+
+        let selected = requestedStudentId
+            ? children.find((child) => child.studentId === requestedStudentId)
+            : children[0];
+
+        if (requestedLessonId) {
+            const targetLesson = await this.prisma.lesson.findFirst({
+                where: {
+                    id: requestedLessonId,
+                    studentId: { in: children.map((child) => child.studentId) },
+                    status: LessonStatus.COMPLETED,
+                    result: {
+                        is: {
+                            publishedAt: { not: null },
+                        },
+                    },
+                },
+                select: { studentId: true },
+            });
+
+            if (!targetLesson) {
+                throw new ForbiddenException(
+                    'Эта запись дневника недоступна родителю',
+                );
+            }
+
+            selected = children.find(
+                (child) => child.studentId === targetLesson.studentId,
+            );
+        }
+
+        if (!selected) {
+            throw new ForbiddenException(
+                'Дневник этого ученика недоступен родителю',
+            );
+        }
+
+        return {
+            children,
+            selectedStudentId: selected.studentId,
+            timezone: selected.timezone,
         };
     }
 
@@ -673,6 +876,14 @@ export class JournalService {
         if (user.role !== UserRole.STUDENT) {
             throw new ForbiddenException(
                 'Дневник доступен только ученику',
+            );
+        }
+    }
+
+    private requireParent(user: SessionUser): void {
+        if (user.role !== UserRole.PARENT) {
+            throw new ForbiddenException(
+                'Дневник детей доступен только родителю',
             );
         }
     }

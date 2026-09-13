@@ -5,6 +5,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import {
+    PARENT_SETTINGS_TABS,
     STUDENT_SETTINGS_TABS,
     TEACHER_SETTINGS_TABS,
 } from './constants.js';
@@ -12,6 +13,7 @@ import {
 import { SettingsSidebar } from './components/SettingsSidebar.jsx';
 import { SettingsPanel } from './components/SettingsPanel.jsx';
 import { ParentNotificationSettings } from './components/ParentNotificationSettings.jsx';
+import { ParentChildNotificationSettings } from './components/ParentChildNotificationSettings.jsx';
 import { AccountContactSettings } from './components/AccountContactSettings.jsx';
 import { SecuritySettings } from './components/SecuritySettings.jsx';
 import { NotificationSettings } from './components/NotificationSettings.jsx';
@@ -184,7 +186,9 @@ export function SettingsSection({
 
     const tabs = role === 'teacher'
         ? TEACHER_SETTINGS_TABS
-        : STUDENT_SETTINGS_TABS;
+        : role === 'parent'
+            ? PARENT_SETTINGS_TABS
+            : STUDENT_SETTINGS_TABS;
 
     const [activeTab, setActiveTab] = useState(tabs[0].id);
 
@@ -231,7 +235,7 @@ export function SettingsSection({
 
     const renderPanel = () => {
         if (activeTab === 'contacts') {
-            return role === 'teacher'
+            return role === 'teacher' || role === 'parent'
                 ? <AccountContactSettings user={user} />
                 : (
                     <SettingsPanel
@@ -246,14 +250,18 @@ export function SettingsSection({
         }
 
         if (activeTab === 'notifications') {
-            return role === 'student'
-                ? (
+            if (role === 'student') {
+                return (
                     <ParentNotificationSettings
                         onEditContacts={() => navigate(
                             '/profile-start?role=student&mode=edit&step=contacts',
                         )}
                     />
-                )
+                );
+            }
+
+            return role === 'parent'
+                ? <ParentChildNotificationSettings />
                 : <NotificationSettings role={role} />;
         }
 

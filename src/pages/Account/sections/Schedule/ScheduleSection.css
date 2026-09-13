@@ -6,6 +6,10 @@
     --schedule-accent: var(--color-teacher);
 }
 
+.account--parent .schedule-section {
+    --schedule-accent: var(--color-parent);
+}
+
 .schedule-section {
     display: flex;
     flex-direction: column;
@@ -47,6 +51,54 @@
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.schedule-section__parent-controls {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--color-parent-border);
+    border-radius: var(--radius-md);
+    background: var(--color-parent-soft);
+}
+
+.schedule-section__parent-controls label {
+    display: grid;
+    gap: 7px;
+    min-width: min(360px, 100%);
+    color: var(--color-text);
+    font-weight: 800;
+}
+
+.schedule-section__parent-controls label > span {
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.schedule-section__parent-controls select {
+    padding: 11px 38px 11px 13px;
+    border: 1px solid var(--color-parent-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    font: inherit;
+    font-weight: 800;
+}
+
+.schedule-section__parent-controls select:focus {
+    outline: 2px solid var(--color-parent-soft);
+    border-color: var(--color-parent);
+}
+
+.schedule-section__parent-controls p {
+    max-width: 540px;
+    margin: 0;
+    color: var(--color-ink-muted);
+    line-height: 1.45;
 }
 
 .schedule-section__navigation button {
@@ -176,6 +228,10 @@
     padding: 16px 20px;
 }
 
+.schedule-lesson--read-only {
+    grid-template-columns: 80px 220px minmax(0, 1fr) 110px;
+}
+
 .schedule-lesson__actions {
     display: flex;
     justify-content: flex-end;
@@ -246,6 +302,14 @@
     font-weight: 600;
 }
 
+.schedule-lesson__person small {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
 .schedule-lesson__info {
     color: var(--color-ink-muted);
 }
@@ -312,6 +376,11 @@
 
     .schedule-section__navigation .schedule-section__today {
         grid-column: 1 / -1;
+    }
+
+    .schedule-section__parent-controls {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .schedule-day__summary {

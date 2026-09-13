@@ -1,0 +1,82 @@
+.student-family,
+.student-family__group {
+    display: grid;
+    gap: 18px;
+}
+
+.student-family header span,
+.student-family-card span {
+    color: var(--color-ink-muted);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.student-family h2,
+.student-family h3,
+.student-family p {
+    margin: 0;
+}
+
+.student-family header p,
+.student-family-card p,
+.student-family__empty p {
+    color: var(--color-ink-muted);
+    line-height: 1.5;
+}
+
+.student-family-card,
+.student-family__empty {
+    display: grid;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.student-family-card.is-linked {
+    border-top: 5px solid var(--color-student);
+}
+
+.student-family-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.student-family-card__actions button {
+    padding: 10px 16px;
+    border: 1px solid var(--color-student);
+    border-radius: var(--radius-pill);
+    color: var(--color-on-accent);
+    background: var(--color-student);
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.student-family-card__actions button:last-child {
+    color: var(--color-student);
+    background: transparent;
+}
+
+.student-family-card__actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.student-family__message {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    color: var(--color-student);
+    background: var(--color-student-soft);
+    font-weight: 800;
+}
+
+.student-family__message.is-error {
+    color: var(--color-danger);
+    background: var(--color-danger-soft);
+}

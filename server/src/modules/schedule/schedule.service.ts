@@ -8,6 +8,8 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     LessonChangeStatus,
     LessonStatus,
+    ParentChildVerificationStatus,
+    ParentStudentStatus,
     UserRole,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
@@ -29,9 +31,13 @@ export class ScheduleService {
         user: SessionUser,
         query: ScheduleQueryDto,
     ): Promise<Record<string, unknown>> {
-        if (user.role !== UserRole.TEACHER && user.role !== UserRole.STUDENT) {
+        if (
+            user.role !== UserRole.TEACHER
+            && user.role !== UserRole.STUDENT
+            && user.role !== UserRole.PARENT
+        ) {
             throw new ForbiddenException(
-                'Расписание доступно только ученику или преподавателю',
+                'Расписание доступно только участникам обучения',
             );
         }
 
@@ -56,7 +62,15 @@ export class ScheduleService {
             );
         }
 
-        const timezone = await this.getViewerTimezone(user);
+        const parentContext = user.role === UserRole.PARENT
+            ? await this.getParentScheduleContext(
+                user,
+                query.student_id,
+                query.lesson_id,
+            )
+            : null;
+        const timezone = parentContext?.timezone
+            ?? await this.getViewerTimezone(user);
         const dateFrom = zonedDateTimeToUtc(from, timezone);
         const dateToExclusive = zonedDateTimeToUtc(
             addCalendarDays(to, 1),
@@ -64,11 +78,20 @@ export class ScheduleService {
         );
         const participant = user.role === UserRole.TEACHER
             ? { teacherId: user.id }
-            : { studentId: user.id };
+            : {
+                studentId: parentContext?.selectedStudentId ?? user.id,
+            };
         const lessons = await this.prisma.lesson.findMany({
             where: {
                 ...participant,
-                status: { not: LessonStatus.CANCELLED },
+                ...(parentContext && query.lesson_id
+                    ? {
+                        OR: [
+                            { status: { not: LessonStatus.CANCELLED } },
+                            { id: query.lesson_id },
+                        ],
+                    }
+                    : { status: { not: LessonStatus.CANCELLED } }),
                 lessonDate: {
                     gte: dateFrom,
                     lt: dateToExclusive,
@@ -129,10 +152,20 @@ export class ScheduleService {
                     teacher_name: lesson.teacher.fullName,
                     student_name: lesson.student.fullName,
                     change_request: pendingChange
-                        ? this.changeToApi(pendingChange, timezone, user.id)
+                        ? this.changeToApi(
+                            pendingChange,
+                            timezone,
+                            user.id,
+                            user.role !== UserRole.PARENT,
+                        )
                         : null,
                     last_change: lastChange
-                        ? this.changeToApi(lastChange, timezone, user.id)
+                        ? this.changeToApi(
+                            lastChange,
+                            timezone,
+                            user.id,
+                            false,
+                        )
                         : null,
                 };
             }),
@@ -142,6 +175,137 @@ export class ScheduleService {
                 timezone,
                 viewer_now: formatInTimezone(new Date(), timezone),
             },
+            ...(parentContext
+                ? {
+                    children: parentContext.children,
+                    selected_student_id: parentContext.selectedStudentId,
+                    read_only: true,
+                }
+                : {}),
+        };
+    }
+
+    private async getParentScheduleContext(
+        user: SessionUser,
+        requestedStudentId?: number,
+        requestedLessonId?: number,
+    ): Promise<{
+        children: Array<{
+            student_id: number;
+            full_name: string;
+        }>;
+        selectedStudentId: number;
+        timezone: string;
+    }> {
+        const links = await this.prisma.parentStudent.findMany({
+            where: {
+                parentId: user.id,
+                status: ParentStudentStatus.ACTIVE,
+                verifiedAt: { not: null },
+            },
+            select: { studentId: true },
+        });
+        const linkedStudentIds = links.map((link) => link.studentId);
+
+        if (linkedStudentIds.length === 0) {
+            throw new BadRequestException(
+                'Сначала привяжите подтверждённый аккаунт ребёнка',
+            );
+        }
+
+        const adultBirthDate = new Date();
+        adultBirthDate.setUTCHours(0, 0, 0, 0);
+        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+
+        const childProfiles = await this.prisma.parentChildProfile.findMany({
+            where: {
+                parentId: user.id,
+                studentId: { in: linkedStudentIds },
+                verificationStatus: ParentChildVerificationStatus.VERIFIED,
+                verifiedAt: { not: null },
+                archivedAt: null,
+                birthDate: { gt: adultBirthDate },
+            },
+            orderBy: [
+                { createdAt: 'asc' },
+                { id: 'asc' },
+            ],
+            select: {
+                studentId: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                timezone: true,
+                student: {
+                    select: {
+                        studentProfile: {
+                            select: { timezone: true },
+                        },
+                    },
+                },
+            },
+        });
+        const children = childProfiles.flatMap((child) => {
+            if (!child.studentId) {
+                return [];
+            }
+
+            return [{
+                studentId: child.studentId,
+                fullName: [
+                    child.lastName,
+                    child.firstName,
+                    child.middleName,
+                ].filter(Boolean).join(' '),
+                timezone:
+                    child.student?.studentProfile?.timezone
+                    || child.timezone,
+            }];
+        });
+
+        if (children.length === 0) {
+            throw new BadRequestException(
+                'Нет доступных расписаний несовершеннолетних детей',
+            );
+        }
+
+        let selected = requestedStudentId
+            ? children.find((child) => child.studentId === requestedStudentId)
+            : children[0];
+
+        if (requestedLessonId) {
+            const targetLesson = await this.prisma.lesson.findFirst({
+                where: {
+                    id: requestedLessonId,
+                    studentId: { in: children.map((child) => child.studentId) },
+                },
+                select: { studentId: true },
+            });
+
+            if (!targetLesson) {
+                throw new ForbiddenException(
+                    'Этот урок недоступен родителю',
+                );
+            }
+
+            selected = children.find(
+                (child) => child.studentId === targetLesson.studentId,
+            );
+        }
+
+        if (!selected) {
+            throw new ForbiddenException(
+                'Расписание этого ученика недоступно родителю',
+            );
+        }
+
+        return {
+            children: children.map((child) => ({
+                student_id: child.studentId,
+                full_name: child.fullName,
+            })),
+            selectedStudentId: selected.studentId,
+            timezone: resolveTimezone(selected.timezone),
         };
     }
 
@@ -182,6 +346,7 @@ export class ScheduleService {
         },
         timezone: string,
         viewerId: number,
+        canAct: boolean,
     ): Record<string, unknown> {
         return {
             id: change.id,
@@ -204,9 +369,11 @@ export class ScheduleService {
             responded_by: change.respondedBy,
             responded_at: formatInTimezone(change.respondedAt, timezone),
             created_at: formatInTimezone(change.createdAt, timezone),
-            can_respond: change.status === LessonChangeStatus.PENDING
+            can_respond: canAct
+                && change.status === LessonChangeStatus.PENDING
                 && change.requestedBy !== viewerId,
-            can_withdraw: change.status === LessonChangeStatus.PENDING
+            can_withdraw: canAct
+                && change.status === LessonChangeStatus.PENDING
                 && change.requestedBy === viewerId,
         };
     }

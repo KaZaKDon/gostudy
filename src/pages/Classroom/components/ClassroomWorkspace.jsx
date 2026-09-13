@@ -1,25 +1,13 @@
 import { ClassroomCalculator } from './ClassroomCalculator.jsx';
 import { ClassroomFilePreview } from './ClassroomFilePreview.jsx';
+import { ClassroomVideo } from './ClassroomVideo.jsx';
+import { ClassroomScreenShare } from './ClassroomScreenShare.jsx';
+import { ClassroomBoard } from './ClassroomBoard.jsx';
 import {
     formatClassroomDateTime,
     getClassroomFilePreviewKind,
     getClassroomStatusLabel,
 } from '../utils/classroom.js';
-
-const FUTURE_TOOLS = {
-    video: {
-        title: 'Видеосвязь',
-        text: 'Модуль будет подключён к отдельному видеосерверу. Основа класса от него не зависит.',
-    },
-    screen: {
-        title: 'Демонстрация экрана',
-        text: 'Показ экрана станет доступен вместе с модулем видеосвязи.',
-    },
-    board: {
-        title: 'Совместная доска',
-        text: 'Синхронная доска будет подключена после развёртывания сервера реального времени.',
-    },
-};
 
 export function ClassroomWorkspace({
     activeTool,
@@ -44,6 +32,10 @@ export function ClassroomWorkspace({
     onOpenJournal,
     onCreateHomework,
     onBackToAccount,
+    media,
+    viewerName,
+    viewerId,
+    board,
 }) {
     if (activeTool === 'calculator') {
         return (
@@ -133,19 +125,69 @@ export function ClassroomWorkspace({
         );
     }
 
-    if (FUTURE_TOOLS[activeTool]) {
-        const content = FUTURE_TOOLS[activeTool];
+    if (activeTool === 'video') {
+        const participantName = role === 'teacher'
+            ? lesson.student.name
+            : lesson.teacher.name;
 
         return (
             <section className="classroom-workspace">
-                <div className="classroom-workspace__screen">
-                    <span className="classroom-workspace__label">
-                        Следующий этап
-                    </span>
-                    <div className="classroom-workspace__placeholder">
-                        <strong>{content.title}</strong>
-                        <p>{content.text}</p>
-                    </div>
+                <div className="classroom-workspace__screen classroom-workspace__screen--video">
+                    <ClassroomVideo
+                        status={media.status}
+                        errorMessage={media.errorMessage}
+                        isMicrophoneEnabled={media.isMicrophoneEnabled}
+                        isCameraEnabled={media.isCameraEnabled}
+                        joinMode={media.joinMode}
+                        hasMicrophone={media.hasMicrophone}
+                        hasCamera={media.hasCamera}
+                        localVideoRef={media.localVideoRef}
+                        remoteVideoRef={media.remoteVideoRef}
+                        onJoin={media.join}
+                        onLeave={media.leave}
+                        onToggleMicrophone={media.toggleMicrophone}
+                        onToggleCamera={media.toggleCamera}
+                        participantName={participantName}
+                        viewerName={viewerName}
+                        isLessonActive={session.status === 'active'}
+                    />
+                </div>
+            </section>
+        );
+    }
+
+    if (activeTool === 'screen') {
+        return (
+            <section className="classroom-workspace">
+                <div className="classroom-workspace__screen classroom-workspace__screen--video">
+                    <ClassroomScreenShare
+                        role={role}
+                        mediaStatus={media.status}
+                        isScreenSharing={media.isScreenSharing}
+                        isRemoteScreenSharing={media.isRemoteScreenSharing}
+                        errorMessage={media.screenErrorMessage}
+                        localVideoRef={media.localVideoRef}
+                        remoteVideoRef={media.remoteVideoRef}
+                        onJoin={media.join}
+                        onStart={media.startScreenShare}
+                        onStop={media.stopScreenShare}
+                    />
+                </div>
+            </section>
+        );
+    }
+
+    if (activeTool === 'board') {
+        return (
+            <section className="classroom-workspace">
+                <div className="classroom-workspace__screen classroom-workspace__screen--board">
+                    <ClassroomBoard
+                        board={board}
+                        canDraw={session.status === 'active'}
+                        canClear={role === 'teacher' && session.status === 'active'}
+                        viewerId={viewerId}
+                        isTeacher={role === 'teacher'}
+                    />
                 </div>
             </section>
         );

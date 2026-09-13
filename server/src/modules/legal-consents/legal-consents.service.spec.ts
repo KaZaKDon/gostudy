@@ -30,4 +30,20 @@ describe('LegalConsentsService', () => {
             }
         }
     });
+
+    it('creates a separate snapshot for one child', () => {
+        const config = new ConfigService({
+            LEGAL_DOCUMENTS_DIR: '../shared/legal',
+        });
+        const service = new LegalConsentsService(config);
+        const snapshot = service.getParentChildDataSnapshot(true);
+
+        expect(snapshot.type).toBe(LegalAcceptanceType.PARENT_CHILD_DATA);
+        expect(snapshot.accepted).toBe(true);
+        expect(snapshot.documents.map((document) => document.documentKey))
+            .toEqual([
+                'parent_child_data_consent',
+                'privacy_policy',
+            ]);
+    });
 });

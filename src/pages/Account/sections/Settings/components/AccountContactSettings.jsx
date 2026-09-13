@@ -54,12 +54,19 @@ export function AccountContactSettings({ user }) {
                         <input
                             type="tel"
                             value={phone}
-                            maxLength={50}
+                            maxLength={40}
                             autoComplete="tel"
                             placeholder="+7 900 000-00-00"
+                            required={user?.role === 'parent'}
                             disabled={status === 'saving'}
                             onChange={(event) => setPhone(event.target.value)}
                         />
+
+                        {user?.role === 'parent' && (
+                            <small>
+                                Для аккаунта родителя телефон обязателен.
+                            </small>
+                        )}
                     </label>
                 </div>
 

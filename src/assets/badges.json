@@ -1,0 +1,265 @@
+{
+  "package": "gostudy-teacher-badges",
+  "version": "1.0.0",
+  "size": "120x120",
+  "format": "SVG",
+  "colors": {
+    "teacher": "#8b5e3c",
+    "gold": "#b58a35",
+    "accessibleEducation": "#6f8f33"
+  },
+  "badges": [
+    {
+      "code": "T01",
+      "key": "verified_identity",
+      "filename": "t01-verified-identity.svg",
+      "title": "Подтверждённая личность",
+      "kind": "base",
+      "description": "Личность преподавателя проверена платформой.",
+      "path": "svg/t01-verified-identity.svg"
+    },
+    {
+      "code": "T02",
+      "key": "verified_education",
+      "filename": "t02-verified-education.svg",
+      "title": "Образование подтверждено",
+      "kind": "base",
+      "description": "Документы об образовании проверены платформой.",
+      "path": "svg/t02-verified-education.svg"
+    },
+    {
+      "code": "T03",
+      "key": "verified_contacts",
+      "filename": "t03-verified-contacts.svg",
+      "title": "Контакты подтверждены",
+      "kind": "base",
+      "description": "Контактные данные подтверждены.",
+      "path": "svg/t03-verified-contacts.svg"
+    },
+    {
+      "code": "T04",
+      "key": "video_intro",
+      "filename": "t04-video-intro.svg",
+      "title": "Видеовизитка",
+      "kind": "base",
+      "description": "В анкете опубликована видеовизитка.",
+      "path": "svg/t04-video-intro.svg"
+    },
+    {
+      "code": "T05",
+      "key": "materials_author",
+      "filename": "t05-materials-author.svg",
+      "title": "Автор материалов",
+      "kind": "base",
+      "description": "Есть опубликованные материалы, прошедшие модерацию.",
+      "path": "svg/t05-materials-author.svg"
+    },
+    {
+      "code": "T06",
+      "key": "tests_author",
+      "filename": "t06-tests-author.svg",
+      "title": "Автор тестов",
+      "kind": "base",
+      "description": "Есть опубликованные тесты, прошедшие модерацию.",
+      "path": "svg/t06-tests-author.svg"
+    },
+    {
+      "code": "T07",
+      "key": "fast_response",
+      "filename": "t07-fast-response.svg",
+      "title": "Быстро отвечает",
+      "kind": "base",
+      "description": "Среднее время ответа соответствует правилу платформы.",
+      "path": "svg/t07-fast-response.svg"
+    },
+    {
+      "code": "T08",
+      "key": "expert",
+      "filename": "t08-expert.svg",
+      "title": "Эксперт",
+      "kind": "base",
+      "description": "Экспертный статус присвоен по утверждённым критериям.",
+      "path": "svg/t08-expert.svg"
+    },
+    {
+      "code": "T09",
+      "key": "recommended",
+      "filename": "t09-recommended.svg",
+      "title": "Рекомендуемый",
+      "kind": "base",
+      "description": "Резервный статус; не связан с платным продвижением.",
+      "path": "svg/t09-recommended.svg"
+    },
+    {
+      "code": "T10",
+      "key": "high_rating",
+      "filename": "t10-high-rating.svg",
+      "title": "Высокое место в рейтинге",
+      "kind": "base",
+      "description": "Преподаватель достиг высокого места в предметном рейтинге.",
+      "path": "svg/t10-high-rating.svg"
+    },
+    {
+      "code": "T11",
+      "key": "work_experience",
+      "filename": "t11-work-experience.svg",
+      "title": "Большой опыт",
+      "kind": "base",
+      "description": "Подтверждён значительный профессиональный стаж.",
+      "path": "svg/t11-work-experience.svg"
+    },
+    {
+      "code": "T12",
+      "key": "mentor",
+      "filename": "t12-mentor.svg",
+      "title": "Наставник",
+      "kind": "base",
+      "description": "Преподаватель участвует в наставничестве.",
+      "path": "svg/t12-mentor.svg"
+    },
+    {
+      "code": "T13",
+      "key": "international_experience",
+      "filename": "t13-international-experience.svg",
+      "title": "Международный опыт",
+      "kind": "base",
+      "description": "Подтверждён международный опыт.",
+      "path": "svg/t13-international-experience.svg"
+    },
+    {
+      "code": "T14",
+      "key": "excellent_rating_streak",
+      "filename": "t14-excellent-rating-streak.svg",
+      "title": "Серия отличных оценок",
+      "kind": "base",
+      "description": "Последние опубликованные оценки образуют отличную серию.",
+      "path": "svg/t14-excellent-rating-streak.svg"
+    },
+    {
+      "code": "T15",
+      "key": "platform_tenure",
+      "filename": "t15-platform-tenure.svg",
+      "title": "Давно на платформе",
+      "kind": "base",
+      "description": "Длительное присутствие на платформе.",
+      "path": "svg/t15-platform-tenure.svg"
+    },
+    {
+      "code": "T16",
+      "key": "active_profile",
+      "filename": "t16-active-profile.svg",
+      "title": "Активный профиль",
+      "kind": "base",
+      "description": "Анкета регулярно обновляется и преподаватель активен.",
+      "path": "svg/t16-active-profile.svg"
+    },
+    {
+      "code": "G01",
+      "key": "accessible_education",
+      "filename": "g01-accessible-education.svg",
+      "title": "Доступное образование",
+      "kind": "base",
+      "description": "Преподаватель участвует в программе «Доступное образование».",
+      "path": "svg/g01-accessible-education.svg"
+    },
+    {
+      "code": "T17",
+      "key": "platform_lessons",
+      "filename": "t17-platform-lessons.svg",
+      "title": "Проведённые уроки на GoStudy",
+      "kind": "base",
+      "description": "На платформе проведено установленное количество уроков.",
+      "path": "svg/t17-platform-lessons.svg"
+    },
+    {
+      "code": "T18",
+      "key": "reliable_teacher",
+      "filename": "t18-reliable-teacher.svg",
+      "title": "Надёжный преподаватель",
+      "kind": "base",
+      "description": "Последние 30 занятий проведены без отмены по вине преподавателя.",
+      "path": "svg/t18-reliable-teacher.svg"
+    },
+    {
+      "code": "T14-10",
+      "key": "excellent_rating_streak_10",
+      "filename": "t14-excellent-rating-streak-10.svg",
+      "title": "10 пятёрок подряд",
+      "kind": "tier",
+      "description": "10 пятёрок подряд",
+      "path": "svg/t14-excellent-rating-streak-10.svg"
+    },
+    {
+      "code": "T14-30",
+      "key": "excellent_rating_streak_30",
+      "filename": "t14-excellent-rating-streak-30.svg",
+      "title": "30 пятёрок подряд",
+      "kind": "tier",
+      "description": "30 пятёрок подряд",
+      "path": "svg/t14-excellent-rating-streak-30.svg"
+    },
+    {
+      "code": "T11-10",
+      "key": "work_experience_10_years",
+      "filename": "t11-work-experience-10-years.svg",
+      "title": "Опыт работы 10 лет",
+      "kind": "tier",
+      "description": "Опыт работы 10 лет",
+      "path": "svg/t11-work-experience-10-years.svg"
+    },
+    {
+      "code": "T11-20",
+      "key": "work_experience_20_years",
+      "filename": "t11-work-experience-20-years.svg",
+      "title": "Опыт работы 20 лет",
+      "kind": "tier",
+      "description": "Опыт работы 20 лет",
+      "path": "svg/t11-work-experience-20-years.svg"
+    },
+    {
+      "code": "T11-30",
+      "key": "work_experience_30_years",
+      "filename": "t11-work-experience-30-years.svg",
+      "title": "Опыт работы 30 лет",
+      "kind": "tier",
+      "description": "Опыт работы 30 лет",
+      "path": "svg/t11-work-experience-30-years.svg"
+    },
+    {
+      "code": "T17-10",
+      "key": "platform_lessons_10",
+      "filename": "t17-platform-lessons-10.svg",
+      "title": "10 уроков на GoStudy",
+      "kind": "tier",
+      "description": "10 уроков на GoStudy",
+      "path": "svg/t17-platform-lessons-10.svg"
+    },
+    {
+      "code": "T17-30",
+      "key": "platform_lessons_30",
+      "filename": "t17-platform-lessons-30.svg",
+      "title": "30 уроков на GoStudy",
+      "kind": "tier",
+      "description": "30 уроков на GoStudy",
+      "path": "svg/t17-platform-lessons-30.svg"
+    },
+    {
+      "code": "T17-100",
+      "key": "platform_lessons_100",
+      "filename": "t17-platform-lessons-100.svg",
+      "title": "100 уроков на GoStudy",
+      "kind": "tier",
+      "description": "100 уроков на GoStudy",
+      "path": "svg/t17-platform-lessons-100.svg"
+    },
+    {
+      "code": "T17-300",
+      "key": "platform_lessons_300",
+      "filename": "t17-platform-lessons-300.svg",
+      "title": "300 уроков на GoStudy",
+      "kind": "tier",
+      "description": "300 уроков на GoStudy",
+      "path": "svg/t17-platform-lessons-300.svg"
+    }
+  ]
+}

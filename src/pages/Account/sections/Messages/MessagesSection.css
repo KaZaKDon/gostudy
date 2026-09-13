@@ -10,6 +10,10 @@
     --messages-accent: var(--color-teacher);
 }
 
+.account--parent .messages-section {
+    --messages-accent: var(--color-parent);
+}
+
 .messages-section__header span {
     display: block;
 
@@ -299,6 +303,16 @@
     color: var(--color-ink-muted);
 }
 
+.conversation-modal__notice {
+    display: block;
+
+    margin-top: 10px;
+
+    color: var(--messages-accent);
+
+    font-weight: 700;
+}
+
 .conversation-modal__close {
     width: 40px;
     height: 40px;
@@ -462,7 +476,7 @@
 .message-bubble--parent {
     background: color-mix(
         in srgb,
-        var(--color-student) 11%,
+        var(--color-parent) 14%,
         var(--color-surface-strong)
     );
 }

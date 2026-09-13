@@ -1,5 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { hash } from 'bcryptjs';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import {
     describe,
     expect,
@@ -15,7 +17,7 @@ import {
 import { LegalConsentsService } from '../legal-consents/legal-consents.service';
 import { MailService } from '../mail/mail.service';
 import { AuthService } from './auth.service';
-import type { RegisterDto } from './dto/register.dto';
+import { RegisterDto } from './dto/register.dto';
 
 function createService(): AuthService {
     return new AuthService(
@@ -63,6 +65,93 @@ describe('AuthService registration consent rules', () => {
         )).rejects.toThrow(
             'Необходимо дать согласие на обработку персональных данных',
         );
+    });
+});
+
+describe('AuthService parent registration', () => {
+    it('requires the parent name and phone', async () => {
+        const input = plainToInstance(RegisterDto, {
+            ...createInput(),
+            role: 'parent',
+        });
+
+        const errors = await validate(input);
+
+        expect(errors.map((error) => error.property)).toEqual(
+            expect.arrayContaining(['full_name', 'phone']),
+        );
+    });
+
+    it('does not require parent fields for a student', async () => {
+        const input = plainToInstance(RegisterDto, createInput());
+
+        await expect(validate(input)).resolves.toHaveLength(0);
+    });
+
+    it('creates a completed parent account without a student profile', async () => {
+        const createdUser = {
+            id: 41,
+            role: UserRole.PARENT,
+            email: 'parent@example.com',
+            fullName: 'Иванова Мария Сергеевна',
+            phone: '+7 900 000-00-00',
+            avatarUrl: null,
+            status: UserStatus.ACTIVE,
+            emailVerifiedAt: null,
+            profileCompleted: true,
+        };
+        const prisma = {
+            user: {
+                findUnique: vi.fn().mockResolvedValue(null),
+                create: vi.fn().mockResolvedValue(createdUser),
+                update: vi.fn(),
+            },
+        } as unknown as PrismaService;
+        const legalConsents = {
+            getRegistrationSnapshots: vi.fn().mockReturnValue([]),
+        } as unknown as LegalConsentsService;
+        const mail = {
+            sendVerificationEmail: vi.fn().mockResolvedValue(true),
+        } as unknown as MailService;
+        const service = new AuthService(
+            prisma,
+            new ConfigService({ NODE_ENV: 'test' }),
+            legalConsents,
+            mail,
+        );
+
+        const result = await service.register({
+            ...createInput(),
+            role: 'parent',
+            email: 'PARENT@example.com',
+            full_name: ' Иванова Мария Сергеевна ',
+            phone: ' +7 900 000-00-00 ',
+        }, { ipAddress: '127.0.0.1', userAgent: 'test' });
+
+        expect(prisma.user.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    role: UserRole.PARENT,
+                    email: 'parent@example.com',
+                    fullName: 'Иванова Мария Сергеевна',
+                    phone: '+7 900 000-00-00',
+                    profileCompleted: true,
+                }),
+            }),
+        );
+        const createData = vi.mocked(prisma.user.create).mock.calls[0][0].data;
+        expect(createData).not.toHaveProperty('studentProfile');
+        expect(createData).not.toHaveProperty('teacherProfile');
+        expect(mail.sendVerificationEmail).toHaveBeenCalledWith(
+            'parent@example.com',
+            'пользователь GoStudy',
+            expect.stringContaining('/verify-email?token='),
+        );
+        expect(result.user).toMatchObject({
+            role: 'parent',
+            full_name: 'Иванова Мария Сергеевна',
+            profile_completed: true,
+        });
     });
 });
 

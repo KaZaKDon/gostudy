@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+<title id="title">Активный профиль</title>
+<desc id="desc">Значок GoStudy: Активный профиль</desc>
+<g transform="translate(12 12) scale(4)" fill="none" stroke="#8b5e3c" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.4"/><path d="M5.2 16.8c.9-2.4 2.2-3.6 4-3.6s3.1 1.2 4 3.6"/><circle cx="17.2" cy="7" r="2.1"/><path d="M17.2 3.8v1M17.2 9.2v1M14 7h1M19.4 7h1"/></g>
+
+</svg>

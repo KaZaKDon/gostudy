@@ -1,6 +1,7 @@
 export const USER_ROLES = {
     STUDENT: 'student',
     TEACHER: 'teacher',
+    PARENT: 'parent',
     ADMIN: 'admin',
     MODERATOR: 'moderator',
 };
@@ -8,6 +9,7 @@ export const USER_ROLES = {
 export const ROLE_ROUTES = {
     [USER_ROLES.STUDENT]: '/account',
     [USER_ROLES.TEACHER]: '/account',
+    [USER_ROLES.PARENT]: '/account',
     [USER_ROLES.ADMIN]: '/admin/login',
     [USER_ROLES.MODERATOR]: '/admin/login',
 };
@@ -33,7 +35,7 @@ export function getRouteAfterLogin(user) {
         return `/profile-start?role=${user.role}`;
     }
 
-    if (isProfileRole(user.role)) {
+    if (ROLE_ROUTES[user.role]) {
         return ROLE_ROUTES[user.role];
     }
 

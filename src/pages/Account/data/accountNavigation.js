@@ -7,6 +7,7 @@ export const STUDENT_NAVIGATION = [
     { id: 'messages', title: 'Сообщения' },
     { id: 'payments', title: 'Оплата' },
     { id: 'teachers', title: 'Мои преподаватели' },
+    { id: 'family', title: 'Родитель' },
     { id: 'settings', title: 'Настройки' },
 ];
 
@@ -18,6 +19,16 @@ export const TEACHER_NAVIGATION = [
     { id: 'students', title: 'Мои ученики' },
     { id: 'materials', title: 'Материалы' },
     { id: 'payments', title: 'Оплаты', count: 2 },
+    { id: 'messages', title: 'Сообщения' },
+    { id: 'settings', title: 'Настройки' },
+];
+
+export const PARENT_NAVIGATION = [
+    { id: 'dashboard', title: 'Главная' },
+    { id: 'children', title: 'Мои дети' },
+    { id: 'schedule', title: 'Расписание детей' },
+    { id: 'homework', title: 'Домашние задания' },
+    { id: 'diary', title: 'Дневник детей' },
     { id: 'messages', title: 'Сообщения' },
     { id: 'settings', title: 'Настройки' },
 ];

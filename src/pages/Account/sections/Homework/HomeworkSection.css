@@ -6,6 +6,10 @@
     --homework-accent: var(--color-teacher);
 }
 
+.account--parent .homework-section {
+    --homework-accent: var(--color-parent);
+}
+
 .homework-section {
     display: flex;
     flex-direction: column;
@@ -32,6 +36,54 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+}
+
+.homework-section__parent-controls {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--color-parent-border);
+    border-radius: var(--radius-md);
+    background: var(--color-parent-soft);
+}
+
+.homework-section__parent-controls label {
+    display: grid;
+    gap: 7px;
+    min-width: min(360px, 100%);
+    color: var(--color-text);
+    font-weight: 800;
+}
+
+.homework-section__parent-controls label > span {
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.homework-section__parent-controls select {
+    padding: 11px 38px 11px 13px;
+    border: 1px solid var(--color-parent-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    background: var(--color-surface-paper);
+    font: inherit;
+    font-weight: 800;
+}
+
+.homework-section__parent-controls select:focus {
+    outline: 2px solid var(--color-parent-soft);
+    border-color: var(--color-parent);
+}
+
+.homework-section__parent-controls p {
+    max-width: 540px;
+    margin: 0;
+    color: var(--color-ink-muted);
+    line-height: 1.45;
 }
 
 .homework-section__create {
@@ -366,6 +418,15 @@
     grid-column: 1 / -1;
 }
 
+.homework-modal__readonly {
+    border: 1px solid var(--color-parent-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--color-parent) !important;
+    background: var(--color-parent-soft);
+    font-weight: 800;
+}
+
 .homework-form__error {
     margin: 0;
     border: 1px solid var(--color-accent-red);
@@ -622,6 +683,11 @@
     }
 
     .homework-section__header--actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .homework-section__parent-controls {
         align-items: stretch;
         flex-direction: column;
     }

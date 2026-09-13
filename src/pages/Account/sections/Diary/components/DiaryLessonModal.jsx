@@ -6,6 +6,7 @@ import {
 } from '../../LearningResults/learningResults.js';
 
 export function DiaryLessonModal({
+    role,
     lesson,
     onOpenHomework,
     onClose,
@@ -51,6 +52,12 @@ export function DiaryLessonModal({
                 </div>
 
                 <div className="diary-modal__content">
+                    {role === 'parent' && (
+                        <p className="diary-modal__readonly">
+                            Результат занятия доступен только для просмотра.
+                        </p>
+                    )}
+
                     <section>
                         <h3>Результат занятия</h3>
                         <p>

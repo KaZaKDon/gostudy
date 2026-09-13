@@ -11,6 +11,9 @@ import { PaymentsSection } from '../sections/Payments/PaymentsSection.jsx';
 import { SettingsSection } from '../sections/Settings/SettingsSection.jsx';
 import { FindTeacherSection } from '../sections/FindTeacher/FindTeacherSection.jsx';
 import { NotificationsMenu } from '../sections/Notifications/NotificationsMenu.jsx';
+import { ParentChildrenSection } from '../sections/ParentChildren/ParentChildrenSection.jsx';
+import { ParentDashboard } from '../sections/ParentDashboard/ParentDashboard.jsx';
+import { StudentFamilySection } from '../sections/StudentFamily/StudentFamilySection.jsx';
 
 export function AccountPanel({
     title,
@@ -39,10 +42,14 @@ export function AccountPanel({
     payments,
     scheduleRevision,
     scheduleFocusDate,
+    scheduleFocusLessonId,
     onAddLesson,
     onTeacherRequestSent,
     onFindTeacher,
     onOpenHomework,
+    onOpenParentSchedule,
+    onOpenParentDiary,
+    onOpenSection,
     onOpenStudentMessage,
     onCreateStudentHomework,
     onOpenStudentJournal,
@@ -51,6 +58,8 @@ export function AccountPanel({
 }) {
     const isTeacherStudentsSection =
         role === 'teacher' && activeSection === 'students';
+    const isParentDashboard =
+        role === 'parent' && activeSection === 'dashboard';
 
     const isScheduleSection = activeSection === 'schedule';
     const isMaterialsSection = activeSection === 'materials';
@@ -100,7 +109,9 @@ export function AccountPanel({
                     <span className="account-panel__role">
                         {role === 'teacher'
                             ? 'Преподаватель'
-                            : 'Ученик'}
+                            : role === 'parent'
+                                ? 'Родитель'
+                                : 'Ученик'}
                     </span>
                 </div>
             </header>
@@ -130,7 +141,14 @@ export function AccountPanel({
                     </div>
                 )}
 
-            {activeSection === 'classroom' ? (
+            {isParentDashboard ? (
+                <ParentDashboard
+                    onOpenSection={onOpenSection}
+                    onOpenSchedule={onOpenParentSchedule}
+                    onOpenHomework={onOpenHomework}
+                    onOpenDiary={onOpenParentDiary}
+                />
+            ) : activeSection === 'classroom' ? (
                 <ClassroomTodaySection
                     role={role}
                 />
@@ -146,11 +164,12 @@ export function AccountPanel({
                 />
             ) : isScheduleSection ? (
                 <ScheduleSection
-                    key={`${scheduleRevision}:${scheduleFocusDate || ''}`}
+                    key={`${scheduleRevision}:${scheduleFocusDate || ''}:${scheduleFocusLessonId || ''}`}
                     role={role}
                     onAddLesson={onAddLesson}
                     refreshKey={scheduleRevision}
                     initialDate={scheduleFocusDate}
+                    initialLessonId={scheduleFocusLessonId}
                 />
             ) : isMaterialsSection ? (
                 <MaterialsSection
@@ -174,6 +193,7 @@ export function AccountPanel({
                 />
             ) : isDiarySection ? (
                 <DiarySection
+                    role={role}
                     targetLessonId={targetDiaryLessonId}
                     onOpenHomework={onOpenHomework}
                 />
@@ -205,6 +225,10 @@ export function AccountPanel({
                 <FindTeacherSection
                     onRequestSent={onTeacherRequestSent}
                 />
+            ) : role === 'parent' && activeSection === 'children' ? (
+                <ParentChildrenSection />
+            ) : role === 'student' && activeSection === 'family' ? (
+                <StudentFamilySection />
             ) : (
                 <div className="account-panel__placeholder">
                     <h2>{title}</h2>
