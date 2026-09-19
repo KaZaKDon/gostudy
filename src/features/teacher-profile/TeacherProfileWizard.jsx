@@ -11,9 +11,11 @@ import {
 import {
     API,
     getAuthHeaders,
+    isLegacyApiUrl,
 } from '../../api/api.js';
 import {
     formatFileSize,
+    openAuthFile,
     uploadFile,
 } from '../../api/upload.js';
 import { TEACHER_PROFILE_STEPS } from './constants/wizardSteps.js';
@@ -181,6 +183,7 @@ export function TeacherProfileWizard() {
     const [options, setOptions] = useState(null);
     const [currentStepIndex, setCurrentStepIndex] = useState(initialStepIndex);
     const [documents, setDocuments] = useState([]);
+    const [profileMedia, setProfileMedia] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -194,6 +197,8 @@ export function TeacherProfileWizard() {
 
     const currentStep = TEACHER_PROFILE_STEPS[currentStepIndex];
     const isPreviewStep = currentStep.id === 'preview';
+    const isVideoUploadAvailable = !isLegacyApiUrl(API.uploadTeacherVideo)
+        && !isLegacyApiUrl(API.deleteTeacherMedia);
     const isFileOperationInProgress = isUploadingPhoto
         || isUploadingDocument
         || isUploadingVideo
@@ -235,6 +240,11 @@ export function TeacherProfileWizard() {
                 setDocuments(
                     Array.isArray(profileResult.documents)
                         ? profileResult.documents
+                        : [],
+                );
+                setProfileMedia(
+                    Array.isArray(profileResult.profile_media)
+                        ? profileResult.profile_media
                         : [],
                 );
                 setOptions({
@@ -343,12 +353,12 @@ export function TeacherProfileWizard() {
                 onProgress: setPhotoProgress,
             });
 
-            updateProfile({
-                photo_url: result.photo_url,
-            });
-            updateStoredUser({
-                avatar_url: result.photo_url,
-            });
+            setProfileMedia((current) => [
+                result.media,
+                ...current.filter((item) => (
+                    item.type !== 'photo' || item.status === 'approved'
+                )),
+            ]);
         } catch (error) {
             setErrorMessage(
                 error instanceof Error
@@ -379,6 +389,9 @@ export function TeacherProfileWizard() {
             await readJsonResponse(response, 'Не удалось удалить фото');
             updateProfile({ photo_url: '' });
             updateStoredUser({ avatar_url: null });
+            setProfileMedia((current) => current.filter((item) => (
+                item.type !== 'photo' || item.status !== 'approved'
+            )));
         } catch (error) {
             setErrorMessage(
                 error instanceof Error
@@ -490,6 +503,68 @@ export function TeacherProfileWizard() {
         }
     }
 
+    async function handleOpenDocument(documentId) {
+        setErrorMessage('');
+
+        try {
+            await openAuthFile(
+                `${API.teacherDocumentFiles}/${documentId}/file`,
+            );
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : 'Не удалось открыть документ',
+            );
+        }
+    }
+
+    async function handleOpenProfileMedia(mediaId) {
+        setErrorMessage('');
+
+        try {
+            await openAuthFile(
+                `${API.teacherProfileMediaFiles}/${mediaId}/file`,
+            );
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : 'Не удалось открыть файл профиля',
+            );
+        }
+    }
+
+    async function handleDeleteProfileMedia(mediaId, type) {
+        if (!window.confirm('Удалить загруженный файл?')) return;
+
+        const setUploading = type === 'photo'
+            ? setIsUploadingPhoto
+            : setIsUploadingVideo;
+        setUploading(true);
+        setErrorMessage('');
+
+        try {
+            const response = await fetch(API.deleteTeacherMedia, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ type, media_id: mediaId }),
+            });
+            await readJsonResponse(response, 'Не удалось удалить файл профиля');
+            setProfileMedia((current) => current.filter(
+                (item) => Number(item.id) !== Number(mediaId),
+            ));
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : 'Не удалось удалить файл профиля',
+            );
+        } finally {
+            setUploading(false);
+        }
+    }
+
     async function handleVideoSelect(file) {
         const allowedTypes = ['video/mp4', 'video/webm'];
         const maxBytes = Number(options?.upload_limits?.video_max_bytes)
@@ -513,9 +588,12 @@ export function TeacherProfileWizard() {
                 onProgress: setVideoProgress,
             });
 
-            updateProfile({
-                intro_video_url: result.intro_video_url,
-            });
+            setProfileMedia((current) => [
+                result.media,
+                ...current.filter((item) => (
+                    item.type !== 'video' || item.status === 'approved'
+                )),
+            ]);
         } catch (error) {
             setErrorMessage(
                 error instanceof Error
@@ -545,6 +623,9 @@ export function TeacherProfileWizard() {
 
             await readJsonResponse(response, 'Не удалось удалить видеовизитку');
             updateProfile({ intro_video_url: '' });
+            setProfileMedia((current) => current.filter((item) => (
+                item.type !== 'video' || item.status !== 'approved'
+            )));
         } catch (error) {
             setErrorMessage(
                 error instanceof Error
@@ -557,17 +638,20 @@ export function TeacherProfileWizard() {
     }
 
     function goNext() {
+        setErrorMessage('');
         setCurrentStepIndex((current) =>
             Math.min(current + 1, TEACHER_PROFILE_STEPS.length - 1),
         );
     }
 
     function goBack() {
+        setErrorMessage('');
         setCurrentStepIndex((current) => Math.max(current - 1, 0));
     }
 
     function goToStep(index) {
         if (!isSaving && !isFileOperationInProgress) {
+            setErrorMessage('');
             setCurrentStepIndex(index);
         }
     }
@@ -735,12 +819,17 @@ export function TeacherProfileWizard() {
                     {currentStep.id === 'basic' && (
                         <StepBasic
                             profile={profile}
+                            pendingMedia={profileMedia.find((item) => (
+                                item.type === 'photo' && item.status !== 'approved'
+                            ))}
                             onChange={updateProfile}
                             photoMaxBytes={options.upload_limits?.photo_max_bytes}
                             isUploadingPhoto={isUploadingPhoto}
                             photoProgress={photoProgress}
                             onPhotoSelect={handlePhotoSelect}
                             onDeletePhoto={handleDeletePhoto}
+                            onOpenPendingMedia={handleOpenProfileMedia}
+                            onDeletePendingMedia={handleDeleteProfileMedia}
                         />
                     )}
 
@@ -768,17 +857,24 @@ export function TeacherProfileWizard() {
                         <StepDocuments
                             profile={profile}
                             documents={documents}
+                            pendingVideo={profileMedia.find((item) => (
+                                item.type === 'video' && item.status !== 'approved'
+                            ))}
                             isUploadingDocument={isUploadingDocument}
                             documentProgress={documentProgress}
                             deletingDocumentId={deletingDocumentId}
                             isUploadingVideo={isUploadingVideo}
                             videoProgress={videoProgress}
+                            isVideoUploadAvailable={isVideoUploadAvailable}
                             documentMaxBytes={options.upload_limits?.document_max_bytes}
                             videoMaxBytes={options.upload_limits?.video_max_bytes}
                             onDocumentSelect={handleDocumentSelect}
+                            onOpenDocument={handleOpenDocument}
                             onDeleteDocument={handleDeleteDocument}
                             onVideoSelect={handleVideoSelect}
                             onDeleteVideo={handleDeleteVideo}
+                            onOpenPendingMedia={handleOpenProfileMedia}
+                            onDeletePendingMedia={handleDeleteProfileMedia}
                         />
                     )}
 

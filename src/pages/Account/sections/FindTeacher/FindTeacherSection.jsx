@@ -26,6 +26,9 @@ function mapTeacherFromApi(teacher) {
                 : 'Предмет не указан',
         rating: Number(teacher.rating || 0).toFixed(1),
         reviewsCount: teacher.reviews_count || 0,
+        rank: Number.isInteger(teacher.rank) ? teacher.rank : null,
+        completedLessonsCount: teacher.completed_lessons_count || 0,
+        badges: Array.isArray(teacher.badges) ? teacher.badges : [],
         experience:
             teacher.experience_years !== null
                 ? `${teacher.experience_years} лет`
@@ -44,11 +47,22 @@ function mapTeacherFromApi(teacher) {
 }
 
 export function FindTeacherSection({
+    role,
     onRequestSent,
 }) {
     const [searchValue, setSearchValue] = useState('');
+    const [subjectId, setSubjectId] = useState('');
+    const [accessibleOnly, setAccessibleOnly] = useState(false);
+    const [subjects, setSubjects] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [selectedTeacher, setSelectedTeacher] = useState(null);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 12,
+        total: 0,
+        pages: 0,
+    });
 
     const [requestStatus, setRequestStatus] = useState('loading');
     const [errorMessage, setErrorMessage] = useState('');
@@ -66,6 +80,9 @@ export function FindTeacherSection({
                 if (searchValue.trim()) {
                     params.set('search', searchValue.trim());
                 }
+                if (subjectId) params.set('subject_id', subjectId);
+                if (accessibleOnly) params.set('accessible_only', 'true');
+                params.set('page', String(page));
 
                 const result = await apiRequest(
                     `${API.findTeachers}?${params.toString()}`,
@@ -79,6 +96,17 @@ export function FindTeacherSection({
                         ? result.teachers.map(mapTeacherFromApi)
                         : [],
                 );
+                setSubjects(
+                    Array.isArray(result.filters?.subjects)
+                        ? result.filters.subjects
+                        : [],
+                );
+                setPagination({
+                    page: Number(result.pagination?.page) || page,
+                    limit: Number(result.pagination?.limit) || 12,
+                    total: Number(result.pagination?.total) || 0,
+                    pages: Number(result.pagination?.pages) || 0,
+                });
 
                 setRequestStatus('success');
             } catch (error) {
@@ -108,7 +136,7 @@ export function FindTeacherSection({
             window.clearTimeout(timerId);
             controller.abort();
         };
-    }, [searchValue]);
+    }, [searchValue, subjectId, accessibleOnly, page]);
 
     const displayedTeachers = useMemo(
         () => teachers,
@@ -126,7 +154,21 @@ export function FindTeacherSection({
 
             <TeacherSearchFilters
                 searchValue={searchValue}
-                onSearchChange={setSearchValue}
+                onSearchChange={(value) => {
+                    setSearchValue(value);
+                    setPage(1);
+                }}
+                subjectId={subjectId}
+                subjects={subjects}
+                onSubjectChange={(value) => {
+                    setSubjectId(value);
+                    setPage(1);
+                }}
+                accessibleOnly={accessibleOnly}
+                onAccessibleOnlyChange={(value) => {
+                    setAccessibleOnly(value);
+                    setPage(1);
+                }}
             />
 
             {requestStatus === 'loading' ? (
@@ -144,9 +186,37 @@ export function FindTeacherSection({
                 />
             )}
 
+            {requestStatus === 'success' && pagination.pages > 1 && (
+                <nav
+                    className="teacher-search-pagination"
+                    aria-label="Страницы списка преподавателей"
+                >
+                    <button
+                        type="button"
+                        disabled={pagination.page <= 1}
+                        onClick={() => setPage((current) => current - 1)}
+                    >
+                        Назад
+                    </button>
+                    <span>
+                        Страница {pagination.page} из {pagination.pages}
+                        {' · '}
+                        {pagination.total} преподавателей
+                    </span>
+                    <button
+                        type="button"
+                        disabled={pagination.page >= pagination.pages}
+                        onClick={() => setPage((current) => current + 1)}
+                    >
+                        Вперёд
+                    </button>
+                </nav>
+            )}
+
             <TeacherProfileModal
                 key={selectedTeacher?.id ?? 'closed'}
                 teacher={selectedTeacher}
+                role={role}
                 onRequestSent={onRequestSent}
                 onClose={() => setSelectedTeacher(null)}
             />

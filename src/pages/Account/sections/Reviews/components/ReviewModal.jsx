@@ -58,6 +58,7 @@ export function ReviewModal({
                 }
                 : {
                     relationId: review.relation_id,
+                    childId: review.child_id,
                     rating,
                     text: value,
                 },

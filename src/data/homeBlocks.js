@@ -6,6 +6,8 @@ export const HOME_BLOCKS = [
         label: 'Брошюра',
 
         asset: '/images/home/item-brochure.webp',
+        assetMobile: '/images/home/item-brochure-mobile.webp',
+        path: '/about',
         className: 'desk-item--brochure',
 
         accentColor: '#B8894D',
@@ -61,6 +63,8 @@ export const HOME_BLOCKS = [
         label: 'Тетрадь',
 
         asset: '/images/home/item-student-notebook.webp',
+        assetMobile: '/images/home/item-student-notebook-mobile.webp',
+        path: '/students',
         className: 'desk-item--students',
 
         accentColor: '#6E9A67',
@@ -90,6 +94,8 @@ export const HOME_BLOCKS = [
         label: 'Классный журнал',
 
         asset: '/images/home/item-teacher-journal.webp',
+        assetMobile: '/images/home/item-teacher-journal-mobile.webp',
+        path: '/teachers',
         className: 'desk-item--teachers',
 
         accentColor: '#8B5E3C',
@@ -119,6 +125,8 @@ export const HOME_BLOCKS = [
         label: 'Квитанционная книжка',
 
         asset: '/images/home/item-pricing-book.webp',
+        assetMobile: '/images/home/item-pricing-book-mobile.webp',
+        path: '/pricing',
         className: 'desk-item--pricing',
 
         accentColor: '#C59A4B',

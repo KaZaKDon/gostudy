@@ -36,6 +36,26 @@ const PUBLIC_ROUTES = {
         description: DEFAULT_DESCRIPTION,
         structuredData: HOME_STRUCTURED_DATA,
     },
+    '/about': {
+        title: 'О платформе GoStudy',
+        description: 'Как GoStudy помогает ученикам, родителям и преподавателям организовать онлайн-обучение.',
+        robots: 'noindex, nofollow, noarchive',
+    },
+    '/students': {
+        title: 'Ученикам — занятия и преподаватели в GoStudy',
+        description: 'Поиск преподавателя, расписание, онлайн-занятия, домашние задания и результаты ученика в GoStudy.',
+        robots: 'noindex, nofollow, noarchive',
+    },
+    '/teachers': {
+        title: 'Преподавателям — инструменты для работы в GoStudy',
+        description: 'Ученики, расписание, онлайн-класс, задания, материалы и расчёты преподавателя в GoStudy.',
+        robots: 'noindex, nofollow, noarchive',
+    },
+    '/pricing': {
+        title: 'Тарифы для преподавателей — GoStudy',
+        description: 'Условия подписочной и комиссионной моделей работы преподавателей на платформе GoStudy.',
+        robots: 'noindex, nofollow, noarchive',
+    },
     '/legal/agreement': {
         title: 'Пользовательское соглашение — GoStudy',
         description: 'Пользовательское соглашение онлайн-платформы GoStudy.',
@@ -92,9 +112,10 @@ export function getSeoConfig(pathname) {
             canonical: `${SITE_URL}${normalizedPathname === '/' ? '/' : normalizedPathname}`,
             image: `${SITE_URL}${DEFAULT_IMAGE_PATH}`,
             robots:
-                normalizedPathname.startsWith('/legal/')
+                publicRoute.robots
+                ?? (normalizedPathname.startsWith('/legal/')
                     ? 'noindex, nofollow, noarchive'
-                    : 'index, follow',
+                    : 'index, follow'),
         };
     }
 

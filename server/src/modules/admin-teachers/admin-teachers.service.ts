@@ -120,6 +120,9 @@ export class AdminTeachersService {
                         orderBy: { subject: { name: 'asc' } },
                         include: { subject: true },
                     },
+                    teacherDocuments: {
+                        select: { status: true },
+                    },
                     _count: {
                         select: {
                             teachingRelations: {
@@ -182,6 +185,17 @@ export class AdminTeachersService {
                         { id: 'asc' },
                     ],
                 },
+                teacherDocuments: {
+                    orderBy: [
+                        { sortOrder: 'asc' },
+                        { id: 'asc' },
+                    ],
+                    include: {
+                        checkedBy: {
+                            select: { id: true, fullName: true, email: true },
+                        },
+                    },
+                },
                 teachingRelations: {
                     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
                     include: {
@@ -222,8 +236,10 @@ export class AdminTeachersService {
                     active_students_total: activeStudentsTotal,
                     lessons_total: teacher._count.lessonsAsTeacher,
                     homework_total: teacher._count.homeworkAssigned ?? 0,
-                    documents_total: 0,
-                    pending_documents_total: 0,
+                    documents_total: (teacher.teacherDocuments ?? []).length,
+                    pending_documents_total: (teacher.teacherDocuments ?? []).filter(
+                        (document) => document.status === 'PENDING',
+                    ).length,
                 },
                 subjects: teacher.teacherSubjects.map(({ subject }) => ({
                     id: subject.id,
@@ -257,7 +273,26 @@ export class AdminTeachersService {
                     description: item.description,
                     is_primary: item.isPrimary,
                 })),
-                documents: [],
+                documents: (teacher.teacherDocuments ?? []).map((document) => ({
+                    id: document.id,
+                    education_id: document.educationId,
+                    type: document.type.toLowerCase(),
+                    document_title: document.documentTitle,
+                    institution: document.institution,
+                    document_year: document.documentYear,
+                    original_name: document.originalName,
+                    mime_type: document.mimeType,
+                    file_size: Number(document.fileSize),
+                    status: document.status.toLowerCase(),
+                    reject_reason: document.rejectionReason,
+                    checked_by: document.checkedById,
+                    checked_by_name: document.checkedBy?.fullName
+                        || document.checkedBy?.email
+                        || null,
+                    checked_at: document.checkedAt,
+                    created_at: document.createdAt,
+                    download_url: `/api/v1/admin/documents/${document.id}/file`,
+                })),
                 students: teacher.teachingRelations.map((relation) => ({
                     id: relation.id,
                     student_id: relation.student.id,
@@ -521,8 +556,10 @@ export class AdminTeachersService {
             subjects_text: teacher.teacherSubjects
                 .map((link: Record<string, any>) => link.subject.name)
                 .join(', '),
-            documents_total: 0,
-            pending_documents_total: 0,
+            documents_total: (teacher.teacherDocuments ?? []).length,
+            pending_documents_total: (teacher.teacherDocuments ?? []).filter(
+                (document: Record<string, any>) => document.status === 'PENDING',
+            ).length,
             active_students_total: teacher._count.teachingRelations,
         };
     }

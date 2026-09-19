@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     ConflictException,
     ForbiddenException,
     Injectable,
@@ -6,7 +7,19 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
+import type { Prisma } from '../../generated/prisma/client';
 import {
+    AccessibilityApplicationStatus,
+    AccessibilityOfferStatus,
+    LessonChangeStatus,
+    LessonChangeType,
+    LessonStatus,
+    MaterialCategory,
+    MaterialPublicationStatus,
+    ParentChildVerificationStatus,
+    ParentStudentStatus,
+    TeacherDocumentStatus,
+    TeacherDocumentType,
     TeacherStudentRequestStatus,
     TeacherStudentStatus,
     TeacherVerificationStatus,
@@ -17,6 +30,8 @@ import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { FindTeachersQueryDto } from './dto/find-teachers-query.dto';
 import type { SendTeacherRequestDto } from './dto/send-teacher-request.dto';
+import { teacherBadgeKeys } from './teacher-badges';
+import { rankTeachers } from './teacher-ranking';
 
 const PAGE_SIZE = 12;
 
@@ -31,71 +46,145 @@ export class TeachersService {
         user: SessionUser,
         query: FindTeachersQueryDto,
     ): Promise<Record<string, unknown>> {
-        this.requireStudent(user);
+        this.requireSearchUser(user);
         const search = query.search?.trim() || '';
         const page = query.page || 1;
-        const searchFilter = search
-            ? {
-                OR: [
-                    { firstName: { contains: search, mode: 'insensitive' as const } },
-                    { lastName: { contains: search, mode: 'insensitive' as const } },
-                    { headline: { contains: search, mode: 'insensitive' as const } },
-                    { city: { contains: search, mode: 'insensitive' as const } },
-                    {
-                        user: {
-                            teacherSubjects: {
-                                some: {
-                                    subject: {
-                                        name: {
-                                            contains: search,
-                                            mode: 'insensitive' as const,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                ],
-            }
-            : {};
         const where = {
             isVisible: true,
             verificationStatus: TeacherVerificationStatus.VERIFIED,
             user: {
                 role: UserRole.TEACHER,
                 status: UserStatus.ACTIVE,
+                ...(query.subject_id ? {
+                    teacherSubjects: {
+                        some: {
+                            subjectId: query.subject_id,
+                            subject: { isActive: true },
+                        },
+                    },
+                } : {}),
             },
-            ...searchFilter,
         };
-        const [total, profiles] = await Promise.all([
-            this.prisma.teacherProfile.count({ where }),
+        const [profiles, lessonGroups, subjects] = await Promise.all([
             this.prisma.teacherProfile.findMany({
                 where,
-                skip: (page - 1) * PAGE_SIZE,
-                take: PAGE_SIZE,
-                orderBy: [
-                    { createdAt: 'desc' },
-                    { userId: 'desc' },
-                ],
                 include: {
                     user: {
                         select: {
                             fullName: true,
                             avatarUrl: true,
+                            phone: true,
+                            emailVerifiedAt: true,
+                            lastLoginAt: true,
+                            createdAt: true,
+                            teacherEducation: { select: { id: true }, take: 1 },
+                            teacherDocuments: {
+                                where: {
+                                    status: TeacherDocumentStatus.APPROVED,
+                                    type: TeacherDocumentType.DIPLOMA,
+                                },
+                                select: { id: true },
+                                take: 1,
+                            },
                             teacherSubjects: {
                                 where: { subject: { isActive: true } },
                                 orderBy: { subject: { name: 'asc' } },
                                 include: { subject: true },
                             },
+                            accessibilityOffers: {
+                                where: {
+                                    status: AccessibilityOfferStatus.APPROVED,
+                                    archivedAt: null,
+                                },
+                                include: {
+                                    subjects: { select: { subjectId: true } },
+                                    applications: {
+                                        where: {
+                                            OR: [
+                                                { status: AccessibilityApplicationStatus.CONFIRMED },
+                                                {
+                                                    status: AccessibilityApplicationStatus.ACCEPTED,
+                                                    confirmationExpiresAt: { gt: new Date() },
+                                                },
+                                            ],
+                                        },
+                                        select: { id: true },
+                                    },
+                                },
+                            },
                         },
                     },
                 },
             }),
+            this.prisma.lesson.groupBy({
+                by: ['teacherId'],
+                where: {
+                    status: LessonStatus.COMPLETED,
+                    ...(query.subject_id ? { subjectId: query.subject_id } : {}),
+                },
+                _count: { _all: true },
+            }),
+            this.prisma.subject.findMany({
+                where: { isActive: true },
+                orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+                select: { id: true, name: true },
+            }),
         ]);
+        const lessonCounts = new Map(
+            lessonGroups.map((item) => [item.teacherId, item._count._all]),
+        );
+        const ranked = rankTeachers(profiles.map((profile) => ({
+            teacherId: profile.userId,
+            rating: Number(profile.rating),
+            reviewsCount: profile.reviewsCount,
+            completedLessonsCount: lessonCounts.get(profile.userId) ?? 0,
+        })));
+        const rankByTeacher = new Map(
+            ranked.map((item) => [item.teacherId, item]),
+        );
+        const normalizedSearch = search.toLocaleLowerCase('ru-RU');
+        const filtered = profiles
+            .filter((profile) => {
+                const hasAvailableOffer = (profile.user.accessibilityOffers ?? []).some(
+                    (offer) => (
+                        offer.applications.length < offer.slots
+                        && (!query.subject_id || offer.subjects.some(
+                            (link) => link.subjectId === query.subject_id,
+                        ))
+                    ),
+                );
+                if (query.accessible_only === 'true' && !hasAvailableOffer) {
+                    return false;
+                }
+                if (!normalizedSearch) return true;
+                return [
+                    profile.firstName,
+                    profile.lastName,
+                    profile.user.fullName,
+                    profile.headline,
+                    profile.city,
+                    ...profile.user.teacherSubjects.map((link) => link.subject.name),
+                ].some((value) => value?.toLocaleLowerCase('ru-RU').includes(normalizedSearch));
+            })
+            .sort((left, right) => (
+                (rankByTeacher.get(left.userId)?.rank ?? Number.MAX_SAFE_INTEGER)
+                - (rankByTeacher.get(right.userId)?.rank ?? Number.MAX_SAFE_INTEGER)
+                || left.userId - right.userId
+            ));
+        const total = filtered.length;
+        const pageProfiles = filtered.slice(
+            (page - 1) * PAGE_SIZE,
+            page * PAGE_SIZE,
+        );
+        const pageIds = pageProfiles.map((profile) => profile.userId);
+        const badgeFacts = await this.loadBadgeFacts(pageIds);
 
         return {
             success: true,
-            teachers: profiles.map((profile) => ({
+            teachers: pageProfiles.map((profile) => {
+                const accessibilityEnabled = (profile.user.accessibilityOffers ?? [])
+                    .some((offer) => offer.applications.length < offer.slots);
+                return {
                 teacher_id: profile.userId,
                 first_name: profile.firstName,
                 last_name: profile.lastName,
@@ -107,13 +196,29 @@ export class TeachersService {
                 experience_years: profile.experienceYears,
                 rating: Number(profile.rating),
                 reviews_count: profile.reviewsCount,
+                rank: rankByTeacher.get(profile.userId)?.rank ?? null,
+                rank_scope: query.subject_id ? 'subject' : 'overall',
+                completed_lessons_count: lessonCounts.get(profile.userId) ?? 0,
                 is_verified: true,
-                accessibility_enabled: profile.accessibilityEnabled,
+                accessibility_enabled: accessibilityEnabled,
                 price_from: this.minimumPrice(profile),
                 subjects: profile.user.teacherSubjects.map(
                     (link) => link.subject.name,
                 ),
-            })),
+                badges: teacherBadgeKeys({
+                    ...profile,
+                    accessibilityEnabled,
+                }, {
+                    rank: rankByTeacher.get(profile.userId)?.rank ?? null,
+                    completedLessons: lessonCounts.get(profile.userId) ?? 0,
+                    ...badgeFacts.get(profile.userId),
+                }),
+            };
+            }),
+            filters: {
+                selected_subject_id: query.subject_id ?? null,
+                subjects,
+            },
             pagination: {
                 page,
                 limit: PAGE_SIZE,
@@ -123,11 +228,91 @@ export class TeachersService {
         };
     }
 
+    private async loadBadgeFacts(teacherIds: number[]) {
+        const result = new Map<number, {
+            materialCategories: Set<MaterialCategory>;
+            recentRatings: number[];
+            reliable: boolean;
+        }>();
+        if (!teacherIds.length) return result;
+
+        const [materials, reviews, lessons] = await Promise.all([
+            this.prisma.learningMaterial.findMany({
+                where: {
+                    creatorId: { in: teacherIds },
+                    publicationStatus: MaterialPublicationStatus.APPROVED,
+                },
+                select: { creatorId: true, category: true },
+            }),
+            this.prisma.review.findMany({
+                where: {
+                    teacherId: { in: teacherIds },
+                    publishedAt: { not: null },
+                    publishedRating: { not: null },
+                },
+                orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+                select: { teacherId: true, publishedRating: true },
+            }),
+            this.prisma.lesson.findMany({
+                where: {
+                    teacherId: { in: teacherIds },
+                    status: { in: [LessonStatus.COMPLETED, LessonStatus.CANCELLED] },
+                },
+                orderBy: [{ lessonDate: 'desc' }, { id: 'desc' }],
+                select: {
+                    id: true,
+                    teacherId: true,
+                    status: true,
+                    changeRequests: {
+                        where: {
+                            requestType: LessonChangeType.CANCEL,
+                            status: LessonChangeStatus.APPROVED,
+                        },
+                        select: { requestedRole: true },
+                    },
+                },
+            }),
+        ]);
+
+        for (const teacherId of teacherIds) {
+            const teacherLessons = lessons
+                .filter((lesson) => lesson.teacherId === teacherId)
+                .slice(0, 60);
+            let completed = 0;
+            let reliable = true;
+            for (const lesson of teacherLessons) {
+                if (lesson.status === LessonStatus.COMPLETED) {
+                    completed += 1;
+                    if (completed >= 30) break;
+                } else if (!lesson.changeRequests.some(
+                    (request) => request.requestedRole === UserRole.STUDENT,
+                )) {
+                    reliable = false;
+                    break;
+                }
+            }
+            result.set(teacherId, {
+                materialCategories: new Set(
+                    materials
+                        .filter((item) => item.creatorId === teacherId)
+                        .map((item) => item.category),
+                ),
+                recentRatings: reviews
+                    .filter((review) => review.teacherId === teacherId)
+                    .slice(0, 30)
+                    .map((review) => Number(review.publishedRating)),
+                reliable: reliable && completed >= 30,
+            });
+        }
+        return result;
+    }
+
     async getTeacher(
         user: SessionUser,
         teacherId: number,
+        requestedStudentId?: number,
     ): Promise<Record<string, unknown>> {
-        this.requireStudent(user);
+        this.requireSearchUser(user);
         const profile = await this.prisma.teacherProfile.findFirst({
             where: {
                 userId: teacherId,
@@ -162,6 +347,23 @@ export class TeachersService {
                                 { id: 'asc' },
                             ],
                         },
+                        teacherDocuments: {
+                            where: {
+                                status: TeacherDocumentStatus.APPROVED,
+                            },
+                            orderBy: [
+                                { sortOrder: 'asc' },
+                                { id: 'asc' },
+                            ],
+                            select: {
+                                id: true,
+                                type: true,
+                                documentTitle: true,
+                                institution: true,
+                                documentYear: true,
+                                checkedAt: true,
+                            },
+                        },
                         reviewsAsTeacher: {
                             where: {
                                 publishedAt: { not: null },
@@ -178,6 +380,31 @@ export class TeachersService {
                                 },
                             },
                         },
+                        accessibilityOffers: {
+                            where: {
+                                status: AccessibilityOfferStatus.APPROVED,
+                                archivedAt: null,
+                            },
+                            orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+                            include: {
+                                subjects: {
+                                    orderBy: { subject: { sortOrder: 'asc' } },
+                                    include: { subject: true },
+                                },
+                                applications: {
+                                    where: {
+                                        OR: [
+                                            { status: AccessibilityApplicationStatus.CONFIRMED },
+                                            {
+                                                status: AccessibilityApplicationStatus.ACCEPTED,
+                                                confirmationExpiresAt: { gt: new Date() },
+                                            },
+                                        ],
+                                    },
+                                    select: { id: true },
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -187,10 +414,22 @@ export class TeachersService {
             throw new NotFoundException('Преподаватель не найден');
         }
 
-        const [pending, active] = await Promise.all([
+        let applicantStudentId: number | null = null;
+        if (user.role === UserRole.STUDENT) {
+            applicantStudentId = user.id;
+        } else if (requestedStudentId) {
+            applicantStudentId = await this.resolveParentStudent(
+                this.prisma,
+                user,
+                requestedStudentId,
+            );
+        }
+
+        const [pending, active] = applicantStudentId
+            ? await Promise.all([
             this.prisma.teacherStudentRequest.findMany({
                 where: {
-                    studentId: user.id,
+                    studentId: applicantStudentId,
                     teacherId,
                     status: TeacherStudentRequestStatus.PENDING,
                 },
@@ -198,13 +437,14 @@ export class TeachersService {
             }),
             this.prisma.teacherStudent.findMany({
                 where: {
-                    studentId: user.id,
+                    studentId: applicantStudentId,
                     teacherId,
                     status: TeacherStudentStatus.ACTIVE,
                 },
                 select: { subjectId: true },
             }),
-        ]);
+            ])
+            : [[], []];
         const preparations = new Map<number, Array<Record<string, unknown>>>();
 
         for (const link of profile.user.teacherSubjectPreparations) {
@@ -236,8 +476,23 @@ export class TeachersService {
                 pricing_comment: profile.pricingComment,
                 trial_lesson_enabled: profile.trialLessonEnabled,
                 schedule_description: profile.scheduleDescription,
-                accessibility_enabled: profile.accessibilityEnabled,
+                accessibility_enabled: (profile.user.accessibilityOffers ?? [])
+                    .some((offer) => offer.applications.length < offer.slots),
                 accessibility_comment: profile.accessibilityComment,
+                accessibility_offers: (profile.user.accessibilityOffers ?? [])
+                    .filter((offer) => offer.applications.length < offer.slots)
+                    .map((offer) => ({
+                        id: offer.id,
+                        offer_type: offer.offerType.toLowerCase(),
+                        slots_available: offer.slots - offer.applications.length,
+                        discount_percent: offer.discountPercent,
+                        default_duration_months: offer.defaultDurationMonths,
+                        comment: offer.comment,
+                        subjects: offer.subjects.map((link) => ({
+                            id: link.subject.id,
+                            name: link.subject.name,
+                        })),
+                    })),
                 intro_video_url: profile.introVideoUrl,
                 is_verified: true,
                 rating: Number(profile.rating),
@@ -263,7 +518,14 @@ export class TeachersService {
                     description: item.description,
                     is_primary: item.isPrimary,
                 })),
-                documents: [],
+                documents: (profile.user.teacherDocuments ?? []).map((document) => ({
+                    id: document.id,
+                    type: document.type.toLowerCase(),
+                    document_title: document.documentTitle,
+                    institution: document.institution,
+                    document_year: document.documentYear,
+                    checked_at: document.checkedAt,
+                })),
                 reviews: profile.user.reviewsAsTeacher.map((review) => ({
                     id: review.id,
                     rating: review.publishedRating,
@@ -282,10 +544,20 @@ export class TeachersService {
         user: SessionUser,
         input: SendTeacherRequestDto,
     ): Promise<Record<string, unknown>> {
-        this.requireStudent(user);
+        this.requireSearchUser(user);
         const message = input.message?.trim() || null;
 
         return this.prisma.$transaction(async (transaction) => {
+            const studentId = user.role === UserRole.STUDENT
+                ? user.id
+                : await this.resolveParentStudent(
+                    transaction,
+                    user,
+                    input.student_id,
+                );
+            const applicantName = user.role === UserRole.PARENT
+                ? await this.studentName(transaction, studentId)
+                : user.fullName || 'Ученик';
             const teacher = await transaction.teacherProfile.findFirst({
                 where: {
                     userId: input.teacher_id,
@@ -328,7 +600,7 @@ export class TeachersService {
                 where: {
                     teacherId_studentId_subjectId: {
                         teacherId: input.teacher_id,
-                        studentId: user.id,
+                        studentId,
                         subjectId: input.subject_id,
                     },
                 },
@@ -344,7 +616,7 @@ export class TeachersService {
                 where: {
                     teacherId_studentId_subjectId: {
                         teacherId: input.teacher_id,
-                        studentId: user.id,
+                        studentId,
                         subjectId: input.subject_id,
                     },
                 },
@@ -357,7 +629,7 @@ export class TeachersService {
                     userId: input.teacher_id,
                     type: 'teacher_request',
                     title: 'Новая заявка на обучение',
-                    message: `${user.fullName || 'Ученик'} отправил(а) заявку по предмету «${subjectName}».`,
+                    message: `${applicantName} — заявка по предмету «${subjectName}»${user.role === UserRole.PARENT ? ` от родителя ${user.fullName || ''}` : ''}.`,
                     targetSection: 'students',
                     targetEntityType: 'teacher_request',
                     targetEntityId: existing.id,
@@ -378,7 +650,7 @@ export class TeachersService {
                 where: {
                     teacherId_studentId_subjectId: {
                         teacherId: input.teacher_id,
-                        studentId: user.id,
+                        studentId,
                         subjectId: input.subject_id,
                     },
                 },
@@ -388,7 +660,7 @@ export class TeachersService {
                 },
                 create: {
                     teacherId: input.teacher_id,
-                    studentId: user.id,
+                    studentId,
                     subjectId: input.subject_id,
                     message,
                 },
@@ -398,7 +670,7 @@ export class TeachersService {
                 userId: input.teacher_id,
                 type: 'teacher_request',
                 title: 'Новая заявка на обучение',
-                message: `${user.fullName || 'Ученик'} отправил(а) заявку по предмету «${subjectName}».`,
+                message: `${applicantName} — заявка по предмету «${subjectName}»${user.role === UserRole.PARENT ? ` от родителя ${user.fullName || ''}` : ''}.`,
                 targetSection: 'students',
                 targetEntityType: 'teacher_request',
                 targetEntityId: request.id,
@@ -416,12 +688,59 @@ export class TeachersService {
         }, { isolationLevel: 'Serializable' });
     }
 
-    private requireStudent(user: SessionUser): void {
-        if (user.role !== UserRole.STUDENT) {
+    private requireSearchUser(user: SessionUser): void {
+        if (user.role !== UserRole.STUDENT && user.role !== UserRole.PARENT) {
             throw new ForbiddenException(
-                'Раздел доступен только ученику',
+                'Поиск преподавателя доступен ученику или родителю',
             );
         }
+    }
+
+    private async resolveParentStudent(
+        database: PrismaService | Prisma.TransactionClient,
+        user: SessionUser,
+        requestedStudentId?: number,
+    ): Promise<number> {
+        if (user.role !== UserRole.PARENT || !requestedStudentId) {
+            throw new BadRequestException('Выберите ребёнка');
+        }
+
+        const child = await database.parentChildProfile.findFirst({
+            where: {
+                parentId: user.id,
+                studentId: requestedStudentId,
+                archivedAt: null,
+                verificationStatus: ParentChildVerificationStatus.VERIFIED,
+                student: {
+                    childLinks: {
+                        some: {
+                            parentId: user.id,
+                            status: ParentStudentStatus.ACTIVE,
+                        },
+                    },
+                },
+            },
+            select: { studentId: true },
+        });
+
+        if (!child?.studentId) {
+            throw new ForbiddenException(
+                'Ребёнок не подтверждён или не привязан',
+            );
+        }
+
+        return child.studentId;
+    }
+
+    private async studentName(
+        database: Prisma.TransactionClient,
+        studentId: number,
+    ): Promise<string> {
+        const student = await database.user.findUnique({
+            where: { id: studentId },
+            select: { fullName: true },
+        });
+        return student?.fullName || 'Ученик';
     }
 
     private minimumPrice(profile: {

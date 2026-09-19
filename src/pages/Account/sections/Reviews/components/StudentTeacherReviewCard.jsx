@@ -5,7 +5,7 @@ import {
 
 function getTeacherStatusText(relation) {
     if (!relation.can_review) {
-        return 'Отзыв станет доступен после первого проведённого урока';
+        return 'Отзыв станет доступен после трёх проведённых уроков';
     }
 
     return getReviewStatusText(relation.review);
@@ -15,7 +15,7 @@ function getTeacherActionText(relation) {
     const review = relation.review;
 
     if (!relation.can_review) {
-        return 'После урока';
+        return 'После 3 уроков';
     }
 
     if (!review) {
@@ -57,6 +57,10 @@ export function StudentTeacherReviewCard({
                 <strong>
                     {relation.teacher_name}
                 </strong>
+
+                {relation.child_name && (
+                    <small>Ребёнок: {relation.child_name}</small>
+                )}
 
                 <small>
                     {relation.subject_name}

@@ -4,10 +4,10 @@
     background-image:
         linear-gradient(
             180deg,
-            rgba(68, 39, 18, 0.03),
-            rgba(38, 21, 10, 0.08)
+            var(--gostudy-background-overlay-start),
+            var(--gostudy-background-overlay-end)
         ),
-        url('/images/home/gostudy-background-desktop.png');
+        var(--gostudy-background-image);
     background-size: cover;
     background-position: center;
 }

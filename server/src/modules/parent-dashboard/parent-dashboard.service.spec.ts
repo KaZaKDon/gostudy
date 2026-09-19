@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import {
+    afterEach,
     describe,
     expect,
     it,
@@ -29,6 +30,10 @@ const parent: SessionUser = {
 };
 
 describe('ParentDashboardService', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it('rejects access for a non-parent account', async () => {
         const service = new ParentDashboardService({} as PrismaService);
 
@@ -56,6 +61,9 @@ describe('ParentDashboardService', () => {
     });
 
     it('combines lessons, homework and published diary entries of children', async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-09-13T12:00:00.000Z'));
+
         const lessonDate = new Date('2026-09-12T12:00:00.000Z');
         const dueDate = new Date('2026-09-14T12:00:00.000Z');
         const publishedAt = new Date('2026-09-11T10:00:00.000Z');

@@ -247,6 +247,31 @@ export async function downloadAuthFile(url, fileName = 'file') {
     URL.revokeObjectURL(objectUrl);
 }
 
+export async function openAuthFile(url) {
+    const preview = window.open('about:blank', '_blank');
+    if (preview) preview.opener = null;
+
+    try {
+        const blob = await fetchAuthFileBlob(url);
+        const objectUrl = URL.createObjectURL(blob);
+
+        if (preview) {
+            preview.location.replace(objectUrl);
+        } else {
+            const link = document.createElement('a');
+            link.href = objectUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.click();
+        }
+
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch (error) {
+        preview?.close();
+        throw error;
+    }
+}
+
 export function formatFileSize(bytes) {
     const size = Number(bytes || 0);
 

@@ -39,6 +39,7 @@ export function TeacherProfileDetails({ teacherData }) {
     const preparations = teacherData.subject_preparations || [];
     const ageGroups = teacherData.age_groups || [];
     const education = teacherData.education || [];
+    const documents = teacherData.documents || [];
     const students = teacherData.students || [];
 
     return (
@@ -228,6 +229,29 @@ export function TeacherProfileDetails({ teacherData }) {
                                     {[item.qualification, item.graduation_year]
                                         .filter(Boolean)
                                         .join(' · ') || '—'}
+                                </small>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <section className="teacher-view__section">
+                <h4>Документы</h4>
+                {documents.length === 0 ? (
+                    <p className="teacher-view__muted">Не загружены.</p>
+                ) : (
+                    <div className="teacher-view__cards">
+                        {documents.map((document) => (
+                            <article className="teacher-view__card" key={document.id}>
+                                <strong>{document.document_title}</strong>
+                                <span>{document.original_name}</span>
+                                <small>
+                                    {document.status === 'approved'
+                                        ? 'Подтверждён'
+                                        : document.status === 'rejected'
+                                            ? `Отклонён${document.reject_reason ? `: ${document.reject_reason}` : ''}`
+                                            : 'На проверке'}
                                 </small>
                             </article>
                         ))}

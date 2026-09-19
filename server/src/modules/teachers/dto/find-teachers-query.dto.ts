@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+    IsIn,
     IsInt,
     IsOptional,
     IsString,
@@ -13,6 +14,16 @@ export class FindTeachersQueryDto {
     @IsString()
     @MaxLength(100)
     search?: string;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    subject_id?: number;
+
+    @IsOptional()
+    @IsIn(['true'])
+    accessible_only?: 'true';
 
     @IsOptional()
     @Type(() => Number)

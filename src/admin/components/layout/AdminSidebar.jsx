@@ -35,6 +35,10 @@ const navigationGroups = [
             label: 'Документы',
             to: '/admin/documents',
         },
+        {
+            label: 'Фото и видео',
+            to: '/admin/profile-media',
+        },
     ],
     [
         {
@@ -68,6 +72,10 @@ const navigationGroups = [
             to: '/admin/reviews',
         },
         {
+            label: 'Доступное образование',
+            to: '/admin/accessibility',
+        },
+        {
             label: 'Материалы',
             to: '/admin/materials',
         },
@@ -77,6 +85,10 @@ const navigationGroups = [
         },
     ],
     [
+        {
+            label: 'Тарифы',
+            to: '/admin/tariffs',
+        },
         {
             label: 'Финансы',
             to: '/admin/payments',

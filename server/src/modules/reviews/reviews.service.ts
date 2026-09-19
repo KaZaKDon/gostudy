@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     ConflictException,
     ForbiddenException,
     Injectable,
@@ -9,6 +10,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
 import {
     LessonStatus,
+    ParentStudentStatus,
     ReviewReplyStatus,
     ReviewStatus,
     TeacherStudentStatus,
@@ -25,7 +27,21 @@ export class ReviewsService {
 
     async list(user: SessionUser, query: ListReviewsQueryDto) {
         if (user.role === UserRole.STUDENT) {
-            return this.listStudentRelations(user.id);
+            return this.listReviewRelations([user.id]);
+        }
+        if (user.role === UserRole.PARENT) {
+            const links = await this.prisma.parentStudent.findMany({
+                where: {
+                    parentId: user.id,
+                    status: ParentStudentStatus.ACTIVE,
+                },
+                select: { studentId: true },
+            });
+
+            return this.listReviewRelations(
+                links.map((link) => link.studentId),
+                true,
+            );
         }
         if (user.role === UserRole.TEACHER) {
             return this.listTeacherReviews(user.id, query);
@@ -35,13 +51,13 @@ export class ReviewsService {
     }
 
     async save(user: SessionUser, input: SaveReviewDto) {
-        this.requireStudent(user);
         const text = input.text.trim();
+        const studentId = await this.resolveReviewStudent(user, input.child_id);
 
         const relation = await this.prisma.teacherStudent.findFirst({
             where: {
                 id: input.relation_id,
-                studentId: user.id,
+                studentId,
                 status: { in: [TeacherStudentStatus.ACTIVE, TeacherStudentStatus.ARCHIVED] },
             },
             select: {
@@ -59,18 +75,23 @@ export class ReviewsService {
             where: {
                 teacherId: relation.teacherId,
                 studentId: relation.studentId,
-                subjectId: relation.subjectId,
                 status: LessonStatus.COMPLETED,
             },
         });
-        if (completedLessons === 0) {
-            throw new ConflictException('Отзыв можно оставить после первого проведённого урока');
+        if (completedLessons < 3) {
+            throw new ConflictException('Отзыв можно оставить после трёх проведённых уроков');
         }
 
         const review = await this.prisma.review.upsert({
-            where: { teacherStudentId: relation.id },
+            where: {
+                teacherId_studentId: {
+                    teacherId: relation.teacherId,
+                    studentId: relation.studentId,
+                },
+            },
             create: {
                 studentId: relation.studentId,
+                submittedById: user.id,
                 teacherId: relation.teacherId,
                 teacherStudentId: relation.id,
                 subjectId: relation.subjectId,
@@ -79,6 +100,9 @@ export class ReviewsService {
                 status: ReviewStatus.PENDING,
             },
             update: {
+                submittedById: user.id,
+                teacherStudentId: relation.id,
+                subjectId: relation.subjectId,
                 rating: input.rating,
                 text,
                 status: ReviewStatus.PENDING,
@@ -151,63 +175,145 @@ export class ReviewsService {
         });
     }
 
-    private async listStudentRelations(studentId: number) {
-        const [relations, completedLessons] = await Promise.all([
+    private async listReviewRelations(
+        studentIds: number[],
+        includeChild = false,
+    ) {
+        if (!studentIds.length) {
+            return {
+                success: true,
+                relations: [],
+                summary: { rating: 0, reviews_count: 0 },
+                pagination: { page: 1, limit: 0, total: 0, pages: 0 },
+            };
+        }
+
+        const [relations, completedLessons, reviews] = await Promise.all([
             this.prisma.teacherStudent.findMany({
                 where: {
-                    studentId,
+                    studentId: { in: studentIds },
                     status: { in: [TeacherStudentStatus.ACTIVE, TeacherStudentStatus.ARCHIVED] },
                 },
-                orderBy: [{ status: 'asc' }, { teacher: { fullName: 'asc' } }, { subject: { name: 'asc' } }],
+                orderBy: [
+                    { student: { fullName: 'asc' } },
+                    { status: 'asc' },
+                    { teacher: { fullName: 'asc' } },
+                    { subject: { name: 'asc' } },
+                ],
                 include: {
                     teacher: { select: { fullName: true, avatarUrl: true } },
+                    student: { select: { fullName: true } },
                     subject: { select: { name: true } },
-                    review: true,
                 },
             }),
             this.prisma.lesson.groupBy({
-                by: ['teacherId', 'subjectId'],
+                by: ['teacherId', 'studentId'],
                 where: {
-                    studentId,
+                    studentId: { in: studentIds },
                     status: LessonStatus.COMPLETED,
-                    subjectId: { not: null },
                 },
                 _count: { _all: true },
+            }),
+            this.prisma.review.findMany({
+                where: { studentId: { in: studentIds } },
             }),
         ]);
         const lessonCounts = new Map(
             completedLessons.map((item) => [
-                `${item.teacherId}:${item.subjectId}`,
+                `${item.studentId}:${item.teacherId}`,
                 item._count._all,
             ]),
         );
+        const reviewsByPair = new Map(
+            reviews.map((review) => [
+                `${review.studentId}:${review.teacherId}`,
+                review,
+            ]),
+        );
+        const grouped = new Map<string, Array<(typeof relations)[number]>>();
+
+        for (const relation of relations) {
+            const key = `${relation.studentId}:${relation.teacherId}`;
+            const items = grouped.get(key) ?? [];
+            items.push(relation);
+            grouped.set(key, items);
+        }
+
+        const serialized = Array.from(grouped.entries()).map(([key, items]) => {
+            const primary = items.find(
+                (item) => item.status === TeacherStudentStatus.ACTIVE,
+            ) ?? items[0];
+            const completedLessonsCount = lessonCounts.get(key) ?? 0;
+            const review = reviewsByPair.get(key) ?? null;
+            const subjectNames = [...new Set(
+                items.map((item) => item.subject.name),
+            )];
+
+            return {
+                relation_id: primary.id,
+                teacher_id: primary.teacherId,
+                teacher_name: primary.teacher.fullName || 'Преподаватель',
+                teacher_photo_url: primary.teacher.avatarUrl,
+                subject_id: primary.subjectId,
+                subject_name: subjectNames.join(', '),
+                relation_status: items.some(
+                    (item) => item.status === TeacherStudentStatus.ACTIVE,
+                ) ? 'active' : 'archived',
+                started_at: primary.startedAt,
+                completed_lessons_count: completedLessonsCount,
+                can_review: completedLessonsCount >= 3,
+                child_id: includeChild ? primary.studentId : undefined,
+                child_name: includeChild
+                    ? primary.student.fullName || 'Ребёнок'
+                    : undefined,
+                review: review
+                    ? this.serializeStudentReview(review)
+                    : null,
+            };
+        });
 
         return {
             success: true,
-            relations: relations.map((relation) => {
-                const completedLessonsCount = lessonCounts.get(
-                    `${relation.teacherId}:${relation.subjectId}`,
-                ) ?? 0;
-
-                return {
-                    relation_id: relation.id,
-                    teacher_id: relation.teacherId,
-                    teacher_name: relation.teacher.fullName || 'Преподаватель',
-                    teacher_photo_url: relation.teacher.avatarUrl,
-                    subject_id: relation.subjectId,
-                    subject_name: relation.subject.name,
-                    relation_status: relation.status.toLowerCase(),
-                    started_at: relation.startedAt,
-                    completed_lessons_count: completedLessonsCount,
-                    can_review: completedLessonsCount > 0,
-                    review: relation.review
-                        ? this.serializeStudentReview(relation.review)
-                        : null,
-                };
-            }),
+            relations: serialized,
             summary: { rating: 0, reviews_count: 0 },
-            pagination: { page: 1, limit: relations.length, total: relations.length, pages: relations.length ? 1 : 0 },
+            pagination: {
+                page: 1,
+                limit: serialized.length,
+                total: serialized.length,
+                pages: serialized.length ? 1 : 0,
+            },
         };
+    }
+
+    private async resolveReviewStudent(
+        user: SessionUser,
+        childId?: number,
+    ): Promise<number> {
+        if (user.role === UserRole.STUDENT) {
+            return user.id;
+        }
+        if (user.role !== UserRole.PARENT) {
+            throw new ForbiddenException(
+                'Оставить отзыв может ученик или его родитель',
+            );
+        }
+        if (!childId) {
+            throw new BadRequestException('Выберите ребёнка');
+        }
+
+        const link = await this.prisma.parentStudent.findFirst({
+            where: {
+                parentId: user.id,
+                studentId: childId,
+                status: ParentStudentStatus.ACTIVE,
+            },
+            select: { studentId: true },
+        });
+        if (!link) {
+            throw new ForbiddenException('Связь с ребёнком не подтверждена');
+        }
+
+        return link.studentId;
     }
 
     private async listTeacherReviews(teacherId: number, query: ListReviewsQueryDto) {
@@ -279,12 +385,6 @@ export class ReviewsService {
             reply_status: review.replyStatus.toLowerCase(),
             updated_at: review.updatedAt,
         };
-    }
-
-    private requireStudent(user: SessionUser): void {
-        if (user.role !== UserRole.STUDENT) {
-            throw new ForbiddenException('Оставить отзыв может только ученик');
-        }
     }
 
     private requireTeacher(user: SessionUser): void {

@@ -61,6 +61,10 @@ export function useAdminReviews() {
         }
     }, [queryParams]);
 
+    const refreshReviews = useCallback(() => (
+        loadReviews(queryParams)
+    ), [loadReviews, queryParams]);
+
     useEffect(() => {
         const timerId = window.setTimeout(() => {
             loadReviews(queryParams);
@@ -160,7 +164,7 @@ export function useAdminReviews() {
         updateFilters,
         resetFilters,
         changePage,
-        refresh: loadReviews,
+        refresh: refreshReviews,
         openReview,
         closeReview,
         moderateReview,

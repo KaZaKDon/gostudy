@@ -41,7 +41,10 @@ export function ReviewsToolbar({
                         Сбросить
                     </Button>
 
-                    <Button variant="primary" onClick={onRefresh}>
+                    <Button
+                        variant="primary"
+                        onClick={() => onRefresh()}
+                    >
                         Обновить
                     </Button>
                 </>

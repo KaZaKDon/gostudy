@@ -1,5 +1,6 @@
 import {
     IsInt,
+    IsOptional,
     IsString,
     Max,
     MaxLength,
@@ -11,6 +12,11 @@ export class SaveReviewDto {
     @IsInt()
     @Min(1)
     relation_id: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    child_id?: number;
 
     @IsInt()
     @Min(1)

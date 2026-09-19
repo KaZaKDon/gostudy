@@ -243,7 +243,7 @@ export class AdminReviewsService {
                 dedupeKey: `review-published:${review.id}`,
             });
             await this.notifications.create(transaction, {
-                userId: review.studentId,
+                userId: review.submittedById,
                 type: 'review_approved',
                 title: 'Ваш отзыв опубликован',
                 message: `${review.teacher.fullName || 'Преподаватель'} · ${subjectName}`,
@@ -256,7 +256,7 @@ export class AdminReviewsService {
         }
 
         await this.notifications.create(transaction, {
-            userId: review.studentId,
+            userId: review.submittedById,
             type: 'review_rejected',
             title: 'Отзыв нужно исправить',
             message: comment.slice(0, 500),
@@ -276,7 +276,7 @@ export class AdminReviewsService {
         const subjectName = review.subject.name || 'Занятия';
         if (decision === 'approved') {
             await this.notifications.create(transaction, {
-                userId: review.studentId,
+                userId: review.submittedById,
                 type: 'review_reply_published',
                 title: 'Преподаватель ответил на отзыв',
                 message: `${review.teacher.fullName || 'Преподаватель'} · ${subjectName}`,

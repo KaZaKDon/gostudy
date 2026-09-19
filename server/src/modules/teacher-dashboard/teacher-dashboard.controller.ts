@@ -14,4 +14,9 @@ export class TeacherDashboardController {
     stats(@CurrentUser() user: SessionUser) {
         return this.dashboard.stats(user);
     }
+
+    @Get('rating')
+    rating(@CurrentUser() user: SessionUser) {
+        return this.dashboard.rating(user);
+    }
 }

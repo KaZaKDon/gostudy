@@ -61,6 +61,10 @@ import {
 import { MaterialsPage } from './pages/Materials/MaterialsPage.jsx';
 import { MessagesPage } from './pages/Messages/MessagesPage.jsx';
 import { ParentChildrenAdminPage } from './pages/ParentChildren/ParentChildrenAdminPage.jsx';
+import { AccessibilityOffersPage } from './pages/Accessibility/AccessibilityOffersPage.jsx';
+import { TariffsAdminPage } from './pages/Tariffs/TariffsAdminPage.jsx';
+import { DocumentsPage } from './pages/Documents/DocumentsPage.jsx';
+import { ProfileMediaPage } from './pages/ProfileMedia/ProfileMediaPage.jsx';
 
 export function AdminApp() {
     return (
@@ -119,8 +123,23 @@ export function AdminApp() {
                         />
 
                         <Route
+                            path="documents"
+                            element={<DocumentsPage />}
+                        />
+
+                        <Route
+                            path="profile-media"
+                            element={<ProfileMediaPage />}
+                        />
+
+                        <Route
                             path="reviews"
                             element={<ReviewsPage />}
+                        />
+
+                        <Route
+                            path="accessibility"
+                            element={<AccessibilityOffersPage />}
                         />
 
                         <Route
@@ -131,6 +150,11 @@ export function AdminApp() {
                         <Route
                             path="messages"
                             element={<MessagesPage />}
+                        />
+
+                        <Route
+                            path="tariffs"
+                            element={<TariffsAdminPage />}
                         />
 
                         <Route

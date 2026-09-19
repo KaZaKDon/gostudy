@@ -13,7 +13,7 @@ RewriteRule ^(?:api|uploads)(?:/|$) - [L]
 
 # Разрешённые маршруты React-приложения.
 RewriteRule ^$ index.html [L]
-RewriteRule ^(?:login|register|password-reset|profile-start|account|agreement|privacy|rules|verify-email)/?$ index.html [L]
+RewriteRule ^(?:about|students|teachers|pricing|login|register|password-reset|profile-start|account|agreement|privacy|rules|verify-email)/?$ index.html [L]
 RewriteRule ^classroom/[1-9][0-9]*/?$ index.html [L]
 RewriteRule ^admin(?:/.*)?$ index.html [L]
 
@@ -21,7 +21,7 @@ RewriteRule ^admin(?:/.*)?$ index.html [L]
 RewriteRule ^ 404.php [L]
 
 <IfModule mod_setenvif.c>
-    SetEnvIf Request_URI "^/(?:login|register|password-reset|profile-start|account|classroom(?:/|$)|admin(?:/|$)|verify-email(?:/|$)|api(?:/|$)|uploads(?:/|$))" gostudy_noindex=1
+    SetEnvIf Request_URI "^/(?:about(?:/|$)|students(?:/|$)|teachers(?:/|$)|pricing(?:/|$)|login|register|password-reset|profile-start|account|classroom(?:/|$)|admin(?:/|$)|verify-email(?:/|$)|api(?:/|$)|uploads(?:/|$))" gostudy_noindex=1
 </IfModule>
 
 <IfModule mod_headers.c>

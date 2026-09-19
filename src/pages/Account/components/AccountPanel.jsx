@@ -14,10 +14,13 @@ import { NotificationsMenu } from '../sections/Notifications/NotificationsMenu.j
 import { ParentChildrenSection } from '../sections/ParentChildren/ParentChildrenSection.jsx';
 import { ParentDashboard } from '../sections/ParentDashboard/ParentDashboard.jsx';
 import { StudentFamilySection } from '../sections/StudentFamily/StudentFamilySection.jsx';
+import { TeacherRatingDashboard } from '../sections/TeacherRating/TeacherRatingDashboard.jsx';
+import { AccessibilitySection } from '../sections/Accessibility/AccessibilitySection.jsx';
 
 export function AccountPanel({
     title,
     stats,
+    teacherRatingController,
     role,
     user,
     profile,
@@ -25,6 +28,7 @@ export function AccountPanel({
     documents,
     identity,
     activeSection,
+    accessibilityTab,
     materialsController,
     homeworkController,
     targetHomeworkId,
@@ -58,11 +62,15 @@ export function AccountPanel({
 }) {
     const isTeacherStudentsSection =
         role === 'teacher' && activeSection === 'students';
+    const isTeacherDashboard =
+        role === 'teacher' && activeSection === 'dashboard';
     const isParentDashboard =
         role === 'parent' && activeSection === 'dashboard';
 
     const isScheduleSection = activeSection === 'schedule';
     const isMaterialsSection = activeSection === 'materials';
+    const isAccessibilitySection =
+        role === 'teacher' && activeSection === 'accessibility';
     const isHomeworkSection = activeSection === 'homework';
     const isJournalSection = activeSection === 'journal';
     const isDiarySection = activeSection === 'diary';
@@ -120,6 +128,7 @@ export function AccountPanel({
                 !isTeacherStudentsSection &&
                 !isScheduleSection &&
                 !isMaterialsSection &&
+                !isAccessibilitySection &&
                 !isHomeworkSection &&
                 !isJournalSection &&
                 !isDiarySection &&
@@ -148,6 +157,10 @@ export function AccountPanel({
                     onOpenHomework={onOpenHomework}
                     onOpenDiary={onOpenParentDiary}
                 />
+            ) : isTeacherDashboard ? (
+                <TeacherRatingDashboard
+                    controller={teacherRatingController}
+                />
             ) : activeSection === 'classroom' ? (
                 <ClassroomTodaySection
                     role={role}
@@ -175,6 +188,11 @@ export function AccountPanel({
                 <MaterialsSection
                     role={role}
                     controller={materialsController}
+                />
+            ) : isAccessibilitySection ? (
+                <AccessibilitySection
+                    key={accessibilityTab}
+                    initialTab={accessibilityTab}
                 />
             ) : isHomeworkSection ? (
                 <HomeworkSection
@@ -223,6 +241,7 @@ export function AccountPanel({
                 />
             ) : isFindTeacherSection ? (
                 <FindTeacherSection
+                    role={role}
                     onRequestSent={onTeacherRequestSent}
                 />
             ) : role === 'parent' && activeSection === 'children' ? (

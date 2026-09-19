@@ -494,7 +494,6 @@ export class ProfileService {
                 accessibilityComment: input.accessibility_enabled
                     ? this.nullable(input.accessibility_comment)
                     : null,
-                introVideoUrl: this.nullable(input.intro_video_url),
                 usesAuthorMaterials: input.uses_author_materials,
                 sellsAuthorMaterials: input.sells_author_materials,
                 authorMaterialsDescription: input.uses_author_materials
@@ -582,7 +581,6 @@ export class ProfileService {
                 where: { id: user.id },
                 data: {
                     fullName: `${firstName} ${lastName}`,
-                    avatarUrl: this.nullable(input.photo_url),
                     profileCompleted: true,
                 },
                 select: {
@@ -620,7 +618,15 @@ export class ProfileService {
     private async getTeacherMe(
         user: SessionUser,
     ): Promise<Record<string, unknown>> {
-        const [profile, subjects, preparations, ageGroups, education] = await Promise.all([
+        const [
+            profile,
+            subjects,
+            preparations,
+            ageGroups,
+            education,
+            documents,
+            profileMedia,
+        ] = await Promise.all([
             this.prisma.teacherProfile.findUnique({ where: { userId: user.id } }),
             this.prisma.teacherSubject.findMany({
                 where: { teacherId: user.id },
@@ -639,6 +645,17 @@ export class ProfileService {
             this.prisma.teacherEducation.findMany({
                 where: { teacherId: user.id },
                 orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+            }),
+            this.prisma.teacherDocument.findMany({
+                where: { teacherId: user.id },
+                orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+            }),
+            this.prisma.teacherProfileMedia.findMany({
+                where: {
+                    teacherId: user.id,
+                    status: { not: 'REPLACED' },
+                },
+                orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
             }),
         ]);
         const preparationIdsBySubject = new Map<number, number[]>();
@@ -674,7 +691,10 @@ export class ProfileService {
             })),
             age_group_ids: ageGroups.map((item) => item.ageGroupId),
             education: education.map((item) => this.educationToApi(item)),
-            documents: [],
+            documents: documents.map((item) => this.teacherDocumentToApi(item)),
+            profile_media: profileMedia.map(
+                (item) => this.teacherProfileMediaToApi(item),
+            ),
         };
     }
 
@@ -852,6 +872,51 @@ export class ProfileService {
             description: value.description,
             is_primary: value.isPrimary,
             sort_order: value.sortOrder,
+            created_at: value.createdAt,
+            updated_at: value.updatedAt,
+        };
+    }
+
+    private teacherDocumentToApi(
+        item: Record<string, unknown>,
+    ): Record<string, unknown> {
+        const value = item as Record<string, any>;
+
+        return {
+            id: value.id,
+            teacher_id: value.teacherId,
+            education_id: value.educationId,
+            type: String(value.type).toLowerCase(),
+            document_title: value.documentTitle,
+            institution: value.institution,
+            document_year: value.documentYear,
+            original_name: value.originalName,
+            mime_type: value.mimeType,
+            file_size: Number(value.fileSize),
+            status: String(value.status).toLowerCase(),
+            reject_reason: value.rejectionReason,
+            checked_at: value.checkedAt,
+            created_at: value.createdAt,
+            updated_at: value.updatedAt,
+        };
+    }
+
+    private teacherProfileMediaToApi(
+        item: Record<string, unknown>,
+    ): Record<string, unknown> {
+        const value = item as Record<string, any>;
+
+        return {
+            id: value.id,
+            teacher_id: value.teacherId,
+            type: String(value.type).toLowerCase(),
+            original_name: value.originalName,
+            mime_type: value.mimeType,
+            file_size: Number(value.fileSize),
+            status: String(value.status).toLowerCase(),
+            reject_reason: value.rejectionReason,
+            checked_at: value.checkedAt,
+            published_at: value.publishedAt,
             created_at: value.createdAt,
             updated_at: value.updatedAt,
         };

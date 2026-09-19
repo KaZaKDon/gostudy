@@ -22,6 +22,12 @@ enum UserStatus {
   DELETED
 }
 
+enum TariffPublicationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 enum LegalAcceptanceType {
   PLATFORM_DOCUMENTS
   PERSONAL_DATA
@@ -40,6 +46,53 @@ enum TeacherVerificationStatus {
   PENDING
   VERIFIED
   REJECTED
+}
+
+enum TeacherDocumentType {
+  DIPLOMA
+  CERTIFICATE
+  QUALIFICATION
+  OTHER
+}
+
+enum TeacherDocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TeacherProfileMediaType {
+  PHOTO
+  VIDEO
+}
+
+enum TeacherProfileMediaStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REPLACED
+}
+
+enum AccessibilityOfferType {
+  FREE
+  DISCOUNT
+  INDIVIDUAL
+}
+
+enum AccessibilityOfferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum AccessibilityApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CONFIRMED
+  WITHDRAWN
+  EXPIRED
 }
 
 enum LessonStatus {
@@ -205,82 +258,94 @@ enum MessageReportStatus {
 }
 
 model User {
-  id                          Int                         @id @default(autoincrement())
-  role                        UserRole
-  email                       String                      @unique @db.VarChar(320)
-  passwordHash                String                      @map("password_hash") @db.VarChar(255)
-  fullName                    String?                     @map("full_name") @db.VarChar(255)
-  phone                       String?                     @db.VarChar(40)
-  avatarUrl                   String?                     @map("avatar_url") @db.Text
-  status                      UserStatus                  @default(ACTIVE)
-  blockedReason               String?                     @map("blocked_reason") @db.VarChar(1000)
-  archivedAt                  DateTime?                   @map("archived_at") @db.Timestamptz(3)
-  archivedById                Int?                        @map("archived_by")
-  archiveReason               String?                     @map("archive_reason") @db.VarChar(1000)
-  emailVerifiedAt             DateTime?                   @map("email_verified_at")
-  emailVerificationTokenHash  String?                     @unique @map("email_verification_token_hash") @db.Char(64)
-  emailVerificationExpiresAt  DateTime?                   @map("email_verification_expires_at")
-  emailVerificationSentAt     DateTime?                   @map("email_verification_sent_at")
-  profileCompleted            Boolean                     @default(false) @map("profile_completed")
-  lastLoginAt                 DateTime?                   @map("last_login_at")
-  createdAt                   DateTime                    @default(now()) @map("created_at")
-  updatedAt                   DateTime                    @updatedAt @map("updated_at")
-  studentProfile              StudentProfile?
-  teacherProfile              TeacherProfile?
-  sessions                    AuthSession[]
-  passwordResetTokens         PasswordResetToken[]
-  legalAcceptances            LegalAcceptance[]
-  teacherSubjects             TeacherSubject[]            @relation("TeacherSubjects")
-  teacherSubjectPreparations  TeacherSubjectPreparation[] @relation("TeacherSubjectPreparations")
-  teacherAgeGroups            TeacherAgeGroup[]           @relation("TeacherAgeGroups")
-  teacherEducation            TeacherEducation[]          @relation("TeacherEducation")
-  lessonsAsTeacher            Lesson[]                    @relation("LessonTeacher")
-  lessonsAsStudent            Lesson[]                    @relation("LessonStudent")
-  lessonSessionsStarted       LessonSession[]             @relation("LessonSessionStarter")
-  lessonSessionsEnded         LessonSession[]             @relation("LessonSessionEnder")
-  lessonMessages              LessonMessage[]
-  lessonFiles                 LessonFile[]                @relation("LessonFileUploader")
-  lessonWorkspaceUpdates      LessonWorkspaceState[]      @relation("LessonWorkspaceUpdater")
-  lessonBoardStrokes          LessonBoardStroke[]         @relation("LessonBoardAuthor")
-  lessonBoardTexts            LessonBoardText[]           @relation("LessonBoardTextAuthor")
-  homeworkAssigned            Homework[]                  @relation("HomeworkTeacher")
-  homeworkReceived            Homework[]                  @relation("HomeworkStudent")
-  homeworkSubmissions         HomeworkSubmission[]
-  lessonChangesRequested      LessonChangeRequest[]       @relation("LessonChangeRequester")
-  lessonChangesResponded      LessonChangeRequest[]       @relation("LessonChangeResponder")
-  teachingRelations           TeacherStudent[]            @relation("TeacherStudentTeacher")
-  learningRelations           TeacherStudent[]            @relation("TeacherStudentStudent")
-  teachingRequests            TeacherStudentRequest[]     @relation("TeacherRequestTeacher")
-  learningRequests            TeacherStudentRequest[]     @relation("TeacherRequestStudent")
-  notifications               Notification[]
-  archivedBy                  User?                       @relation("UserArchiveActor", fields: [archivedById], references: [id], onDelete: SetNull)
-  archivedUsers               User[]                      @relation("UserArchiveActor")
-  adminAuditLogs              AdminAuditLog[]             @relation("AdminAuditActor")
-  verifiedTeacherProfiles     TeacherProfile[]            @relation("TeacherProfileVerifier")
-  reviewsAsStudent            Review[]                    @relation("ReviewStudent")
-  reviewsAsTeacher            Review[]                    @relation("ReviewTeacher")
-  reviewsModerated            Review[]                    @relation("ReviewModerator")
-  repliesModerated            Review[]                    @relation("ReviewReplyModerator")
-  materialsCreated            LearningMaterial[]          @relation("MaterialCreator")
-  materialsModerated          LearningMaterial[]          @relation("MaterialModerator")
-  materialAssignmentsGiven    MaterialAssignment[]        @relation("MaterialAssignmentTeacher")
-  materialAssignmentsReceived MaterialAssignment[]        @relation("MaterialAssignmentStudent")
-  materialAccessGrants        MaterialAccessGrant[]       @relation("MaterialGrantRecipient")
-  materialAccessGranted       MaterialAccessGrant[]       @relation("MaterialGrantActor")
-  materialReports             MaterialReport[]            @relation("MaterialReporter")
-  materialReportsHandled      MaterialReport[]            @relation("MaterialReportHandler")
-  parentLinks                 ParentStudent[]             @relation("ParentStudentParent")
-  childLinks                  ParentStudent[]             @relation("ParentStudentChild")
-  managedChildProfiles        ParentChildProfile[]        @relation("ParentChildProfileParent")
-  linkedChildProfile          ParentChildProfile?         @relation("ParentChildProfileStudent")
-  parentLinkRequests          ParentStudentLinkRequest[]  @relation("ParentStudentLinkRequestStudent")
-  messageDialogsAsTeacher     MessageDialog[]             @relation("MessageDialogTeacher")
-  messageDialogsAsStudent     MessageDialog[]             @relation("MessageDialogStudent")
-  messageDialogsAsParent      MessageDialog[]             @relation("MessageDialogParent")
-  messagesSent                Message[]
-  messagesHidden              Message[]                   @relation("MessageHiddenBy")
-  messageReports              MessageReport[]             @relation("MessageReporter")
-  messageReportsHandled       MessageReport[]             @relation("MessageReportHandler")
+  id                                 Int                         @id @default(autoincrement())
+  role                               UserRole
+  email                              String                      @unique @db.VarChar(320)
+  passwordHash                       String                      @map("password_hash") @db.VarChar(255)
+  fullName                           String?                     @map("full_name") @db.VarChar(255)
+  phone                              String?                     @db.VarChar(40)
+  avatarUrl                          String?                     @map("avatar_url") @db.Text
+  status                             UserStatus                  @default(ACTIVE)
+  blockedReason                      String?                     @map("blocked_reason") @db.VarChar(1000)
+  archivedAt                         DateTime?                   @map("archived_at") @db.Timestamptz(3)
+  archivedById                       Int?                        @map("archived_by")
+  archiveReason                      String?                     @map("archive_reason") @db.VarChar(1000)
+  emailVerifiedAt                    DateTime?                   @map("email_verified_at")
+  emailVerificationTokenHash         String?                     @unique @map("email_verification_token_hash") @db.Char(64)
+  emailVerificationExpiresAt         DateTime?                   @map("email_verification_expires_at")
+  emailVerificationSentAt            DateTime?                   @map("email_verification_sent_at")
+  profileCompleted                   Boolean                     @default(false) @map("profile_completed")
+  lastLoginAt                        DateTime?                   @map("last_login_at")
+  createdAt                          DateTime                    @default(now()) @map("created_at")
+  updatedAt                          DateTime                    @updatedAt @map("updated_at")
+  studentProfile                     StudentProfile?
+  teacherProfile                     TeacherProfile?
+  sessions                           AuthSession[]
+  passwordResetTokens                PasswordResetToken[]
+  legalAcceptances                   LegalAcceptance[]
+  teacherSubjects                    TeacherSubject[]            @relation("TeacherSubjects")
+  teacherSubjectPreparations         TeacherSubjectPreparation[] @relation("TeacherSubjectPreparations")
+  teacherAgeGroups                   TeacherAgeGroup[]           @relation("TeacherAgeGroups")
+  teacherEducation                   TeacherEducation[]          @relation("TeacherEducation")
+  teacherDocuments                   TeacherDocument[]           @relation("TeacherDocuments")
+  teacherDocumentsChecked            TeacherDocument[]           @relation("TeacherDocumentChecker")
+  teacherProfileMedia                TeacherProfileMedia[]       @relation("TeacherProfileMediaTeacher")
+  teacherProfileMediaChecked         TeacherProfileMedia[]       @relation("TeacherProfileMediaChecker")
+  lessonsAsTeacher                   Lesson[]                    @relation("LessonTeacher")
+  lessonsAsStudent                   Lesson[]                    @relation("LessonStudent")
+  lessonSessionsStarted              LessonSession[]             @relation("LessonSessionStarter")
+  lessonSessionsEnded                LessonSession[]             @relation("LessonSessionEnder")
+  lessonMessages                     LessonMessage[]
+  lessonFiles                        LessonFile[]                @relation("LessonFileUploader")
+  lessonWorkspaceUpdates             LessonWorkspaceState[]      @relation("LessonWorkspaceUpdater")
+  lessonBoardStrokes                 LessonBoardStroke[]         @relation("LessonBoardAuthor")
+  lessonBoardTexts                   LessonBoardText[]           @relation("LessonBoardTextAuthor")
+  homeworkAssigned                   Homework[]                  @relation("HomeworkTeacher")
+  homeworkReceived                   Homework[]                  @relation("HomeworkStudent")
+  homeworkSubmissions                HomeworkSubmission[]
+  lessonChangesRequested             LessonChangeRequest[]       @relation("LessonChangeRequester")
+  lessonChangesResponded             LessonChangeRequest[]       @relation("LessonChangeResponder")
+  teachingRelations                  TeacherStudent[]            @relation("TeacherStudentTeacher")
+  learningRelations                  TeacherStudent[]            @relation("TeacherStudentStudent")
+  teachingRequests                   TeacherStudentRequest[]     @relation("TeacherRequestTeacher")
+  learningRequests                   TeacherStudentRequest[]     @relation("TeacherRequestStudent")
+  notifications                      Notification[]
+  archivedBy                         User?                       @relation("UserArchiveActor", fields: [archivedById], references: [id], onDelete: SetNull)
+  archivedUsers                      User[]                      @relation("UserArchiveActor")
+  adminAuditLogs                     AdminAuditLog[]             @relation("AdminAuditActor")
+  verifiedTeacherProfiles            TeacherProfile[]            @relation("TeacherProfileVerifier")
+  reviewsAsStudent                   Review[]                    @relation("ReviewStudent")
+  reviewsSubmitted                   Review[]                    @relation("ReviewSubmitter")
+  reviewsAsTeacher                   Review[]                    @relation("ReviewTeacher")
+  reviewsModerated                   Review[]                    @relation("ReviewModerator")
+  repliesModerated                   Review[]                    @relation("ReviewReplyModerator")
+  materialsCreated                   LearningMaterial[]          @relation("MaterialCreator")
+  materialsModerated                 LearningMaterial[]          @relation("MaterialModerator")
+  materialAssignmentsGiven           MaterialAssignment[]        @relation("MaterialAssignmentTeacher")
+  materialAssignmentsReceived        MaterialAssignment[]        @relation("MaterialAssignmentStudent")
+  materialAccessGrants               MaterialAccessGrant[]       @relation("MaterialGrantRecipient")
+  materialAccessGranted              MaterialAccessGrant[]       @relation("MaterialGrantActor")
+  materialReports                    MaterialReport[]            @relation("MaterialReporter")
+  materialReportsHandled             MaterialReport[]            @relation("MaterialReportHandler")
+  parentLinks                        ParentStudent[]             @relation("ParentStudentParent")
+  childLinks                         ParentStudent[]             @relation("ParentStudentChild")
+  managedChildProfiles               ParentChildProfile[]        @relation("ParentChildProfileParent")
+  linkedChildProfile                 ParentChildProfile?         @relation("ParentChildProfileStudent")
+  parentLinkRequests                 ParentStudentLinkRequest[]  @relation("ParentStudentLinkRequestStudent")
+  messageDialogsAsTeacher            MessageDialog[]             @relation("MessageDialogTeacher")
+  messageDialogsAsStudent            MessageDialog[]             @relation("MessageDialogStudent")
+  messageDialogsAsParent             MessageDialog[]             @relation("MessageDialogParent")
+  messagesSent                       Message[]
+  messagesHidden                     Message[]                   @relation("MessageHiddenBy")
+  messageReports                     MessageReport[]             @relation("MessageReporter")
+  messageReportsHandled              MessageReport[]             @relation("MessageReportHandler")
+  accessibilityOffers                AccessibilityOffer[]        @relation("AccessibilityOfferTeacher")
+  accessibilityOffersModerated       AccessibilityOffer[]        @relation("AccessibilityOfferModerator")
+  accessibilityApplicationsAsTeacher AccessibilityApplication[]  @relation("AccessibilityApplicationTeacher")
+  accessibilityApplicationsAsStudent AccessibilityApplication[]  @relation("AccessibilityApplicationStudent")
+  accessibilityApplicationsSubmitted AccessibilityApplication[]  @relation("AccessibilityApplicationSubmitter")
+  tariffPublicationsCreated          TariffPublication[]         @relation("TariffPublicationCreator")
+  tariffPublicationsPublished        TariffPublication[]         @relation("TariffPublicationPublisher")
 
   @@index([role, status])
   @@index([archivedById])
@@ -303,6 +368,26 @@ model AdminAuditLog {
   @@index([adminId, createdAt])
   @@index([entityType, entityId, createdAt])
   @@map("admin_audit_logs")
+}
+
+model TariffPublication {
+  id            Int                     @id @default(autoincrement())
+  version       Int                     @unique
+  status        TariffPublicationStatus @default(DRAFT)
+  content       Json
+  effectiveFrom DateTime?               @map("effective_from") @db.Timestamptz(3)
+  publishedAt   DateTime?               @map("published_at") @db.Timestamptz(3)
+  createdById   Int?                    @map("created_by")
+  publishedById Int?                    @map("published_by")
+  createdAt     DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy     User?                   @relation("TariffPublicationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  publishedBy   User?                   @relation("TariffPublicationPublisher", fields: [publishedById], references: [id], onDelete: SetNull)
+
+  @@index([status, effectiveFrom, publishedAt])
+  @@index([createdById])
+  @@index([publishedById])
+  @@map("tariff_publications")
 }
 
 model Notification {
@@ -581,26 +666,100 @@ model SubjectGroup {
 }
 
 model Subject {
-  id                  Int                         @id @default(autoincrement())
-  groupId             Int                         @map("group_id")
-  name                String                      @db.VarChar(160)
-  slug                String                      @unique @db.VarChar(160)
-  sortOrder           Int                         @default(100) @map("sort_order")
-  isActive            Boolean                     @default(true) @map("is_active")
-  group               SubjectGroup                @relation(fields: [groupId], references: [id], onDelete: Restrict)
-  preparations        SubjectPreparation[]
-  teacherSubjects     TeacherSubject[]
-  teacherPreparations TeacherSubjectPreparation[]
-  lessons             Lesson[]
-  teacherStudents     TeacherStudent[]
-  teacherRequests     TeacherStudentRequest[]
-  reviews             Review[]
-  homework            Homework[]
-  materials           LearningMaterial[]
-  materialAssignments MaterialAssignment[]
+  id                        Int                         @id @default(autoincrement())
+  groupId                   Int                         @map("group_id")
+  name                      String                      @db.VarChar(160)
+  slug                      String                      @unique @db.VarChar(160)
+  sortOrder                 Int                         @default(100) @map("sort_order")
+  isActive                  Boolean                     @default(true) @map("is_active")
+  group                     SubjectGroup                @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  preparations              SubjectPreparation[]
+  teacherSubjects           TeacherSubject[]
+  teacherPreparations       TeacherSubjectPreparation[]
+  lessons                   Lesson[]
+  teacherStudents           TeacherStudent[]
+  teacherRequests           TeacherStudentRequest[]
+  reviews                   Review[]
+  homework                  Homework[]
+  materials                 LearningMaterial[]
+  materialAssignments       MaterialAssignment[]
+  accessibilityOffers       AccessibilityOfferSubject[]
+  accessibilityApplications AccessibilityApplication[]
 
   @@index([groupId, sortOrder])
   @@map("subjects")
+}
+
+model AccessibilityOffer {
+  id                    Int                         @id @default(autoincrement())
+  teacherId             Int                         @map("teacher_id")
+  offerType             AccessibilityOfferType      @map("offer_type")
+  slots                 Int
+  discountPercent       Int?                        @map("discount_percent")
+  defaultDurationMonths Int?                        @map("default_duration_months")
+  comment               String?                     @db.Text
+  status                AccessibilityOfferStatus    @default(PENDING)
+  supersedesId          Int?                        @map("supersedes_id")
+  moderationComment     String?                     @map("moderation_comment") @db.Text
+  moderatedById         Int?                        @map("moderated_by")
+  moderatedAt           DateTime?                   @map("moderated_at") @db.Timestamptz(3)
+  publishedAt           DateTime?                   @map("published_at") @db.Timestamptz(3)
+  archivedAt            DateTime?                   @map("archived_at") @db.Timestamptz(3)
+  createdAt             DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  teacher               User                        @relation("AccessibilityOfferTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  moderatedBy           User?                       @relation("AccessibilityOfferModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+  supersedes            AccessibilityOffer?         @relation("AccessibilityOfferRevision", fields: [supersedesId], references: [id], onDelete: SetNull)
+  revisions             AccessibilityOffer[]        @relation("AccessibilityOfferRevision")
+  subjects              AccessibilityOfferSubject[]
+  applications          AccessibilityApplication[]
+
+  @@index([teacherId, offerType, status])
+  @@index([status, updatedAt])
+  @@index([supersedesId])
+  @@index([moderatedById])
+  @@map("accessibility_offers")
+}
+
+model AccessibilityOfferSubject {
+  offerId   Int                @map("offer_id")
+  subjectId Int                @map("subject_id")
+  offer     AccessibilityOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  subject   Subject            @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@id([offerId, subjectId])
+  @@index([subjectId])
+  @@map("accessibility_offer_subjects")
+}
+
+model AccessibilityApplication {
+  id                    Int                            @id @default(autoincrement())
+  offerId               Int                            @map("offer_id")
+  teacherId             Int                            @map("teacher_id")
+  studentId             Int                            @map("student_id")
+  submittedById         Int                            @map("submitted_by_id")
+  subjectId             Int                            @map("subject_id")
+  message               String?                        @db.VarChar(1000)
+  termsSnapshot         Json                           @map("terms_snapshot")
+  status                AccessibilityApplicationStatus @default(PENDING)
+  teacherComment        String?                        @map("teacher_comment") @db.VarChar(1000)
+  respondedAt           DateTime?                      @map("responded_at") @db.Timestamptz(3)
+  confirmationExpiresAt DateTime?                      @map("confirmation_expires_at") @db.Timestamptz(3)
+  confirmedAt           DateTime?                      @map("confirmed_at") @db.Timestamptz(3)
+  closedAt              DateTime?                      @map("closed_at") @db.Timestamptz(3)
+  createdAt             DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  offer                 AccessibilityOffer             @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  teacher               User                           @relation("AccessibilityApplicationTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  student               User                           @relation("AccessibilityApplicationStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  submittedBy           User                           @relation("AccessibilityApplicationSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
+  subject               Subject                        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@index([offerId, status])
+  @@index([teacherId, status, createdAt])
+  @@index([studentId, status, createdAt])
+  @@index([submittedById, status, createdAt])
+  @@map("accessibility_applications")
 }
 
 model PreparationGroup {
@@ -684,22 +843,79 @@ model TeacherAgeGroup {
 }
 
 model TeacherEducation {
-  id             Int      @id @default(autoincrement())
-  teacherId      Int      @map("teacher_id")
-  institution    String   @db.VarChar(255)
-  faculty        String?  @db.VarChar(255)
-  speciality     String?  @db.VarChar(255)
-  qualification  String?  @db.VarChar(255)
-  graduationYear Int?     @map("graduation_year")
-  description    String?  @db.Text
-  isPrimary      Boolean  @default(false) @map("is_primary")
-  sortOrder      Int      @default(100) @map("sort_order")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  teacher        User     @relation("TeacherEducation", fields: [teacherId], references: [id], onDelete: Cascade)
+  id             Int               @id @default(autoincrement())
+  teacherId      Int               @map("teacher_id")
+  institution    String            @db.VarChar(255)
+  faculty        String?           @db.VarChar(255)
+  speciality     String?           @db.VarChar(255)
+  qualification  String?           @db.VarChar(255)
+  graduationYear Int?              @map("graduation_year")
+  description    String?           @db.Text
+  isPrimary      Boolean           @default(false) @map("is_primary")
+  sortOrder      Int               @default(100) @map("sort_order")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  teacher        User              @relation("TeacherEducation", fields: [teacherId], references: [id], onDelete: Cascade)
+  documents      TeacherDocument[]
 
   @@index([teacherId, sortOrder])
   @@map("teacher_education")
+}
+
+model TeacherDocument {
+  id              Int                   @id @default(autoincrement())
+  teacherId       Int                   @map("teacher_id")
+  educationId     Int?                  @map("education_id")
+  type            TeacherDocumentType
+  documentTitle   String                @map("document_title") @db.VarChar(255)
+  institution     String?               @db.VarChar(255)
+  documentYear    Int?                  @map("document_year")
+  storedPath      String                @map("stored_path") @db.Text
+  originalName    String                @map("original_name") @db.VarChar(255)
+  mimeType        String                @map("mime_type") @db.VarChar(100)
+  fileSize        BigInt                @map("file_size")
+  status          TeacherDocumentStatus @default(PENDING)
+  rejectionReason String?               @map("rejection_reason") @db.VarChar(2000)
+  checkedById     Int?                  @map("checked_by")
+  checkedAt       DateTime?             @map("checked_at") @db.Timestamptz(3)
+  sortOrder       Int                   @default(100) @map("sort_order")
+  legacyId        Int?                  @unique @map("legacy_id")
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  teacher         User                  @relation("TeacherDocuments", fields: [teacherId], references: [id], onDelete: Cascade)
+  education       TeacherEducation?     @relation(fields: [educationId], references: [id], onDelete: SetNull)
+  checkedBy       User?                 @relation("TeacherDocumentChecker", fields: [checkedById], references: [id], onDelete: SetNull)
+
+  @@index([teacherId, status, createdAt])
+  @@index([status, createdAt])
+  @@index([educationId])
+  @@index([checkedById])
+  @@map("teacher_documents")
+}
+
+model TeacherProfileMedia {
+  id              Int                       @id @default(autoincrement())
+  teacherId       Int                       @map("teacher_id")
+  type            TeacherProfileMediaType
+  storedPath      String                    @map("stored_path") @db.Text
+  originalName    String                    @map("original_name") @db.VarChar(255)
+  mimeType        String                    @map("mime_type") @db.VarChar(100)
+  fileSize        BigInt                    @map("file_size")
+  status          TeacherProfileMediaStatus @default(PENDING)
+  rejectionReason String?                   @map("rejection_reason") @db.VarChar(2000)
+  checkedById     Int?                      @map("checked_by")
+  checkedAt       DateTime?                 @map("checked_at") @db.Timestamptz(3)
+  publishedAt     DateTime?                 @map("published_at") @db.Timestamptz(3)
+  legacyId        Int?                      @unique @map("legacy_id")
+  createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  teacher         User                      @relation("TeacherProfileMediaTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  checkedBy       User?                     @relation("TeacherProfileMediaChecker", fields: [checkedById], references: [id], onDelete: SetNull)
+
+  @@index([teacherId, type, status, createdAt])
+  @@index([status, createdAt])
+  @@index([checkedById])
+  @@map("teacher_profile_media")
 }
 
 model TeacherStudent {
@@ -728,6 +944,7 @@ model TeacherStudent {
 model Review {
   id                   Int               @id @default(autoincrement())
   studentId            Int               @map("student_id")
+  submittedById        Int               @map("submitted_by")
   teacherId            Int               @map("teacher_id")
   teacherStudentId     Int               @unique @map("teacher_student_id")
   subjectId            Int               @map("subject_id")
@@ -750,18 +967,21 @@ model Review {
   createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
   student              User              @relation("ReviewStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  submittedBy          User              @relation("ReviewSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
   teacher              User              @relation("ReviewTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
   teacherStudent       TeacherStudent    @relation(fields: [teacherStudentId], references: [id], onDelete: Restrict)
   subject              Subject           @relation(fields: [subjectId], references: [id], onDelete: Restrict)
   moderatedBy          User?             @relation("ReviewModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
   replyModeratedBy     User?             @relation("ReviewReplyModerator", fields: [replyModeratedById], references: [id], onDelete: SetNull)
 
+  @@unique([teacherId, studentId])
   @@index([teacherId, publishedAt])
   @@index([status, updatedAt])
   @@index([replyStatus, updatedAt])
   @@index([subjectId])
   @@index([moderatedById])
   @@index([replyModeratedById])
+  @@index([submittedById])
   @@map("reviews")
 }
 

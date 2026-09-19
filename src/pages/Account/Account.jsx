@@ -18,6 +18,7 @@ import { useNotifications } from './sections/Notifications/useNotifications.js';
 import { useHomework } from './sections/Homework/useHomework.js';
 import { useMaterials } from './sections/Materials/useMaterials.js';
 import { useTeacherDashboardStats } from './hooks/useTeacherDashboardStats.js';
+import { useTeacherRatingSummary } from './hooks/useTeacherRatingSummary.js';
 
 import {
     PARENT_NAVIGATION,
@@ -66,6 +67,9 @@ export function Account() {
             : null,
     );
     const teacherStats = useTeacherDashboardStats(
+        authData?.user?.role === 'teacher',
+    );
+    const teacherRatingController = useTeacherRatingSummary(
         authData?.user?.role === 'teacher',
     );
 
@@ -222,9 +226,27 @@ export function Account() {
     };
 
     const handleOpenNotification = (notification) => {
-        const targetSection = notification.targetSection;
+        const requestedTargetSection = notification.targetSection;
+        const targetSection = requestedTargetSection === 'accessibilityApplications'
+            ? 'accessibility'
+            : requestedTargetSection;
 
         if (!targetSection || !availableSectionIds.has(targetSection)) {
+            return;
+        }
+
+        if (
+            targetSection === 'accessibility'
+            && (
+                requestedTargetSection === 'accessibilityApplications'
+                || notification.targetEntityType === 'accessibility_application'
+            )
+        ) {
+            setSearchParams({
+                section: 'accessibility',
+                tab: 'applications',
+            });
+            setIsSidebarOpen(false);
             return;
         }
 
@@ -337,6 +359,11 @@ export function Account() {
                     identity={identity}
                     navigation={navigation}
                     activeSection={activeSection}
+                    accessibilityTab={
+                        searchParams.get('tab') === 'applications'
+                            ? 'applications'
+                            : 'offers'
+                    }
                     onSelectSection={handleSelectSection}
                     isOpen={isSidebarOpen}
                 />
@@ -344,6 +371,7 @@ export function Account() {
                 <AccountPanel
                     title={activeNavigationItem.title}
                     stats={stats}
+                    teacherRatingController={teacherRatingController}
                     role={role}
                     user={authData.user}
                     profile={authData.profile}

@@ -1,0 +1,36 @@
+.program-applications { display: grid; gap: 18px; }
+.program-applications--embedded { gap: 14px; }
+.program-applications--embedded .program-applications__header { align-items: center; }
+.program-applications__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.program-applications__header span { color: var(--account-accent); font-size: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.program-applications__header h2 { margin: 5px 0 8px; font-size: 28px; }
+.program-applications__header p { margin: 0; color: var(--color-ink-muted); }
+.program-applications__header > button, .program-application-card button { border: 0; border-radius: var(--radius-pill); padding: 10px 16px; color: var(--color-on-accent); background: var(--account-accent); font-weight: 800; cursor: pointer; }
+.program-applications__tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.program-applications__tabs button { border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 9px 13px; color: var(--color-ink-strong); background: var(--color-surface); font-weight: 800; cursor: pointer; }
+.program-applications__tabs button.is-active { border-color: var(--account-accent); color: var(--color-on-accent); background: var(--account-accent); }
+.program-applications__tabs span { display: inline-flex; justify-content: center; min-width: 22px; margin-left: 4px; border-radius: var(--radius-pill); padding: 2px 5px; color: inherit; background: color-mix(in srgb, currentColor 12%, transparent); font-size: 11px; }
+.program-applications__list { display: grid; gap: 14px; }
+.program-applications__empty, .program-application-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px; background: var(--color-surface); }
+.program-applications__error, .program-applications__notice { margin: 0; border-radius: 12px; padding: 10px 12px; }
+.program-applications__error { color: #963f3f; background: #fbe4e4; }
+.program-applications__notice { color: #466719; background: #e8f2d3; }
+.program-application-card { display: grid; gap: 15px; }
+.program-application-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.program-application-card header span, .program-application-card section > span, .program-application-card__terms span, .program-application-card label > span { color: var(--color-ink-muted); font-size: 12px; }
+.program-application-card h3 { margin: 4px 0; }
+.program-application-card p { margin: 0; color: var(--color-ink-muted); line-height: 1.5; }
+.program-application-card header > strong { border-radius: var(--radius-pill); padding: 6px 10px; color: var(--color-ink-muted); background: var(--color-surface-strong); font-size: 12px; }
+.program-application-card header > strong.is-accepted, .program-application-card header > strong.is-confirmed { color: #466719; background: #e8f2d3; }
+.program-application-card header > strong.is-rejected, .program-application-card header > strong.is-expired { color: #984444; background: #f8dddd; }
+.program-application-card__terms { display: flex; flex-wrap: wrap; gap: 10px; }
+.program-application-card__terms > div, .program-application-card > section { display: grid; gap: 5px; border: 1px solid var(--color-border); border-radius: 12px; padding: 11px 13px; background: var(--color-surface-paper); }
+.program-application-card__terms > div { min-width: 160px; }
+.program-application-card__deadline { border-left: 3px solid var(--account-accent); padding-left: 11px; }
+.program-application-card__decision { display: grid; gap: 10px; }
+.program-application-card__decision label { display: grid; gap: 6px; }
+.program-application-card__decision textarea { width: 100%; border: 1px solid var(--color-border); border-radius: 12px; padding: 10px 12px; background: var(--color-surface-paper); font: inherit; resize: vertical; }
+.program-application-card__decision > div { display: flex; justify-content: flex-end; gap: 9px; }
+.program-application-card button.is-secondary { border: 1px solid var(--color-border); color: var(--color-ink-strong); background: var(--color-surface-paper); }
+.program-application-card button:disabled { opacity: .6; cursor: default; }
+@media (max-width: 700px) { .program-applications__header, .program-application-card > header { display: grid; } .program-application-card__decision > div { display: grid; } .program-application-card__decision button { width: 100%; } }

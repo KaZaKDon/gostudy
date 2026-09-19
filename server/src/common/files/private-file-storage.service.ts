@@ -54,7 +54,7 @@ export type StoredPrivateFile = {
 const FILE_RULES: Record<string, {
     mimeType: string;
     acceptedMimeTypes: string[];
-    signature: 'pdf' | 'jpeg' | 'png' | 'webp' | 'ole' | 'docx' | 'xlsx' | 'pptx' | 'text';
+    signature: 'pdf' | 'jpeg' | 'png' | 'webp' | 'mp4' | 'webm' | 'ole' | 'docx' | 'xlsx' | 'pptx' | 'text';
 }> = {
     '.pdf': {
         mimeType: 'application/pdf',
@@ -80,6 +80,16 @@ const FILE_RULES: Record<string, {
         mimeType: 'image/webp',
         acceptedMimeTypes: ['image/webp'],
         signature: 'webp',
+    },
+    '.mp4': {
+        mimeType: 'video/mp4',
+        acceptedMimeTypes: ['video/mp4'],
+        signature: 'mp4',
+    },
+    '.webm': {
+        mimeType: 'video/webm',
+        acceptedMimeTypes: ['video/webm'],
+        signature: 'webm',
     },
     '.txt': {
         mimeType: 'text/plain',
@@ -305,6 +315,15 @@ export class PrivateFileStorageService {
         if (signature === 'webp') {
             return buffer.subarray(0, 4).toString() === 'RIFF'
                 && buffer.subarray(8, 12).toString() === 'WEBP';
+        }
+        if (signature === 'mp4') {
+            return buffer.length >= 12
+                && buffer.subarray(4, 8).toString() === 'ftyp';
+        }
+        if (signature === 'webm') {
+            return buffer.subarray(0, 4).equals(
+                Buffer.from([0x1a, 0x45, 0xdf, 0xa3]),
+            );
         }
         if (signature === 'ole') {
             return buffer.subarray(0, 8).equals(

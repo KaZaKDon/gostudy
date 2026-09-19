@@ -36,6 +36,12 @@ const pageMeta = {
             'Проверка документов преподавателей',
     },
 
+    '/admin/profile-media': {
+        title: 'Фото и видео',
+        description:
+            'Модерация фотографий и видеовизиток преподавателей',
+    },
+
     '/admin/dictionaries/subject-groups': {
         title: 'Группы предметов',
         description:
@@ -70,6 +76,12 @@ const pageMeta = {
         title: 'Финансы',
         description:
             'Платежи, выплаты и финансовые операции',
+    },
+
+    '/admin/tariffs': {
+        title: 'Тарифы',
+        description:
+            'Редактирование и публикация условий платформы',
     },
 
     '/admin/logs': {

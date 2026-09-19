@@ -98,15 +98,6 @@ export function TeachersViewModal({
 
                     <TeacherProfileDetails teacherData={teacherData} />
 
-                    <section className="teacher-view__section">
-                        <h4>Документы</h4>
-                        <p className="teacher-view__muted">
-                            Загрузка и защищённая проверка файлов будут
-                            подключены вместе с переносом медиахранилища на
-                            российский сервер.
-                        </p>
-                    </section>
-
                     {canManageAccounts && (
                         <div className="teacher-view__actions">
                             {!isArchived && (

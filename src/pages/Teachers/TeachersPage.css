@@ -1,0 +1,670 @@
+.teachers-page {
+    min-height: 100vh;
+    padding: 118px 0 0;
+}
+
+.teachers-page__content {
+    display: grid;
+    gap: clamp(34px, 5vw, 64px);
+
+    width: min(1320px, 100%);
+    margin: 0 auto;
+    padding: 0 var(--page-padding) 64px;
+}
+
+.teachers-page__back {
+    justify-self: start;
+    padding: 10px 16px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+
+    color: var(--color-ink-strong);
+    background: var(--color-surface-paper);
+    box-shadow: 0 10px 24px rgba(48, 28, 12, 0.16);
+
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.teachers-page__back:hover {
+    transform: translateY(-2px);
+}
+
+.teacher-journal {
+    position: relative;
+    isolation: isolate;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    filter: drop-shadow(0 30px 36px rgba(47, 26, 10, 0.38));
+}
+
+.teacher-journal::before {
+    position: absolute;
+    z-index: 4;
+    top: 19px;
+    bottom: 19px;
+    left: 50%;
+
+    width: 28px;
+
+    background: linear-gradient(
+        90deg,
+        rgba(54, 30, 14, 0.28),
+        rgba(255, 255, 255, 0.4) 48%,
+        rgba(54, 30, 14, 0.3)
+    );
+    box-shadow: 0 0 22px rgba(49, 27, 13, 0.26);
+
+    content: '';
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.teacher-journal__page {
+    position: relative;
+    min-height: 640px;
+    padding: clamp(38px, 5vw, 72px);
+    overflow: hidden;
+
+    border: 1px solid rgba(102, 67, 40, 0.28);
+
+    color: var(--color-text);
+    background-color: var(--color-surface-paper);
+}
+
+.teacher-journal__page::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    background-image:
+        linear-gradient(90deg, transparent 70px, rgba(155, 72, 52, 0.18) 71px, transparent 72px),
+        repeating-linear-gradient(180deg, transparent 0 35px, rgba(139, 94, 60, 0.12) 36px);
+
+    content: '';
+    pointer-events: none;
+}
+
+.teacher-journal__page--cover {
+    border-radius: 28px 7px 7px 28px;
+    transform: perspective(1100px) rotateY(1.2deg);
+    transform-origin: right center;
+}
+
+.teacher-journal__page--week {
+    border-radius: 7px 28px 28px 7px;
+    transform: perspective(1100px) rotateY(-1.2deg);
+    transform-origin: left center;
+}
+
+.teacher-journal__stamp {
+    display: inline-grid;
+    gap: 4px;
+    min-width: min(340px, 100%);
+    margin-bottom: 46px;
+    padding: 16px 20px;
+
+    border: 2px double var(--color-teacher-border);
+    border-radius: 7px;
+
+    background: var(--color-teacher-soft);
+}
+
+.teacher-journal__stamp span,
+.teacher-journal__eyebrow,
+.teachers-section-heading > p,
+.teachers-profile__intro > p,
+.teachers-specials__card > p {
+    color: var(--color-teacher);
+
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.teacher-journal__stamp strong {
+    color: var(--color-ink-strong);
+    font-family: var(--font-serif);
+    font-size: 23px;
+}
+
+.teacher-journal__stamp small {
+    color: var(--color-ink-muted);
+    font-size: 12px;
+}
+
+.teacher-journal__eyebrow,
+.teachers-section-heading > p,
+.teachers-profile__intro > p,
+.teachers-specials__card > p {
+    margin: 0 0 12px;
+}
+
+.teacher-journal h1,
+.teacher-journal h2,
+.teachers-section-heading h2,
+.teachers-profile h2,
+.teachers-specials h2,
+.teachers-start h2 {
+    margin: 0;
+
+    color: var(--color-ink-strong);
+
+    font-family: var(--font-serif);
+    line-height: 1.08;
+}
+
+.teacher-journal h1 {
+    font-size: clamp(42px, 5vw, 70px);
+}
+
+.teacher-journal h2,
+.teachers-section-heading h2,
+.teachers-profile h2,
+.teachers-specials h2,
+.teachers-start h2 {
+    font-size: clamp(29px, 3.2vw, 46px);
+}
+
+.teacher-journal__lead {
+    max-width: 540px;
+    margin: 24px 0 0;
+
+    color: var(--color-ink-strong);
+
+    font-family: var(--font-serif);
+    font-size: clamp(19px, 2vw, 25px);
+    line-height: 1.5;
+}
+
+.teacher-journal__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 34px;
+}
+
+.teacher-journal__tags span {
+    padding: 9px 12px;
+
+    border: 1px solid var(--color-teacher-border);
+    border-radius: var(--radius-pill);
+
+    color: var(--color-ink-strong);
+    background: var(--color-teacher-soft);
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.teacher-journal__caption {
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+
+    border-bottom: 1px dashed var(--color-teacher-border);
+
+    color: var(--color-teacher);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.teacher-journal__checklist {
+    display: grid;
+    gap: 17px;
+    margin: 32px 0 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.teacher-journal__checklist li {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    align-items: start;
+    gap: 12px;
+
+    color: var(--color-ink-muted);
+    line-height: 1.55;
+}
+
+.teacher-journal__checklist svg {
+    width: 22px;
+    color: var(--color-teacher);
+}
+
+.teacher-journal__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 38px;
+}
+
+.teacher-journal__primary,
+.teacher-journal__secondary,
+.teachers-start__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: var(--radius-pill);
+
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.teacher-journal__primary,
+.teachers-start__action {
+    padding: 13px 20px;
+
+    color: var(--color-on-accent);
+    background: var(--color-teacher);
+}
+
+.teacher-journal__secondary {
+    padding: 12px 17px;
+
+    border: 1px solid var(--color-teacher-border);
+    color: var(--color-ink-strong);
+    background: var(--color-surface-paper);
+
+    font-size: 14px;
+}
+
+.teachers-tools {
+    display: grid;
+    gap: 28px;
+}
+
+.teachers-section-heading {
+    max-width: 810px;
+    padding: 0 8px;
+}
+
+.teachers-section-heading > span,
+.teachers-profile__intro > span,
+.teachers-specials__card > span {
+    display: block;
+    margin-top: 17px;
+
+    color: var(--color-ink-muted);
+    font-size: 17px;
+    line-height: 1.65;
+}
+
+.teachers-tools__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.teachers-tool {
+    position: relative;
+    min-height: 258px;
+    padding: 30px;
+
+    border: 1px solid var(--color-border);
+    border-radius: 9px 23px 11px 19px;
+
+    background: var(--color-surface-paper);
+    box-shadow: 0 16px 30px rgba(48, 28, 12, 0.2);
+}
+
+.teachers-tool:nth-child(3n + 1) {
+    transform: rotate(-0.35deg);
+}
+
+.teachers-tool:nth-child(3n + 2) {
+    transform: rotate(0.4deg);
+}
+
+.teachers-tool__icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+
+    border: 1px solid var(--color-teacher-border);
+    border-radius: 15px;
+
+    color: var(--color-teacher);
+    background: var(--color-teacher-soft);
+}
+
+.teachers-tool__icon svg {
+    width: 24px;
+}
+
+.teachers-tool__number {
+    position: absolute;
+    top: 32px;
+    right: 30px;
+
+    color: var(--color-teacher);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.teachers-tool h3,
+.teachers-profile__list strong,
+.teachers-specials__card > strong,
+.teachers-start__steps h3 {
+    margin: 20px 0 0;
+
+    color: var(--color-ink-strong);
+
+    font-family: var(--font-serif);
+    font-size: 22px;
+    line-height: 1.25;
+}
+
+.teachers-tool p,
+.teachers-profile__list span,
+.teachers-specials__card > strong,
+.teachers-start__steps p,
+.teachers-start__note {
+    color: var(--color-ink-muted);
+    line-height: 1.65;
+}
+
+.teachers-tool p {
+    margin: 13px 0 0;
+}
+
+.teachers-profile {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(28px, 5vw, 62px);
+    padding: clamp(30px, 4vw, 54px);
+
+    border: 1px solid var(--color-teacher-border);
+    border-radius: 12px 28px 14px 24px;
+
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.teachers-profile__icon {
+    display: grid;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 22px;
+    place-items: center;
+
+    border-radius: 20px;
+
+    color: var(--color-teacher);
+    background: var(--color-teacher-soft);
+}
+
+.teachers-profile__icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.teachers-profile__list {
+    display: grid;
+    gap: 16px;
+}
+
+.teachers-profile__list > div {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    align-items: start;
+    gap: 14px;
+    padding: 18px;
+
+    border: 1px dashed var(--color-teacher-border);
+    border-radius: var(--radius-md);
+
+    background: var(--color-teacher-soft);
+}
+
+.teachers-profile__list svg {
+    width: 26px;
+    color: var(--color-teacher);
+}
+
+.teachers-profile__list strong {
+    display: block;
+    margin: 0 0 5px;
+    font-size: 18px;
+}
+
+.teachers-specials {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.teachers-specials__card {
+    padding: clamp(30px, 4vw, 50px);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.teachers-specials__card > svg {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 24px;
+    color: var(--color-teacher);
+}
+
+.teachers-specials__card--access {
+    border-color: var(--color-student-border);
+}
+
+.teachers-specials__card--access > svg,
+.teachers-specials__card--access > p {
+    color: var(--color-student);
+}
+
+.teachers-specials__card > strong {
+    display: block;
+    margin-top: 22px;
+    padding-top: 18px;
+
+    border-top: 1px dashed var(--color-border);
+
+    font-family: var(--font-base);
+    font-size: 15px;
+}
+
+.teachers-start {
+    display: grid;
+    justify-items: center;
+    padding: clamp(32px, 5vw, 62px);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+}
+
+.teachers-section-heading--center {
+    text-align: center;
+}
+
+.teachers-start__steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    margin: 34px 0 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.teachers-start__steps li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    align-items: start;
+    gap: 13px;
+    padding: 20px;
+
+    border: 1px dashed var(--color-teacher-border);
+    border-radius: var(--radius-md);
+
+    background: var(--color-teacher-soft);
+}
+
+.teachers-start__steps li > span {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+
+    border-radius: 50%;
+
+    color: var(--color-on-accent);
+    background: var(--color-teacher);
+
+    font-weight: 900;
+}
+
+.teachers-start__steps h3 {
+    margin: 1px 0 0;
+    font-size: 18px;
+}
+
+.teachers-start__steps p {
+    margin: 8px 0 0;
+    font-size: 14px;
+}
+
+.teachers-start__note {
+    max-width: 760px;
+    margin: 28px auto 0;
+
+    text-align: center;
+}
+
+.teachers-start__action {
+    margin-top: 24px;
+}
+
+.teachers-page__back,
+.teacher-journal__primary,
+.teacher-journal__secondary,
+.teachers-start__action {
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.teacher-journal__primary:hover,
+.teacher-journal__secondary:hover,
+.teachers-start__action:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 1120px) {
+    .teachers-start__steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 980px) {
+    .teacher-journal {
+        grid-template-columns: minmax(0, 760px);
+        justify-content: center;
+        gap: 18px;
+    }
+
+    .teacher-journal::before {
+        display: none;
+    }
+
+    .teacher-journal__page {
+        min-height: auto;
+        border-radius: 24px;
+        transform: none;
+    }
+
+    .teachers-tools__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .teachers-profile,
+    .teachers-specials {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .teachers-page {
+        padding-top: 104px;
+    }
+
+    .teachers-page__content {
+        gap: 34px;
+        padding-bottom: 44px;
+    }
+
+    .teacher-journal__page,
+    .teachers-tool,
+    .teachers-profile,
+    .teachers-specials__card,
+    .teachers-start {
+        padding: 26px 22px;
+    }
+
+    .teacher-journal__page::after {
+        background-image: repeating-linear-gradient(
+            180deg,
+            transparent 0 35px,
+            rgba(139, 94, 60, 0.12) 36px
+        );
+    }
+
+    .teacher-journal__stamp {
+        margin-bottom: 32px;
+    }
+
+    .teacher-journal__actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .teachers-tools__grid,
+    .teachers-start__steps {
+        grid-template-columns: 1fr;
+    }
+
+    .teachers-tool {
+        min-height: auto;
+        transform: none !important;
+    }
+
+    .teachers-profile__list > div,
+    .teachers-start__steps li {
+        grid-template-columns: 38px 1fr;
+        padding: 18px;
+    }
+
+    .teachers-start__steps li > span {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .teachers-page__back,
+    .teacher-journal__primary,
+    .teacher-journal__secondary,
+    .teachers-start__action {
+        transition: none;
+    }
+}

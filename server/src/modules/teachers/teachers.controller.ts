@@ -35,7 +35,11 @@ export class TeachersController {
         @CurrentUser() user: SessionUser,
         @Query() query: TeacherDetailsQueryDto,
     ): Promise<Record<string, unknown>> {
-        return this.teachersService.getTeacher(user, query.teacher_id);
+        return this.teachersService.getTeacher(
+            user,
+            query.teacher_id,
+            query.student_id,
+        );
     }
 
     @Post('requests')

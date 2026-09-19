@@ -2,12 +2,15 @@ import { formatFileSize } from '../../../../api/upload.js';
 
 export function StepBasic({
     profile,
+    pendingMedia,
     onChange,
     photoMaxBytes,
     isUploadingPhoto,
     photoProgress,
     onPhotoSelect,
     onDeletePhoto,
+    onOpenPendingMedia,
+    onDeletePendingMedia,
 }) {
     function handleChange(event) {
         const { name, value } = event.target;
@@ -102,6 +105,42 @@ export function StepBasic({
                         </button>
                     )}
                 </div>
+
+                {pendingMedia && (
+                    <div className={`teacher-profile-media-review teacher-profile-media-review--${pendingMedia.status}`}>
+                        <div>
+                            <strong>
+                                {pendingMedia.status === 'rejected'
+                                    ? 'Фотография отклонена'
+                                    : 'Новая фотография на проверке'}
+                            </strong>
+                            <span>{pendingMedia.original_name}</span>
+                            {pendingMedia.reject_reason && (
+                                <p>{pendingMedia.reject_reason}</p>
+                            )}
+                        </div>
+                        <div className="teacher-profile-media-review__actions">
+                            <button
+                                type="button"
+                                className="teacher-profile-upload-open"
+                                onClick={() => onOpenPendingMedia(pendingMedia.id)}
+                            >
+                                Открыть
+                            </button>
+                            <button
+                                type="button"
+                                className="teacher-profile-upload-remove"
+                                disabled={isUploadingPhoto}
+                                onClick={() => onDeletePendingMedia(
+                                    pendingMedia.id,
+                                    'photo',
+                                )}
+                            >
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {isUploadingPhoto && (
                     <div className="teacher-profile-upload-progress">

@@ -19,6 +19,12 @@ export class SendTeacherRequestDto {
     subject_id: number;
 
     @IsOptional()
+    @Type(() => Number)
+    @IsInt({ message: 'Выберите ребёнка' })
+    @Min(1, { message: 'Выберите ребёнка' })
+    student_id?: number;
+
+    @IsOptional()
     @IsString()
     @MaxLength(1000, {
         message: 'Сообщение не должно превышать 1000 символов',

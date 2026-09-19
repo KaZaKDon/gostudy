@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 
+import { SiteThemeToggle } from '../SiteThemeToggle/SiteThemeToggle.jsx';
+
 import './Header.css';
 
 export function Header() {
@@ -20,6 +22,8 @@ export function Header() {
                 className="site-header__nav"
                 aria-label="Навигация"
             >
+                <SiteThemeToggle />
+
                 <Link
                     className="site-header__link"
                     to="/login"

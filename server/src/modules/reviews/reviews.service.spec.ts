@@ -36,7 +36,7 @@ const teacher: SessionUser = {
 };
 
 describe('ReviewsService', () => {
-    it('shows a student relation and permits a review after a completed lesson', async () => {
+    it('opens one review after three completed lessons with a teacher', async () => {
         const prisma = {
             teacherStudent: {
                 findMany: vi.fn().mockResolvedValue([{
@@ -47,17 +47,18 @@ describe('ReviewsService', () => {
                     status: TeacherStudentStatus.ACTIVE,
                     startedAt: new Date('2026-09-01T10:00:00.000Z'),
                     teacher: { fullName: 'Анна Учитель', avatarUrl: null },
+                    student: { fullName: 'Иван Ученик' },
                     subject: { name: 'Английский язык' },
-                    review: null,
                 }]),
             },
             lesson: {
                 groupBy: vi.fn().mockResolvedValue([{
                     teacherId: 7,
-                    subjectId: 11,
-                    _count: { _all: 2 },
+                    studentId: 9,
+                    _count: { _all: 3 },
                 }]),
             },
+            review: { findMany: vi.fn().mockResolvedValue([]) },
         } as unknown as PrismaService;
         const service = new ReviewsService(prisma);
 
@@ -66,13 +67,13 @@ describe('ReviewsService', () => {
         expect(result).toMatchObject({
             relations: [{
                 relation_id: 4,
-                completed_lessons_count: 2,
+                completed_lessons_count: 3,
                 can_review: true,
             }],
         });
     });
 
-    it('rejects a review before the first completed lesson', async () => {
+    it('rejects a review before three completed lessons', async () => {
         const prisma = {
             teacherStudent: {
                 findFirst: vi.fn().mockResolvedValue({
@@ -105,7 +106,7 @@ describe('ReviewsService', () => {
                     subjectId: 11,
                 }),
             },
-            lesson: { count: vi.fn().mockResolvedValue(1) },
+            lesson: { count: vi.fn().mockResolvedValue(3) },
             review: { upsert: vi.fn().mockResolvedValue({ id: 15 }) },
         } as unknown as PrismaService;
         const service = new ReviewsService(prisma);
@@ -117,8 +118,13 @@ describe('ReviewsService', () => {
         });
 
         expect(prisma.review.upsert).toHaveBeenCalledWith(expect.objectContaining({
-            where: { teacherStudentId: 4 },
-            create: expect.objectContaining({ status: ReviewStatus.PENDING }),
+            where: {
+                teacherId_studentId: { teacherId: 7, studentId: 9 },
+            },
+            create: expect.objectContaining({
+                status: ReviewStatus.PENDING,
+                submittedById: 9,
+            }),
             update: expect.objectContaining({ status: ReviewStatus.PENDING }),
         }));
         expect(result).toMatchObject({ success: true, review_id: 15 });

@@ -94,6 +94,7 @@ export function useReviews(role) {
 
     const saveReview = useCallback(async ({
         relationId,
+        childId,
         rating,
         text,
     }) => {
@@ -106,6 +107,7 @@ export function useReviews(role) {
                 method: 'POST',
                 body: {
                     relation_id: relationId,
+                    ...(childId ? { child_id: childId } : {}),
                     rating,
                     text,
                 },

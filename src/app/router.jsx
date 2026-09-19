@@ -13,6 +13,22 @@ const Home = lazyNamed(
     () => import('../pages/Home/Home.jsx'),
     'Home'
 );
+const AboutPage = lazyNamed(
+    () => import('../pages/About/AboutPage.jsx'),
+    'AboutPage'
+);
+const StudentsPage = lazyNamed(
+    () => import('../pages/Students/StudentsPage.jsx'),
+    'StudentsPage'
+);
+const TeachersPage = lazyNamed(
+    () => import('../pages/Teachers/TeachersPage.jsx'),
+    'TeachersPage'
+);
+const PricingPage = lazyNamed(
+    () => import('../pages/Pricing/PricingPage.jsx'),
+    'PricingPage'
+);
 const Login = lazyNamed(
     () => import('../pages/Login/Login.jsx'),
     'Login'
@@ -82,6 +98,22 @@ const router = createBrowserRouter([
             {
                 path: '/',
                 element: <Home />,
+            },
+            {
+                path: '/about',
+                element: <AboutPage />,
+            },
+            {
+                path: '/students',
+                element: <StudentsPage />,
+            },
+            {
+                path: '/teachers',
+                element: <TeachersPage />,
+            },
+            {
+                path: '/pricing',
+                element: <PricingPage />,
             },
             {
                 path: '/login',

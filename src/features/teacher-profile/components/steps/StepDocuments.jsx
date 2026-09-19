@@ -16,6 +16,7 @@ const DOCUMENT_TYPE_LABELS = {
 function DocumentList({
     documents,
     deletingDocumentId,
+    onOpenDocument,
     onDeleteDocument,
 }) {
     if (documents.length === 0) {
@@ -52,16 +53,25 @@ function DocumentList({
                         )}
                     </div>
 
-                    <button
-                        type="button"
-                        className="teacher-profile-upload-remove"
-                        disabled={deletingDocumentId === Number(document.id)}
-                        onClick={() => onDeleteDocument(Number(document.id))}
-                    >
-                        {deletingDocumentId === Number(document.id)
-                            ? 'Удаляем...'
-                            : 'Удалить'}
-                    </button>
+                    <div className="teacher-profile-document__actions">
+                        <button
+                            type="button"
+                            className="teacher-profile-upload-open"
+                            onClick={() => onOpenDocument(Number(document.id))}
+                        >
+                            Открыть
+                        </button>
+                        <button
+                            type="button"
+                            className="teacher-profile-upload-remove"
+                            disabled={deletingDocumentId === Number(document.id)}
+                            onClick={() => onDeleteDocument(Number(document.id))}
+                        >
+                            {deletingDocumentId === Number(document.id)
+                                ? 'Удаляем...'
+                                : 'Удалить'}
+                        </button>
+                    </div>
                 </article>
             ))}
         </div>
@@ -71,17 +81,22 @@ function DocumentList({
 export function StepDocuments({
     profile,
     documents,
+    pendingVideo,
     isUploadingDocument,
     documentProgress,
     deletingDocumentId,
     isUploadingVideo,
     videoProgress,
+    isVideoUploadAvailable,
     documentMaxBytes,
     videoMaxBytes,
     onDocumentSelect,
+    onOpenDocument,
     onDeleteDocument,
     onVideoSelect,
     onDeleteVideo,
+    onOpenPendingMedia,
+    onDeletePendingMedia,
 }) {
     return (
         <div className="teacher-profile-step">
@@ -171,6 +186,7 @@ export function StepDocuments({
             <DocumentList
                 documents={documents}
                 deletingDocumentId={deletingDocumentId}
+                onOpenDocument={onOpenDocument}
                 onDeleteDocument={onDeleteDocument}
             />
 
@@ -182,6 +198,12 @@ export function StepDocuments({
                         {formatFileSize(videoMaxBytes || 100 * 1024 * 1024)}.
                         Загрузить можно только один ролик.
                     </p>
+                    {!isVideoUploadAvailable && (
+                        <p className="teacher-profile-upload-note">
+                            Загрузка и замена видеовизитки временно недоступны до
+                            переноса видео в новое закрытое хранилище GoStudy.
+                        </p>
+                    )}
                 </div>
 
                 {profile.intro_video_url && (
@@ -200,7 +222,7 @@ export function StepDocuments({
                         <input
                             type="file"
                             accept="video/mp4,video/webm"
-                            disabled={isUploadingVideo}
+                            disabled={isUploadingVideo || !isVideoUploadAvailable}
                             onChange={(event) => {
                                 const file = event.target.files?.[0];
                                 event.target.value = '';
@@ -223,13 +245,49 @@ export function StepDocuments({
                         <button
                             type="button"
                             className="teacher-profile-upload-remove"
-                            disabled={isUploadingVideo}
+                            disabled={isUploadingVideo || !isVideoUploadAvailable}
                             onClick={onDeleteVideo}
                         >
                             Удалить
                         </button>
                     )}
                 </div>
+
+                {pendingVideo && (
+                    <div className={`teacher-profile-media-review teacher-profile-media-review--${pendingVideo.status}`}>
+                        <div>
+                            <strong>
+                                {pendingVideo.status === 'rejected'
+                                    ? 'Видеовизитка отклонена'
+                                    : 'Новая видеовизитка на проверке'}
+                            </strong>
+                            <span>{pendingVideo.original_name}</span>
+                            {pendingVideo.reject_reason && (
+                                <p>{pendingVideo.reject_reason}</p>
+                            )}
+                        </div>
+                        <div className="teacher-profile-media-review__actions">
+                            <button
+                                type="button"
+                                className="teacher-profile-upload-open"
+                                onClick={() => onOpenPendingMedia(pendingVideo.id)}
+                            >
+                                Открыть
+                            </button>
+                            <button
+                                type="button"
+                                className="teacher-profile-upload-remove"
+                                disabled={isUploadingVideo}
+                                onClick={() => onDeletePendingMedia(
+                                    pendingVideo.id,
+                                    'video',
+                                )}
+                            >
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {isUploadingVideo && (
                     <div className="teacher-profile-upload-progress">

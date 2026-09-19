@@ -1,0 +1,231 @@
+.teacher-rating {
+    display: grid;
+    gap: 18px;
+}
+
+.teacher-rating__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.teacher-rating__header > div > span,
+.teacher-rating--state > span {
+    color: var(--account-accent);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.teacher-rating__header h2 {
+    margin: 5px 0 0;
+    color: var(--color-ink-strong);
+    font-size: 26px;
+}
+
+.teacher-rating__notice {
+    max-width: 440px;
+    margin: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 10px 13px;
+    color: var(--color-ink-muted);
+    background: var(--color-surface-paper);
+    line-height: 1.45;
+}
+
+.teacher-rating__summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.teacher-rating__summary article,
+.teacher-rating__card,
+.teacher-rating--state {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.teacher-rating__summary article {
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+}
+
+.teacher-rating__summary article > span,
+.teacher-rating__summary article > small {
+    color: var(--color-ink-muted);
+}
+
+.teacher-rating__summary article > span {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.teacher-rating__summary strong {
+    color: var(--account-accent);
+    font-size: 28px;
+    line-height: 1.1;
+}
+
+.teacher-rating__summary strong small,
+.teacher-rating__subjects strong small {
+    color: var(--color-ink-muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.teacher-rating__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.teacher-rating__card {
+    min-width: 0;
+    padding: 20px;
+}
+
+.teacher-rating__card h3 {
+    margin: 0 0 14px;
+    color: var(--color-ink-strong);
+    font-size: 18px;
+}
+
+.teacher-rating__subjects {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.teacher-rating__subjects li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.teacher-rating__subjects li:last-child {
+    border-bottom: 0;
+}
+
+.teacher-rating__subjects li > span {
+    color: var(--color-ink-strong);
+    font-weight: 700;
+}
+
+.teacher-rating__subjects strong {
+    flex: 0 0 auto;
+    color: var(--account-accent);
+}
+
+.teacher-rating__progress-list {
+    display: grid;
+    gap: 18px;
+}
+
+.teacher-rating__progress-list > div > span {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.teacher-rating__progress-list b {
+    color: var(--color-ink-strong);
+}
+
+.teacher-rating__progress-list small {
+    color: var(--color-ink-muted);
+}
+
+.teacher-rating__progress {
+    height: 9px;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: rgba(139, 94, 60, 0.12);
+}
+
+.teacher-rating__progress i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--account-accent);
+}
+
+.teacher-rating__awards {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.teacher-rating__awards h3 {
+    margin-bottom: 4px;
+}
+
+.teacher-rating__awards p,
+.teacher-rating__empty,
+.teacher-rating--state p {
+    margin: 0;
+    color: var(--color-ink-muted);
+    line-height: 1.5;
+}
+
+.teacher-rating--state {
+    padding: 22px;
+}
+
+.teacher-rating--state button {
+    margin-top: 14px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    padding: 9px 14px;
+    color: var(--color-on-accent);
+    background: var(--account-accent);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.teacher-rating__error {
+    color: #a64040 !important;
+}
+
+@media (max-width: 820px) {
+    .teacher-rating__header,
+    .teacher-rating__awards {
+        display: grid;
+    }
+
+    .teacher-rating__summary,
+    .teacher-rating__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .teacher-rating__notice {
+        max-width: none;
+    }
+
+    .teacher-rating__summary article,
+    .teacher-rating__card,
+    .teacher-rating--state {
+        padding: 16px;
+    }
+
+    .teacher-rating__progress-list > div > span {
+        display: grid;
+        gap: 3px;
+    }
+}
