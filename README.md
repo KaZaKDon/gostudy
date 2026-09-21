@@ -23,8 +23,8 @@ GoStudy — образовательная онлайн-платформа дл�
 [`docs/LOCAL_DEVELOPMENT.md`](docs/LOCAL_DEVELOPMENT.md).
 
 ```bash
-npm install
-npm --prefix server install
+npm ci
+npm --prefix server ci
 ```
 
 Для выбранного локального режима сначала создать базы `gostudy`,
@@ -34,7 +34,6 @@ npm --prefix server install
 выполнить:
 
 ```bash
-npm run server:prisma:generate
 npm run server:prisma:migrate
 npm run server:dev
 npm run dev
@@ -75,4 +74,9 @@ npm run build
 npm run server:lint
 npm run server:test
 npm run server:build
+npm --prefix server run test:modules
 ```
+
+`npm --prefix server ci` автоматически генерирует Prisma Client. Отдельная
+команда `npm run server:prisma:generate` остаётся доступна после изменений
+Prisma-схемы.

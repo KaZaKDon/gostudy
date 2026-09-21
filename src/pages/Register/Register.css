@@ -296,3 +296,14 @@
         font-size: 13px;
     }
 }
+.auth-card__inline-action {
+    display: inline;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: 800;
+    text-decoration: underline;
+    background: transparent;
+    cursor: pointer;
+}

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import {
     LessonChangeStatus,
     LessonStatus,
@@ -213,9 +214,7 @@ export class ScheduleService {
             );
         }
 
-        const adultBirthDate = new Date();
-        adultBirthDate.setUTCHours(0, 0, 0, 0);
-        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+        const adultBirthDate = adultBirthDateCutoff();
 
         const childProfiles = await this.prisma.parentChildProfile.findMany({
             where: {

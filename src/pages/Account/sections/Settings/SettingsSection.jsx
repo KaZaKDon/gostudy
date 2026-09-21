@@ -12,7 +12,7 @@ import {
 
 import { SettingsSidebar } from './components/SettingsSidebar.jsx';
 import { SettingsPanel } from './components/SettingsPanel.jsx';
-import { ParentNotificationSettings } from './components/ParentNotificationSettings.jsx';
+import { StudentNotificationSettings } from './components/StudentNotificationSettings.jsx';
 import { ParentChildNotificationSettings } from './components/ParentChildNotificationSettings.jsx';
 import { AccountContactSettings } from './components/AccountContactSettings.jsx';
 import { SecuritySettings } from './components/SecuritySettings.jsx';
@@ -252,7 +252,7 @@ export function SettingsSection({
         if (activeTab === 'notifications') {
             if (role === 'student') {
                 return (
-                    <ParentNotificationSettings
+                    <StudentNotificationSettings
                         onEditContacts={() => navigate(
                             '/profile-start?role=student&mode=edit&step=contacts',
                         )}

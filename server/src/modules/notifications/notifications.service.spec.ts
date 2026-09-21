@@ -33,6 +33,18 @@ const parent: SessionUser = {
     profileCompleted: true,
 };
 
+const student: SessionUser = {
+    id: 9,
+    role: UserRole.STUDENT,
+    email: 'student@example.com',
+    fullName: 'Иван Ученик',
+    phone: null,
+    avatarUrl: null,
+    status: UserStatus.ACTIVE,
+    emailVerifiedAt: new Date(),
+    profileCompleted: true,
+};
+
 describe('NotificationsService', () => {
     it('returns notifications, unread count and pending request count', async () => {
         const prisma = {
@@ -283,6 +295,73 @@ describe('NotificationsService', () => {
         });
 
         expect(upsert).not.toHaveBeenCalled();
+    });
+
+    it('returns the student parent-email notification preference', async () => {
+        const prisma = {
+            studentProfile: {
+                findUnique: vi.fn().mockResolvedValue({
+                    parentEmail: 'parent@example.com',
+                    parentNotificationsEnabled: true,
+                }),
+            },
+        } as unknown as PrismaService;
+        const service = new NotificationsService(prisma);
+
+        await expect(service.getStudentSettings(student)).resolves.toMatchObject({
+            success: true,
+            settings: {
+                parent_email: 'parent@example.com',
+                parent_notifications_enabled: true,
+            },
+        });
+    });
+
+    it('saves the student parent-email notification preference', async () => {
+        const update = vi.fn().mockResolvedValue({
+            parentEmail: 'parent@example.com',
+            parentNotificationsEnabled: true,
+        });
+        const prisma = {
+            studentProfile: {
+                findUnique: vi.fn().mockResolvedValue({
+                    parentEmail: 'parent@example.com',
+                }),
+                update,
+            },
+        } as unknown as PrismaService;
+        const service = new NotificationsService(prisma);
+
+        const result = await service.updateStudentSettings(student, {
+            parent_notifications_enabled: true,
+        });
+
+        expect(update).toHaveBeenCalledWith({
+            where: { userId: student.id },
+            data: { parentNotificationsEnabled: true },
+            select: {
+                parentEmail: true,
+                parentNotificationsEnabled: true,
+            },
+        });
+        expect(result).toMatchObject({
+            settings: { parent_notifications_enabled: true },
+        });
+    });
+
+    it('does not enable parent-email notifications without an email', async () => {
+        const prisma = {
+            studentProfile: {
+                findUnique: vi.fn().mockResolvedValue({ parentEmail: null }),
+            },
+        } as unknown as PrismaService;
+        const service = new NotificationsService(prisma);
+
+        await expect(service.updateStudentSettings(student, {
+            parent_notifications_enabled: true,
+        })).rejects.toThrow(
+            'Сначала укажите корректный email родителя в анкете',
+        );
     });
 
     it('marks only the current user notification as read', async () => {

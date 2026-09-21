@@ -575,32 +575,33 @@ model MessageReport {
 }
 
 model StudentProfile {
-  id                Int      @id @default(autoincrement())
-  userId            Int      @unique @map("user_id")
-  firstName         String?  @map("first_name") @db.VarChar(120)
-  lastName          String?  @map("last_name") @db.VarChar(120)
-  city              String?  @db.VarChar(120)
-  timezone          String?  @db.VarChar(80)
-  birthYear         Int?     @map("birth_year")
-  classLevel        String?  @map("class_level") @db.VarChar(120)
-  subjects          String?  @db.Text
-  goal              String?  @db.Text
-  learningGoals     String?  @map("learning_goals") @db.Text
-  levelDescription  String?  @map("level_description") @db.Text
-  lessonFormat      String?  @map("lesson_format") @db.VarChar(120)
-  parentName        String?  @map("parent_name") @db.VarChar(255)
-  parentPhone       String?  @map("parent_phone") @db.VarChar(40)
-  parentEmail       String?  @map("parent_email") @db.VarChar(320)
-  messenger         String?  @db.VarChar(120)
-  contactPreference String?  @map("contact_preference") @db.VarChar(120)
-  preferredTime     String?  @map("preferred_time") @db.VarChar(255)
-  scheduleComment   String?  @map("schedule_comment") @db.Text
-  about             String?  @db.Text
-  profileVersion    Int      @default(1) @map("profile_version")
-  profileCompletion Int      @default(0) @map("profile_completion")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                         Int      @id @default(autoincrement())
+  userId                     Int      @unique @map("user_id")
+  firstName                  String?  @map("first_name") @db.VarChar(120)
+  lastName                   String?  @map("last_name") @db.VarChar(120)
+  city                       String?  @db.VarChar(120)
+  timezone                   String?  @db.VarChar(80)
+  birthYear                  Int?     @map("birth_year")
+  classLevel                 String?  @map("class_level") @db.VarChar(120)
+  subjects                   String?  @db.Text
+  goal                       String?  @db.Text
+  learningGoals              String?  @map("learning_goals") @db.Text
+  levelDescription           String?  @map("level_description") @db.Text
+  lessonFormat               String?  @map("lesson_format") @db.VarChar(120)
+  parentName                 String?  @map("parent_name") @db.VarChar(255)
+  parentPhone                String?  @map("parent_phone") @db.VarChar(40)
+  parentEmail                String?  @map("parent_email") @db.VarChar(320)
+  parentNotificationsEnabled Boolean  @default(false) @map("parent_notifications_enabled")
+  messenger                  String?  @db.VarChar(120)
+  contactPreference          String?  @map("contact_preference") @db.VarChar(120)
+  preferredTime              String?  @map("preferred_time") @db.VarChar(255)
+  scheduleComment            String?  @map("schedule_comment") @db.Text
+  about                      String?  @db.Text
+  profileVersion             Int      @default(1) @map("profile_version")
+  profileCompletion          Int      @default(0) @map("profile_completion")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("student_profiles")
 }

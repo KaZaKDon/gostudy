@@ -1,8 +1,7 @@
 # GoStudy — настройки ученика
 
-> **Документ интерфейса.** Frontend остаётся актуальным; упомянутые PHP API и
-> MySQL-структуры считаются архивной спецификацией до переноса в NestJS и
-> PostgreSQL.
+> **Актуальный документ интерфейса.** Профиль, безопасность и настройки
+> уведомлений ученика работают через NestJS/PostgreSQL.
 
 ## Что реализовано
 
@@ -19,7 +18,10 @@
   рабочий переключатель писем родителю;
 - если email родителя не указан, кнопка сразу открывает нужный шаг анкеты.
 
-Новые API-файлы и миграции базы данных не требуются.
+Настройка уведомлений использует `GET/POST
+/api/v1/notifications/student-settings`. Миграция
+`20260920133000_student_notification_settings_node` добавляет сохраняемый
+признак писем родителю. Отправка таких писем остаётся отдельным этапом.
 
 ## Локальный фронтенд
 
@@ -33,7 +35,7 @@ src/pages/ProfileStart/StudentProfileForm.jsx
 src/pages/Account/sections/Settings/SettingsSection.jsx
 src/pages/Account/sections/Settings/SettingsSection.css
 src/pages/Account/sections/Settings/components/SettingsField.jsx
-src/pages/Account/sections/Settings/components/ParentNotificationSettings.jsx
+src/pages/Account/sections/Settings/components/StudentNotificationSettings.jsx
 ```
 
 ## Проверка

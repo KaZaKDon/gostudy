@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { API } from '../../api/api.js';
 import { PasswordField } from '../../components/PasswordField/PasswordField.jsx';
 import { buildRegistrationLegalAcceptances } from '../../data/legal/legalAcceptance.js';
+import { getAdultBirthDateMaximum } from '../../utils/birthDate.js';
 
 import './Register.css';
 
@@ -19,6 +20,7 @@ export function Register() {
         : 'student';
 
     const [role, setRole] = useState(initialRole);
+    const [birthDate, setBirthDate] = useState('');
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -45,6 +47,11 @@ export function Register() {
 
         if (role === 'parent' && fullName.trim().length < 3) {
             setErrorMessage('Укажите полное имя родителя.');
+            return;
+        }
+
+        if (role === 'student' && !birthDate) {
+            setErrorMessage('Укажите дату рождения ученика.');
             return;
         }
 
@@ -90,6 +97,9 @@ export function Register() {
                 },
                 body: JSON.stringify({
                     role,
+                    ...(role === 'student'
+                        ? { birth_date: birthDate }
+                        : {}),
                     email: normalizedEmail,
                     password,
                     ...(role === 'parent'
@@ -177,6 +187,39 @@ export function Register() {
                     className="auth-card__form"
                     onSubmit={handleRegister}
                 >
+                    {role === 'student' && (
+                        <>
+                            <p className="auth-card__role-note">
+                                Самостоятельная регистрация доступна с 18 лет.
+                                Если ученику меньше 18 лет, сначала создайте{' '}
+                                <button
+                                    type="button"
+                                    className="auth-card__inline-action"
+                                    onClick={() => setRole('parent')}
+                                >
+                                    аккаунт родителя
+                                </button>
+                                .
+                            </p>
+
+                            <label>
+                                <span>Дата рождения</span>
+
+                                <input
+                                    type="date"
+                                    value={birthDate}
+                                    max={getAdultBirthDateMaximum()}
+                                    onChange={(event) =>
+                                        setBirthDate(event.target.value)
+                                    }
+                                    autoComplete="bday"
+                                    disabled={isLoading}
+                                    required
+                                />
+                            </label>
+                        </>
+                    )}
+
                     {role === 'parent' && (
                         <>
                             <p className="auth-card__role-note">

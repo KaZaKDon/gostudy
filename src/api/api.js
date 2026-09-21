@@ -1,7 +1,3 @@
-const LEGACY_API_BASE = import.meta.env.DEV
-    ? 'https://gostudyonline.ru/api'
-    : '/api';
-
 const NODE_API_BASE = import.meta.env.VITE_NODE_API_BASE_URL
     || (import.meta.env.DEV
         ? 'http://localhost:3002/api/v1'
@@ -24,15 +20,6 @@ export const API_FEATURES = Object.freeze({
     parentChildren: true,
     reviews: true,
 });
-
-export function isLegacyApiUrl(url)
-{
-    return typeof url === 'string'
-        && url.startsWith(LEGACY_API_BASE);
-}
-
-export const LEGACY_API_UNAVAILABLE_MESSAGE =
-    'Раздел подключается к новому серверу GoStudy и пока недоступен.';
 
 export const API = {
     login: `${NODE_API_BASE}/auth/login`,
@@ -82,7 +69,6 @@ export const API = {
     requestLessonChange: `${NODE_API_BASE}/lessons/change-requests`,
     respondLessonChange: `${NODE_API_BASE}/lessons/change-requests/respond`,
     withdrawLessonChange: `${NODE_API_BASE}/lessons/change-requests/withdraw`,
-    studentSchedule: `${LEGACY_API_BASE}/student/schedule.php`,
     homework: `${NODE_API_BASE}/homework`,
     homeworkShow: `${NODE_API_BASE}/homework/show`,
     homeworkOptions: `${NODE_API_BASE}/homework/options`,
@@ -96,7 +82,7 @@ export const API = {
     materialOptions: `${NODE_API_BASE}/materials/options`,
     materialShow: `${NODE_API_BASE}/materials/show`,
     materialDownload: `${NODE_API_BASE}/materials/download`,
-    studentNotificationSettings: `${LEGACY_API_BASE}/student/notification-settings.php`,
+    studentNotificationSettings: `${NODE_API_BASE}/notifications/student-settings`,
     studentDiary: `${NODE_API_BASE}/student/diary`,
     parentDiary: `${NODE_API_BASE}/parent/children/diary`,
     teacherJournal: `${NODE_API_BASE}/journal`,

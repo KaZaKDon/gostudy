@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { normalizeUploadedFileName } from '../../common/files/upload-file-name';
+import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
 import {
@@ -1068,9 +1069,7 @@ export class HomeworkService {
             );
         }
 
-        const adultBirthDate = new Date();
-        adultBirthDate.setUTCHours(0, 0, 0, 0);
-        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+        const adultBirthDate = adultBirthDateCutoff();
 
         const childProfiles = await this.prisma.parentChildProfile.findMany({
             where: {

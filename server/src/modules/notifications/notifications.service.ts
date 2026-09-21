@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import {
     ParentChildVerificationStatus,
     ParentStudentStatus,
@@ -17,6 +18,7 @@ import type { DeleteNotificationDto } from './dto/delete-notification.dto';
 import type { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
 import type { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
 import type { UpdateParentNotificationSettingsDto } from './dto/update-parent-notification-settings.dto';
+import type { UpdateStudentNotificationSettingsDto } from './dto/update-student-notification-settings.dto';
 import type {
     CreateNotificationInput,
     CreateParentNotificationInput,
@@ -236,6 +238,67 @@ export class NotificationsService {
         };
     }
 
+    async getStudentSettings(
+        user: SessionUser,
+    ): Promise<Record<string, unknown>> {
+        this.requireStudent(user);
+        const profile = await this.prisma.studentProfile.findUnique({
+            where: { userId: user.id },
+            select: {
+                parentEmail: true,
+                parentNotificationsEnabled: true,
+            },
+        });
+
+        if (!profile) {
+            throw new NotFoundException('Профиль ученика не найден');
+        }
+
+        return {
+            success: true,
+            settings: this.serializeStudentSettings(profile),
+        };
+    }
+
+    async updateStudentSettings(
+        user: SessionUser,
+        input: UpdateStudentNotificationSettingsDto,
+    ): Promise<Record<string, unknown>> {
+        this.requireStudent(user);
+        const profile = await this.prisma.studentProfile.findUnique({
+            where: { userId: user.id },
+            select: { parentEmail: true },
+        });
+
+        if (!profile) {
+            throw new NotFoundException('Профиль ученика не найден');
+        }
+
+        if (input.parent_notifications_enabled && !profile.parentEmail) {
+            throw new BadRequestException(
+                'Сначала укажите корректный email родителя в анкете',
+            );
+        }
+
+        const updated = await this.prisma.studentProfile.update({
+            where: { userId: user.id },
+            data: {
+                parentNotificationsEnabled:
+                    input.parent_notifications_enabled,
+            },
+            select: {
+                parentEmail: true,
+                parentNotificationsEnabled: true,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Настройки уведомлений сохранены',
+            settings: this.serializeStudentSettings(updated),
+        };
+    }
+
     async create(
         client: NotificationWriteClient,
         input: CreateNotificationInput,
@@ -296,9 +359,7 @@ export class NotificationsService {
             return;
         }
 
-        const adultBirthDate = new Date();
-        adultBirthDate.setUTCHours(0, 0, 0, 0);
-        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+        const adultBirthDate = adultBirthDateCutoff();
 
         const childProfiles = await client.parentChildProfile.findMany({
             where: {
@@ -419,6 +480,14 @@ export class NotificationsService {
         }
     }
 
+    private requireStudent(user: SessionUser): void {
+        if (user.role !== UserRole.STUDENT) {
+            throw new BadRequestException(
+                'Настройки доступны только ученику',
+            );
+        }
+    }
+
     private async activeParentChildren(parentId: number) {
         const links = await this.prisma.parentStudent.findMany({
             where: {
@@ -433,9 +502,7 @@ export class NotificationsService {
             return [];
         }
 
-        const adultBirthDate = new Date();
-        adultBirthDate.setUTCHours(0, 0, 0, 0);
-        adultBirthDate.setUTCFullYear(adultBirthDate.getUTCFullYear() - 18);
+        const adultBirthDate = adultBirthDateCutoff();
 
         const profiles = await this.prisma.parentChildProfile.findMany({
             where: {
@@ -488,6 +555,17 @@ export class NotificationsService {
             diary_enabled: preference?.diaryEnabled ?? true,
             schedule_enabled: preference?.scheduleEnabled ?? true,
             messages_enabled: preference?.messagesEnabled ?? true,
+        };
+    }
+
+    private serializeStudentSettings(profile: {
+        parentEmail: string | null;
+        parentNotificationsEnabled: boolean;
+    }): Record<string, unknown> {
+        return {
+            parent_email: profile.parentEmail,
+            parent_notifications_enabled:
+                profile.parentNotificationsEnabled,
         };
     }
 }

@@ -87,7 +87,6 @@ export function StepDocuments({
     deletingDocumentId,
     isUploadingVideo,
     videoProgress,
-    isVideoUploadAvailable,
     documentMaxBytes,
     videoMaxBytes,
     onDocumentSelect,
@@ -198,12 +197,6 @@ export function StepDocuments({
                         {formatFileSize(videoMaxBytes || 100 * 1024 * 1024)}.
                         Загрузить можно только один ролик.
                     </p>
-                    {!isVideoUploadAvailable && (
-                        <p className="teacher-profile-upload-note">
-                            Загрузка и замена видеовизитки временно недоступны до
-                            переноса видео в новое закрытое хранилище GoStudy.
-                        </p>
-                    )}
                 </div>
 
                 {profile.intro_video_url && (
@@ -222,7 +215,7 @@ export function StepDocuments({
                         <input
                             type="file"
                             accept="video/mp4,video/webm"
-                            disabled={isUploadingVideo || !isVideoUploadAvailable}
+                            disabled={isUploadingVideo}
                             onChange={(event) => {
                                 const file = event.target.files?.[0];
                                 event.target.value = '';
@@ -245,7 +238,7 @@ export function StepDocuments({
                         <button
                             type="button"
                             className="teacher-profile-upload-remove"
-                            disabled={isUploadingVideo || !isVideoUploadAvailable}
+                            disabled={isUploadingVideo}
                             onClick={onDeleteVideo}
                         >
                             Удалить

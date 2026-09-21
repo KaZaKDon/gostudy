@@ -7,6 +7,10 @@ import { Link } from 'react-router-dom';
 
 import { API } from '../../../../api/api.js';
 import { apiRequest } from '../../../../api/apiRequest.js';
+import {
+    getAge,
+    getMinorBirthDateLimits,
+} from '../../../../utils/birthDate.js';
 import { CreateStudentAccountForm } from './CreateStudentAccountForm.jsx';
 import { LinkExistingStudentForm } from './LinkExistingStudentForm.jsx';
 
@@ -24,47 +28,6 @@ const VERIFICATION_LABELS = {
     rejected: 'Отклонён',
 };
 
-function toDateInputValue(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-}
-
-function getBirthDateLimits() {
-    const today = new Date();
-    const maximum = new Date(today);
-    maximum.setDate(maximum.getDate() - 1);
-
-    const minimum = new Date(today);
-    minimum.setFullYear(minimum.getFullYear() - 18);
-    minimum.setDate(minimum.getDate() + 1);
-
-    return {
-        min: toDateInputValue(minimum),
-        max: toDateInputValue(maximum),
-    };
-}
-
-function getAge(birthDate) {
-    const value = new Date(`${birthDate}T00:00:00`);
-    const today = new Date();
-    let age = today.getFullYear() - value.getFullYear();
-
-    if (
-        today.getMonth() < value.getMonth()
-        || (
-            today.getMonth() === value.getMonth()
-            && today.getDate() < value.getDate()
-        )
-    ) {
-        age -= 1;
-    }
-
-    return age;
-}
-
 function createEmptyForm() {
     return {
         lastName: '',
@@ -79,7 +42,7 @@ function createEmptyForm() {
 }
 
 export function ParentChildrenSection() {
-    const birthDateLimits = useMemo(() => getBirthDateLimits(), []);
+    const birthDateLimits = useMemo(() => getMinorBirthDateLimits(), []);
     const [children, setChildren] = useState([]);
     const [status, setStatus] = useState('loading');
     const [errorMessage, setErrorMessage] = useState('');

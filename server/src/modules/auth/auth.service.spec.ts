@@ -34,6 +34,7 @@ function createInput(overrides: {
 } = {}): RegisterDto {
     return {
         role: 'student',
+        birth_date: '1990-01-01',
         email: 'student@example.com',
         password: 'password',
         legal_acceptances: {
@@ -82,10 +83,78 @@ describe('AuthService parent registration', () => {
         );
     });
 
-    it('does not require parent fields for a student', async () => {
+    it('requires a birth date for a student', async () => {
+        const { birth_date: _birthDate, ...withoutBirthDate } = createInput();
+        const input = plainToInstance(RegisterDto, withoutBirthDate);
+
+        const errors = await validate(input);
+
+        expect(errors.map((error) => error.property)).toContain('birth_date');
+    });
+
+    it('does not require parent fields for an adult student', async () => {
         const input = plainToInstance(RegisterDto, createInput());
 
         await expect(validate(input)).resolves.toHaveLength(0);
+    });
+
+    it('rejects direct registration of a minor student', async () => {
+        const minorBirthDate = new Date();
+        minorBirthDate.setUTCFullYear(minorBirthDate.getUTCFullYear() - 10);
+
+        await expect(createService().register({
+            ...createInput(),
+            birth_date: minorBirthDate.toISOString().slice(0, 10),
+        }, { ipAddress: null, userAgent: null })).rejects.toThrow(
+            'Ученика младше 18 лет регистрирует родитель через свой аккаунт',
+        );
+    });
+
+    it('stores the birth year for a self-registering adult student', async () => {
+        const createdUser = {
+            id: 42,
+            role: UserRole.STUDENT,
+            email: 'student@example.com',
+            fullName: null,
+            phone: null,
+            avatarUrl: null,
+            status: UserStatus.ACTIVE,
+            emailVerifiedAt: null,
+            profileCompleted: false,
+        };
+        const prisma = {
+            user: {
+                findUnique: vi.fn().mockResolvedValue(null),
+                create: vi.fn().mockResolvedValue(createdUser),
+                update: vi.fn(),
+            },
+        } as unknown as PrismaService;
+        const legalConsents = {
+            getRegistrationSnapshots: vi.fn().mockReturnValue([]),
+        } as unknown as LegalConsentsService;
+        const mail = {
+            sendVerificationEmail: vi.fn().mockResolvedValue(true),
+        } as unknown as MailService;
+        const service = new AuthService(
+            prisma,
+            new ConfigService({ NODE_ENV: 'test' }),
+            legalConsents,
+            mail,
+        );
+
+        await service.register(
+            createInput(),
+            { ipAddress: null, userAgent: null },
+        );
+
+        expect(prisma.user.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    role: UserRole.STUDENT,
+                    studentProfile: { create: { birthYear: 1990 } },
+                }),
+            }),
+        );
     });
 
     it('creates a completed parent account without a student profile', async () => {
@@ -152,6 +221,65 @@ describe('AuthService parent registration', () => {
             full_name: 'Иванова Мария Сергеевна',
             profile_completed: true,
         });
+    });
+});
+
+describe('AuthService email verification', () => {
+    it('keeps the token hash so reopening a verified link is idempotent', async () => {
+        const user = {
+            id: 51,
+            email: 'student@example.com',
+            emailVerifiedAt: null,
+            emailVerificationExpiresAt: new Date(Date.now() + 60_000),
+        };
+        const prisma = {
+            user: {
+                findUnique: vi.fn().mockResolvedValue(user),
+                update: vi.fn().mockResolvedValue(undefined),
+            },
+        } as unknown as PrismaService;
+        const service = new AuthService(
+            prisma,
+            new ConfigService({ NODE_ENV: 'test' }),
+            {} as LegalConsentsService,
+            {} as MailService,
+        );
+
+        await expect(service.verifyEmail('verification-token')).resolves
+            .toMatchObject({ email_verified: true });
+        expect(prisma.user.update).toHaveBeenCalledWith({
+            where: { id: user.id },
+            data: {
+                emailVerifiedAt: expect.any(Date),
+                emailVerificationExpiresAt: null,
+                emailVerificationSentAt: null,
+            },
+        });
+    });
+
+    it('accepts a repeated request for an already verified matching token', async () => {
+        const prisma = {
+            user: {
+                findUnique: vi.fn().mockResolvedValue({
+                    id: 51,
+                    emailVerifiedAt: new Date(),
+                }),
+                update: vi.fn(),
+            },
+        } as unknown as PrismaService;
+        const service = new AuthService(
+            prisma,
+            new ConfigService({ NODE_ENV: 'test' }),
+            {} as LegalConsentsService,
+            {} as MailService,
+        );
+
+        await expect(service.verifyEmail('verification-token')).resolves
+            .toMatchObject({
+                email_verified: true,
+                message: 'Электронная почта уже подтверждена',
+            });
+        expect(prisma.user.update).not.toHaveBeenCalled();
     });
 });
 

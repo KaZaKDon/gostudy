@@ -13,6 +13,11 @@ import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcryptjs';
 
 import type { RequestMetadata } from '../../common/http/request-metadata';
+import {
+    isAdultBirthDate,
+    isPastBirthDate,
+    parseIsoDateOnly,
+} from '../../common/date/birth-date';
 import { createOpaqueToken, hashToken } from '../../common/security/token';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
@@ -56,6 +61,16 @@ export class AuthService {
             );
         }
 
+        const roles: Record<RegisterDto['role'], UserRole> = {
+            student: UserRole.STUDENT,
+            teacher: UserRole.TEACHER,
+            parent: UserRole.PARENT,
+        };
+        const role = roles[input.role];
+        const studentBirthDate = role === UserRole.STUDENT
+            ? this.parseAdultStudentBirthDate(input.birth_date)
+            : null;
+
         const existingUser = await this.prisma.user.findUnique({
             where: { email },
             select: { id: true },
@@ -67,12 +82,6 @@ export class AuthService {
             );
         }
 
-        const roles: Record<RegisterDto['role'], UserRole> = {
-            student: UserRole.STUDENT,
-            teacher: UserRole.TEACHER,
-            parent: UserRole.PARENT,
-        };
-        const role = roles[input.role];
         const passwordHash = await hash(input.password, 12);
         const verificationToken = createOpaqueToken();
         const verificationTokenHash = hashToken(verificationToken);
@@ -107,7 +116,13 @@ export class AuthService {
                     emailVerificationExpiresAt: verificationExpiresAt,
                     emailVerificationSentAt: now,
                     ...(role === UserRole.STUDENT
-                        ? { studentProfile: { create: {} } }
+                        ? {
+                            studentProfile: {
+                                create: {
+                                    birthYear: studentBirthDate?.getUTCFullYear(),
+                                },
+                            },
+                        }
                         : role === UserRole.TEACHER
                             ? { teacherProfile: { create: {} } }
                             : {}),
@@ -174,6 +189,22 @@ export class AuthService {
             mail_sent: mailSent,
             user: this.toPublicUser(user),
         };
+    }
+
+    private parseAdultStudentBirthDate(value: string | undefined): Date {
+        const birthDate = value ? parseIsoDateOnly(value) : null;
+
+        if (!birthDate || !isPastBirthDate(birthDate)) {
+            throw new BadRequestException('Укажите корректную дату рождения');
+        }
+
+        if (!isAdultBirthDate(birthDate)) {
+            throw new ForbiddenException(
+                'Ученика младше 18 лет регистрирует родитель через свой аккаунт',
+            );
+        }
+
+        return birthDate;
     }
 
     async login(
@@ -308,7 +339,6 @@ export class AuthService {
             where: { id: user.id },
             data: {
                 emailVerifiedAt: new Date(),
-                emailVerificationTokenHash: null,
                 emailVerificationExpiresAt: null,
                 emailVerificationSentAt: null,
             },

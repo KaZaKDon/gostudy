@@ -17,6 +17,7 @@ import { DeleteNotificationDto } from './dto/delete-notification.dto';
 import { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
 import { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
 import { UpdateParentNotificationSettingsDto } from './dto/update-parent-notification-settings.dto';
+import { UpdateStudentNotificationSettingsDto } from './dto/update-student-notification-settings.dto';
 import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
@@ -73,5 +74,21 @@ export class NotificationsController {
         @Body() input: UpdateParentNotificationSettingsDto,
     ): Promise<Record<string, unknown>> {
         return this.notifications.updateParentSettings(user, input);
+    }
+
+    @Get('student-settings')
+    async studentSettings(
+        @CurrentUser() user: SessionUser,
+    ): Promise<Record<string, unknown>> {
+        return this.notifications.getStudentSettings(user);
+    }
+
+    @Post('student-settings')
+    @HttpCode(HttpStatus.OK)
+    async updateStudentSettings(
+        @CurrentUser() user: SessionUser,
+        @Body() input: UpdateStudentNotificationSettingsDto,
+    ): Promise<Record<string, unknown>> {
+        return this.notifications.updateStudentSettings(user, input);
     }
 }

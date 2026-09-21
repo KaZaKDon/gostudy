@@ -6,6 +6,11 @@ import {
 } from '@nestjs/common';
 
 import type { RequestMetadata } from '../../common/http/request-metadata';
+import {
+    isAdultBirthDate,
+    isPastBirthDate,
+    parseIsoDateOnly,
+} from '../../common/date/birth-date';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     LegalRepresentativeType,
@@ -144,32 +149,19 @@ export class ParentChildrenService {
     }
 
     private parseMinorBirthDate(value: string): Date {
-        const birthDate = new Date(`${value}T00:00:00.000Z`);
+        const birthDate = parseIsoDateOnly(value);
 
-        if (
-            Number.isNaN(birthDate.getTime())
-            || birthDate.toISOString().slice(0, 10) !== value
-        ) {
+        if (!birthDate) {
             throw new BadRequestException('Укажите корректную дату рождения');
         }
 
-        const today = new Date();
-        const todayUtc = new Date(Date.UTC(
-            today.getUTCFullYear(),
-            today.getUTCMonth(),
-            today.getUTCDate(),
-        ));
-
-        if (birthDate >= todayUtc) {
+        if (!isPastBirthDate(birthDate)) {
             throw new BadRequestException(
                 'Дата рождения должна быть раньше текущей даты',
             );
         }
 
-        const adultDate = new Date(birthDate);
-        adultDate.setUTCFullYear(adultDate.getUTCFullYear() + 18);
-
-        if (adultDate <= todayUtc) {
+        if (isAdultBirthDate(birthDate)) {
             throw new BadRequestException(
                 'Совершеннолетний пользователь регистрируется самостоятельно',
             );

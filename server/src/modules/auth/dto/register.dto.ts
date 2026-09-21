@@ -46,6 +46,13 @@ export class RegisterDto {
     })
     role: 'student' | 'teacher' | 'parent';
 
+    @ValidateIf((input: RegisterDto) => input.role === 'student')
+    @IsString({ message: 'Укажите дату рождения ученика' })
+    @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+        message: 'Дата рождения должна быть указана в формате ГГГГ-ММ-ДД',
+    })
+    birth_date?: string;
+
     @ValidateIf((input: RegisterDto) => input.role === 'parent')
     @Transform(({ value }: { value: unknown }) => (
         typeof value === 'string' ? value.trim() : value

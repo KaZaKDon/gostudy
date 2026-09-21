@@ -11,7 +11,6 @@ import {
 import {
     API,
     getAuthHeaders,
-    isLegacyApiUrl,
 } from '../../api/api.js';
 import {
     formatFileSize,
@@ -197,8 +196,6 @@ export function TeacherProfileWizard() {
 
     const currentStep = TEACHER_PROFILE_STEPS[currentStepIndex];
     const isPreviewStep = currentStep.id === 'preview';
-    const isVideoUploadAvailable = !isLegacyApiUrl(API.uploadTeacherVideo)
-        && !isLegacyApiUrl(API.deleteTeacherMedia);
     const isFileOperationInProgress = isUploadingPhoto
         || isUploadingDocument
         || isUploadingVideo
@@ -865,7 +862,6 @@ export function TeacherProfileWizard() {
                             deletingDocumentId={deletingDocumentId}
                             isUploadingVideo={isUploadingVideo}
                             videoProgress={videoProgress}
-                            isVideoUploadAvailable={isVideoUploadAvailable}
                             documentMaxBytes={options.upload_limits?.document_max_bytes}
                             videoMaxBytes={options.upload_limits?.video_max_bytes}
                             onDocumentSelect={handleDocumentSelect}
