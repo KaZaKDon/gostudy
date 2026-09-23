@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { LegalConsentsModule } from '../legal-consents/legal-consents.module';
 import { MailModule } from '../mail/mail.module';
+import { AuthRateLimitModule } from '../auth-rate-limit/auth-rate-limit.module';
 import { AdminAccessGuard } from './admin-access.guard';
 import { AdminAuthController } from './admin-auth.controller';
 import { AuthController } from './auth.controller';
@@ -12,7 +13,7 @@ import { SessionAuthService } from './session-auth.service';
 import { SecurityService } from './security.service';
 
 @Module({
-    imports: [LegalConsentsModule, MailModule],
+    imports: [AuthRateLimitModule, LegalConsentsModule, MailModule],
     controllers: [AuthController, AdminAuthController],
     providers: [
         AuthService,

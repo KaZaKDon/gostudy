@@ -32,6 +32,8 @@ import {
 } from './teacher-profile-media-file-storage.service';
 import { TeacherProfileMediaService } from './teacher-profile-media.service';
 
+const PUBLIC_MEDIA_CACHE_CONTROL = 'no-store, max-age=0, must-revalidate';
+
 type StoredMediaResult = {
     absolutePath: string;
     size: number;
@@ -166,7 +168,7 @@ export class PublicTeacherProfileMediaController {
             request,
             response,
             file,
-            'public, max-age=86400, immutable',
+            PUBLIC_MEDIA_CACHE_CONTROL,
         );
     }
 }

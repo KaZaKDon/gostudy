@@ -6,11 +6,11 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
 import {
     LessonStatus,
-    ParentStudentStatus,
     ReviewReplyStatus,
     ReviewStatus,
     TeacherStudentStatus,
@@ -23,23 +23,21 @@ import type { SaveReviewDto } from './dto/save-review.dto';
 
 @Injectable()
 export class ReviewsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly parentChildAccess: ParentChildAccessService,
+    ) {}
 
     async list(user: SessionUser, query: ListReviewsQueryDto) {
         if (user.role === UserRole.STUDENT) {
             return this.listReviewRelations([user.id]);
         }
         if (user.role === UserRole.PARENT) {
-            const links = await this.prisma.parentStudent.findMany({
-                where: {
-                    parentId: user.id,
-                    status: ParentStudentStatus.ACTIVE,
-                },
-                select: { studentId: true },
-            });
+            const studentIds = await this.parentChildAccess
+                .listCurrentMinorStudentIds(user.id);
 
             return this.listReviewRelations(
-                links.map((link) => link.studentId),
+                studentIds,
                 true,
             );
         }
@@ -301,19 +299,17 @@ export class ReviewsService {
             throw new BadRequestException('Выберите ребёнка');
         }
 
-        const link = await this.prisma.parentStudent.findFirst({
-            where: {
-                parentId: user.id,
-                studentId: childId,
-                status: ParentStudentStatus.ACTIVE,
-            },
-            select: { studentId: true },
-        });
-        if (!link) {
-            throw new ForbiddenException('Связь с ребёнком не подтверждена');
+        const hasAccess = await this.parentChildAccess.hasCurrentMinorAccess(
+            user.id,
+            childId,
+        );
+        if (!hasAccess) {
+            throw new ForbiddenException(
+                'Ребёнок не подтверждён, не привязан или уже достиг 18 лет',
+            );
         }
 
-        return link.studentId;
+        return childId;
     }
 
     private async listTeacherReviews(teacherId: number, query: ListReviewsQueryDto) {

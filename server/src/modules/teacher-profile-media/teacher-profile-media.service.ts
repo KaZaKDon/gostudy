@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { publishedTeacherMediaOwnerWhere } from '../../common/access/teacher-publication-policy';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     TeacherProfileMediaStatus,
@@ -161,6 +162,9 @@ export class TeacherProfileMediaService {
             where: {
                 id: mediaId,
                 status: TeacherProfileMediaStatus.APPROVED,
+                teacher: {
+                    is: publishedTeacherMediaOwnerWhere(),
+                },
             },
         });
         if (!media) throw new NotFoundException('Файл профиля не найден');

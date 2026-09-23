@@ -8,10 +8,13 @@ import {
     Query,
     Req,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
 
 import { getRequestMetadata } from '../../common/http/request-metadata';
+import { AuthRateLimitInterceptor } from '../auth-rate-limit/auth-rate-limit.interceptor';
+import { LimitAuthRequests } from '../auth-rate-limit/auth-rate-limit.policy';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -27,6 +30,7 @@ import type { SessionUser } from './session-user';
 import { SecurityService } from './security.service';
 
 @Controller('auth')
+@UseInterceptors(AuthRateLimitInterceptor)
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
@@ -35,6 +39,7 @@ export class AuthController {
     ) {}
 
     @Post('register')
+    @LimitAuthRequests('register')
     async register(
         @Body() input: RegisterDto,
         @Req() request: Request,
@@ -46,6 +51,7 @@ export class AuthController {
     }
 
     @Post('login')
+    @LimitAuthRequests('login')
     @HttpCode(HttpStatus.OK)
     async login(
         @Body() input: LoginDto,
@@ -58,6 +64,7 @@ export class AuthController {
     }
 
     @Get('verify-email')
+    @LimitAuthRequests('verify-email')
     async verifyEmail(
         @Query('token') token: string,
     ): Promise<Record<string, unknown>> {
@@ -65,6 +72,7 @@ export class AuthController {
     }
 
     @Post('resend-verification')
+    @LimitAuthRequests('resend-verification')
     @HttpCode(HttpStatus.OK)
     async resendVerification(
         @Body() input: ResendVerificationDto,
@@ -73,6 +81,7 @@ export class AuthController {
     }
 
     @Post('forgot-password')
+    @LimitAuthRequests('forgot-password')
     @HttpCode(HttpStatus.OK)
     async forgotPassword(
         @Body() input: ForgotPasswordDto,
@@ -81,6 +90,7 @@ export class AuthController {
     }
 
     @Post('reset-password')
+    @LimitAuthRequests('reset-password')
     @HttpCode(HttpStatus.OK)
     async resetPassword(
         @Body() input: ResetPasswordDto,

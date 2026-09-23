@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
+import { ParentChildAccessModule } from '../../common/access/parent-child-access.module';
 import { PrivateFilesModule } from '../../common/files/private-files.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -15,6 +16,7 @@ import { MessagesService } from './messages.service';
 @Module({
     imports: [
         AuthModule,
+        ParentChildAccessModule,
         NotificationsModule,
         PrivateFilesModule,
         MulterModule.registerAsync({

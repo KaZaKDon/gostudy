@@ -6,6 +6,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { normalizeUploadedFileName } from '../../common/files/upload-file-name';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
@@ -63,6 +64,7 @@ export class MessagesService {
         private readonly prisma: PrismaService,
         private readonly notifications: NotificationsService,
         private readonly files: MessageFileStorageService,
+        private readonly parentChildAccess: ParentChildAccessService,
     ) {}
 
     async dialogs(user: SessionUser) {
@@ -73,6 +75,10 @@ export class MessagesService {
                 select: { studentId: true, status: true },
             })
             : [];
+        const currentMinorChildIds = user.role === UserRole.PARENT
+            ? await this.parentChildAccess.listCurrentMinorStudentIds(user.id)
+            : [];
+        const currentMinorChildIdSet = new Set(currentMinorChildIds);
         const childIds = parentLinks.map((link) => link.studentId);
         const relations = await this.prisma.teacherStudent.findMany({
             where: {
@@ -115,20 +121,39 @@ export class MessagesService {
                 },
             })
             : [];
-        const parentReadLinks = user.role === UserRole.TEACHER
-            ? linksForTeacher
-            : user.role === UserRole.STUDENT
-                ? await this.prisma.parentStudent.findMany({
-                    where: {
-                        studentId: user.id,
-                        verifiedAt: { not: null },
-                        status: {
-                            in: [ParentStudentStatus.ACTIVE, ParentStudentStatus.ARCHIVED],
-                        },
+        const linksForStudent = user.role === UserRole.STUDENT
+            ? await this.prisma.parentStudent.findMany({
+                where: {
+                    studentId: user.id,
+                    verifiedAt: { not: null },
+                    status: {
+                        in: [ParentStudentStatus.ACTIVE, ParentStudentStatus.ARCHIVED],
                     },
-                    select: { studentId: true },
-                })
-                : [];
+                },
+                select: { parentId: true, studentId: true },
+            })
+            : [];
+        const currentMinorAccessPairs = await this.parentChildAccess
+            .listCurrentMinorAccessPairs(
+                (user.role === UserRole.TEACHER
+                    ? linksForTeacher
+                    : linksForStudent
+                ).map((link) => ({
+                    parentId: link.parentId,
+                    studentId: link.studentId,
+                })),
+            );
+        const currentMinorAccessKeys = new Set(
+            currentMinorAccessPairs.map(
+                (pair) => `${pair.parentId}:${pair.studentId}`,
+            ),
+        );
+        const parentReadLinks = (user.role === UserRole.TEACHER
+            ? linksForTeacher
+            : linksForStudent
+        ).filter((link) => currentMinorAccessKeys.has(
+            `${link.parentId}:${link.studentId}`,
+        ));
         const storedDialogs = await this.prisma.messageDialog.findMany({
             where: user.role === UserRole.TEACHER
                 ? { teacherId: user.id }
@@ -137,7 +162,10 @@ export class MessagesService {
                     : {
                         OR: [
                             { parentId: user.id, channelType: MessageChannelType.PARENT },
-                            { studentId: { in: childIds }, channelType: MessageChannelType.STUDENT },
+                            {
+                                studentId: { in: currentMinorChildIds },
+                                channelType: MessageChannelType.STUDENT,
+                            },
                         ],
                     },
             include: {
@@ -199,7 +227,7 @@ export class MessagesService {
                 const parentLink = parentLinks.find(
                     (link) => link.studentId === pair.studentId,
                 );
-                if (parentLink) {
+                if (parentLink && currentMinorChildIdSet.has(pair.studentId)) {
                     const key = `${pair.teacherId}:${pair.studentId}:student`;
                     const stored = storedByKey.get(key);
                     if (parentLink.status === ParentStudentStatus.ACTIVE
@@ -235,20 +263,32 @@ export class MessagesService {
                 const channelKey = `parent:${link.parentId}`;
                 const key = `${pair.teacherId}:${pair.studentId}:${channelKey}`;
                 const stored = storedByKey.get(key);
-                if (link.status === ParentStudentStatus.ACTIVE || stored) {
+                const hasCurrentAccess = user.role === UserRole.PARENT
+                    ? currentMinorChildIdSet.has(pair.studentId)
+                    : currentMinorAccessKeys.has(
+                        `${link.parentId}:${pair.studentId}`,
+                    );
+                const canSend = link.status === ParentStudentStatus.ACTIVE
+                    && hasCurrentAccess;
+                if (canSend || stored) {
                     dialogsByKey.set(key, this.serializeDialogCandidate(
                         user,
                         pair,
                         MessageChannelType.PARENT,
                         link.parent,
                         stored,
-                        link.status === ParentStudentStatus.ACTIVE,
+                        canSend,
                     ));
                 }
             }
         }
 
         for (const dialog of storedDialogs) {
+            if (
+                user.role === UserRole.PARENT
+                && dialog.channelType === MessageChannelType.STUDENT
+                && !currentMinorChildIdSet.has(dialog.studentId)
+            ) continue;
             const pairKey = `${dialog.teacherId}:${dialog.studentId}`;
             if (!pairKeys.has(pairKey)) continue;
             const key = `${pairKey}:${dialog.channelKey}`;
@@ -471,6 +511,12 @@ export class MessagesService {
 
     async markRead(user: SessionUser, input: MessageDialogQueryDto) {
         const access = await this.requireDialogAccess(user, input);
+        if (
+            user.role === UserRole.PARENT
+            && access.channelType === MessageChannelType.STUDENT
+        ) {
+            return { success: true, updated_count: 0 };
+        }
         const dialog = await this.prisma.messageDialog.findUnique({
             where: {
                 teacherId_studentId_channelKey: {
@@ -618,18 +664,12 @@ export class MessagesService {
                 throw new BadRequestException('Для чата с учеником parent_id не используется');
             }
             if (user.role === UserRole.PARENT) {
-                const parentLink = await this.prisma.parentStudent.findFirst({
-                    where: {
-                        parentId: user.id,
-                        studentId: input.student_id,
-                        verifiedAt: { not: null },
-                        status: {
-                            in: [ParentStudentStatus.ACTIVE, ParentStudentStatus.ARCHIVED],
-                        },
-                    },
-                });
-                if (!parentLink) {
-                    throw new NotFoundException('Подтверждённая связь с ребёнком не найдена');
+                const canReadChildDialog = await this.parentChildAccess
+                    .hasCurrentMinorAccess(user.id, input.student_id);
+                if (!canReadChildDialog) {
+                    throw new ForbiddenException(
+                        'Доступ к переписке ребёнка недоступен',
+                    );
                 }
                 return {
                     teacherId: input.teacher_id,
@@ -678,6 +718,8 @@ export class MessagesService {
         if (!parentLink) {
             throw new NotFoundException('Подтверждённая связь с родителем не найдена');
         }
+        const parentCanSend = await this.parentChildAccess
+            .hasCurrentMinorAccess(input.parent_id, input.student_id);
 
         return {
             teacherId: input.teacher_id,
@@ -685,7 +727,9 @@ export class MessagesService {
             parentId: input.parent_id,
             channelType: MessageChannelType.PARENT,
             channelKey: `parent:${input.parent_id}`,
-            canSend: relationActive && parentLink.status === ParentStudentStatus.ACTIVE,
+            canSend: relationActive
+                && parentLink.status === ParentStudentStatus.ACTIVE
+                && parentCanSend,
         };
     }
 
@@ -708,6 +752,14 @@ export class MessagesService {
             user.role === UserRole.PARENT
             && dialog.channelType === MessageChannelType.PARENT
             && user.id === dialog.parentId
+        ) return;
+        if (
+            user.role === UserRole.PARENT
+            && dialog.channelType === MessageChannelType.STUDENT
+            && await this.parentChildAccess.hasCurrentMinorAccess(
+                user.id,
+                dialog.studentId,
+            )
         ) return;
         throw new ForbiddenException('Нет доступа к этой переписке');
     }
@@ -821,7 +873,9 @@ export class MessagesService {
                 ? 'Сообщение скрыто администрацией'
                 : last?.messageText || (last?.attachments.length ? 'Вложение' : ''),
             last_message_at: stored?.lastMessageAt || null,
-            unread_count: stored?._count.messages || 0,
+            unread_count: user.role === UserRole.PARENT && !isParentChannel
+                ? 0
+                : stored?._count.messages || 0,
             can_send: user.role === UserRole.PARENT && !isParentChannel
                 ? false
                 : pair.canSend && (!isParentChannel || parentCanSend),

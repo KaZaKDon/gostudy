@@ -15,7 +15,10 @@ async function bootstrap(): Promise<void> {
     const config = app.get(ConfigService);
     const express = app.getHttpAdapter().getInstance();
 
-    express.set('trust proxy', 1);
+    express.set(
+        'trust proxy',
+        config.get<number>('TRUST_PROXY_HOPS', 0),
+    );
     app.use(helmet());
     app.setGlobalPrefix('api/v1');
     app.enableCors({

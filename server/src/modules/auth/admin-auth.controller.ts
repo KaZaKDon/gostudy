@@ -7,10 +7,13 @@ import {
     Post,
     Req,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
 
 import { getRequestMetadata } from '../../common/http/request-metadata';
+import { AuthRateLimitInterceptor } from '../auth-rate-limit/auth-rate-limit.interceptor';
+import { LimitAuthRequests } from '../auth-rate-limit/auth-rate-limit.policy';
 import { AdminAccessGuard } from './admin-access.guard';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -23,6 +26,7 @@ import { toPublicUser } from './session-user';
 import { getSessionToken } from './session-token';
 
 @Controller('admin/auth')
+@UseInterceptors(AuthRateLimitInterceptor)
 export class AdminAuthController {
     constructor(
         private readonly authService: AuthService,
@@ -30,6 +34,7 @@ export class AdminAuthController {
     ) {}
 
     @Post('login')
+    @LimitAuthRequests('login')
     @HttpCode(HttpStatus.OK)
     async login(
         @Body() input: LoginDto,

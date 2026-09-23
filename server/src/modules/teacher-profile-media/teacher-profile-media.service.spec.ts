@@ -10,6 +10,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     TeacherProfileMediaStatus,
     TeacherProfileMediaType,
+    TeacherVerificationStatus,
     UserRole,
     UserStatus,
 } from '../../generated/prisma/enums';
@@ -90,7 +91,7 @@ describe('TeacherProfileMediaService', () => {
         expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
-    it('does not expose an unapproved file through the public endpoint', async () => {
+    it('limits the public query to approved media of an active verified teacher', async () => {
         const prisma = {
             teacherProfileMedia: {
                 findFirst: vi.fn().mockResolvedValue(null),
@@ -108,7 +109,56 @@ describe('TeacherProfileMediaService', () => {
             where: {
                 id: 41,
                 status: TeacherProfileMediaStatus.APPROVED,
+                teacher: {
+                    is: {
+                        role: UserRole.TEACHER,
+                        status: UserStatus.ACTIVE,
+                        teacherProfile: {
+                            is: {
+                                verificationStatus:
+                                    TeacherVerificationStatus.VERIFIED,
+                            },
+                        },
+                    },
+                },
             },
         });
+    });
+
+    it('returns a stored file when the publication policy query succeeds', async () => {
+        const media = {
+            id: 41,
+            teacherId: teacher.id,
+            type: TeacherProfileMediaType.PHOTO,
+            originalName: 'teacher.jpg',
+            mimeType: 'image/jpeg',
+            fileSize: BigInt(1200),
+            storedPath: 'teacher-profile-media/17/photo/teacher.jpg',
+            status: TeacherProfileMediaStatus.APPROVED,
+        };
+        const prisma = {
+            teacherProfileMedia: {
+                findFirst: vi.fn().mockResolvedValue(media),
+            },
+        } as unknown as PrismaService;
+        const files = {
+            readStoredFile: vi.fn().mockResolvedValue({
+                absolutePath: 'E:/storage/teacher.jpg',
+                size: 1200,
+            }),
+        } as unknown as TeacherProfileMediaFileStorageService;
+        const service = new TeacherProfileMediaService(
+            prisma,
+            files,
+            { get: vi.fn() } as unknown as ConfigService,
+        );
+
+        await expect(service.downloadPublic(41)).resolves.toEqual({
+            absolutePath: 'E:/storage/teacher.jpg',
+            size: 1200,
+            originalName: 'teacher.jpg',
+            mimeType: 'image/jpeg',
+        });
+        expect(files.readStoredFile).toHaveBeenCalledWith(media.storedPath);
     });
 });

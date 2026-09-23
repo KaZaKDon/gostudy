@@ -5,14 +5,13 @@ export type RequestMetadata = {
     userAgent: string | null;
 };
 
-export function getRequestMetadata(request: Request): RequestMetadata {
-    const forwardedFor = request.headers['x-forwarded-for'];
-    const forwardedIp = Array.isArray(forwardedFor)
-        ? forwardedFor[0]
-        : forwardedFor?.split(',')[0];
+export function getRequestIpAddress(request: Request): string | null {
+    return (request.ip || request.socket.remoteAddress || '').trim() || null;
+}
 
+export function getRequestMetadata(request: Request): RequestMetadata {
     return {
-        ipAddress: (forwardedIp || request.ip || '').trim() || null,
+        ipAddress: getRequestIpAddress(request),
         userAgent: request.get('user-agent')?.trim() || null,
     };
 }

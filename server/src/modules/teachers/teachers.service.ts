@@ -22,10 +22,9 @@ import {
     TeacherDocumentType,
     TeacherStudentRequestStatus,
     TeacherStudentStatus,
-    TeacherVerificationStatus,
     UserRole,
-    UserStatus,
 } from '../../generated/prisma/enums';
+import { publicTeacherProfileWhere } from '../../common/access/teacher-publication-policy';
 import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { FindTeachersQueryDto } from './dto/find-teachers-query.dto';
@@ -49,22 +48,14 @@ export class TeachersService {
         this.requireSearchUser(user);
         const search = query.search?.trim() || '';
         const page = query.page || 1;
-        const where = {
-            isVisible: true,
-            verificationStatus: TeacherVerificationStatus.VERIFIED,
-            user: {
-                role: UserRole.TEACHER,
-                status: UserStatus.ACTIVE,
-                ...(query.subject_id ? {
-                    teacherSubjects: {
-                        some: {
-                            subjectId: query.subject_id,
-                            subject: { isActive: true },
-                        },
-                    },
-                } : {}),
+        const where = publicTeacherProfileWhere(query.subject_id ? {
+            teacherSubjects: {
+                some: {
+                    subjectId: query.subject_id,
+                    subject: { isActive: true },
+                },
             },
-        };
+        } : {});
         const [profiles, lessonGroups, subjects] = await Promise.all([
             this.prisma.teacherProfile.findMany({
                 where,
@@ -316,12 +307,7 @@ export class TeachersService {
         const profile = await this.prisma.teacherProfile.findFirst({
             where: {
                 userId: teacherId,
-                isVisible: true,
-                verificationStatus: TeacherVerificationStatus.VERIFIED,
-                user: {
-                    role: UserRole.TEACHER,
-                    status: UserStatus.ACTIVE,
-                },
+                ...publicTeacherProfileWhere(),
             },
             include: {
                 user: {
@@ -561,18 +547,14 @@ export class TeachersService {
             const teacher = await transaction.teacherProfile.findFirst({
                 where: {
                     userId: input.teacher_id,
-                    isVisible: true,
-                    verificationStatus: TeacherVerificationStatus.VERIFIED,
-                    user: {
-                        role: UserRole.TEACHER,
-                        status: UserStatus.ACTIVE,
+                    ...publicTeacherProfileWhere({
                         teacherSubjects: {
                             some: {
                                 subjectId: input.subject_id,
                                 subject: { isActive: true },
                             },
                         },
-                    },
+                    }),
                 },
                 select: {
                     userId: true,

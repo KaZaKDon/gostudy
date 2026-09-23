@@ -1,9 +1,11 @@
 import {
     ConflictException,
+    ForbiddenException,
     NotFoundException,
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     ReviewReplyStatus,
@@ -35,6 +37,25 @@ const teacher: SessionUser = {
     fullName: 'Анна Учитель',
 };
 
+const parent: SessionUser = {
+    ...student,
+    id: 12,
+    role: UserRole.PARENT,
+    email: 'parent@example.com',
+    fullName: 'Мария Родитель',
+};
+
+function createService(
+    prisma: PrismaService,
+    parentAccess: Partial<ParentChildAccessService> = {},
+) {
+    return new ReviewsService(prisma, {
+        listCurrentMinorStudentIds: vi.fn().mockResolvedValue([]),
+        hasCurrentMinorAccess: vi.fn().mockResolvedValue(true),
+        ...parentAccess,
+    } as unknown as ParentChildAccessService);
+}
+
 describe('ReviewsService', () => {
     it('opens one review after three completed lessons with a teacher', async () => {
         const prisma = {
@@ -60,7 +81,7 @@ describe('ReviewsService', () => {
             },
             review: { findMany: vi.fn().mockResolvedValue([]) },
         } as unknown as PrismaService;
-        const service = new ReviewsService(prisma);
+        const service = createService(prisma);
 
         const result = await service.list(student, { page: 1, limit: 20 });
 
@@ -86,7 +107,7 @@ describe('ReviewsService', () => {
             lesson: { count: vi.fn().mockResolvedValue(0) },
             review: { upsert: vi.fn() },
         } as unknown as PrismaService;
-        const service = new ReviewsService(prisma);
+        const service = createService(prisma);
 
         await expect(service.save(student, {
             relation_id: 4,
@@ -109,7 +130,7 @@ describe('ReviewsService', () => {
             lesson: { count: vi.fn().mockResolvedValue(3) },
             review: { upsert: vi.fn().mockResolvedValue({ id: 15 }) },
         } as unknown as PrismaService;
-        const service = new ReviewsService(prisma);
+        const service = createService(prisma);
 
         const result = await service.save(student, {
             relation_id: 4,
@@ -137,7 +158,7 @@ describe('ReviewsService', () => {
                 update: vi.fn(),
             },
         } as unknown as PrismaService;
-        const service = new ReviewsService(prisma);
+        const service = createService(prisma);
 
         await expect(service.reply(teacher, {
             review_id: 15,
@@ -153,7 +174,7 @@ describe('ReviewsService', () => {
                 update: vi.fn().mockResolvedValue(undefined),
             },
         } as unknown as PrismaService;
-        const service = new ReviewsService(prisma);
+        const service = createService(prisma);
 
         await service.reply(teacher, {
             review_id: 15,
@@ -167,5 +188,22 @@ describe('ReviewsService', () => {
                 replyStatus: ReviewReplyStatus.PENDING,
             }),
         });
+    });
+
+    it('does not let a parent review for an adult or unavailable child', async () => {
+        const prisma = {
+            teacherStudent: { findFirst: vi.fn() },
+        } as unknown as PrismaService;
+        const service = createService(prisma, {
+            hasCurrentMinorAccess: vi.fn().mockResolvedValue(false),
+        });
+
+        await expect(service.save(parent, {
+            relation_id: 4,
+            child_id: 9,
+            rating: 5,
+            text: 'Очень полезные и понятные занятия.',
+        })).rejects.toBeInstanceOf(ForbiddenException);
+        expect(prisma.teacherStudent.findFirst).not.toHaveBeenCalled();
     });
 });

@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import type { RequestMetadata } from '../../common/http/request-metadata';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
@@ -137,7 +138,10 @@ describe('AdminReviewsService', () => {
             ),
         } as unknown as PrismaService;
         const notifications = new NotificationsService(prisma);
-        const reviews = new ReviewsService(prisma);
+        const reviews = new ReviewsService(
+            prisma,
+            {} as ParentChildAccessService,
+        );
         const service = new AdminReviewsService(prisma, notifications, reviews);
 
         const result = await service.moderate(admin, 15, {

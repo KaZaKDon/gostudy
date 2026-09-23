@@ -1,6 +1,6 @@
 # Документация GoStudy
 
-Дата актуализации: 11 сентября 2026 года.
+Дата актуализации: 22 сентября 2026 года.
 
 ## Действующие документы
 
@@ -9,6 +9,7 @@
 | `ARCHITECTURE_NODE.md` | Актуальная архитектура Node.js/NestJS |
 | `AUTH_SECURITY_API_NODE.md` | Смена пароля и управление активными сеансами |
 | `AUTH_PASSWORD_RECOVERY_API_NODE.md` | Восстановление пароля через одноразовую ссылку |
+| `AUTH_RATE_LIMIT_NODE.md` | Ограничение входа, регистрации и почтовых маршрутов авторизации |
 | `ACCOUNT_CONTACT_API_NODE.md` | Сохранение контактного телефона аккаунта |
 | `PARENT_REGISTRATION_API_NODE.md` | Регистрация родителя и отдельный каркас кабинета |
 | `PARENT_CHILD_PROFILE_API_NODE.md` | Создание родителем карточки несовершеннолетнего ребёнка |
@@ -31,6 +32,7 @@
 | `ADMIN_DICTIONARIES_API_NODE.md` | Справочники и связи предметов в админке |
 | `LOCAL_DEVELOPMENT.md` | Локальный запуск frontend, API и PostgreSQL |
 | `POSTGRESQL_EXISTING_SETUP.md` | Создание отдельной базы `gostudy` в установленном PostgreSQL |
+| `PRISMA_INDEX_NAME_ALIGNMENT.md` | Безопасное согласование двух длинных имён индексов Prisma |
 | `BACKEND_MIGRATION_STATUS.md` | Карта переноса функций PHP → NestJS |
 | `LEGAL_STAGE_1_IMPLEMENTATION.md` | Юридические страницы и фиксация согласий |
 | `GOSTUDY_LEGAL_DOCUMENTS_SITE_INTEGRATION.md` | Полная модель юридических документов |
