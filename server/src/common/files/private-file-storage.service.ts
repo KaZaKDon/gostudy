@@ -23,6 +23,9 @@ import {
 } from 'node:path';
 
 import { normalizeUploadedFileName } from './upload-file-name';
+import { StorageQuotaService } from '../../modules/storage-quota/storage-quota.service';
+import type { Prisma } from '../../generated/prisma/client';
+import type { PrismaService } from '../prisma/prisma.service';
 
 export type BufferedUploadFile = {
     originalname: string;
@@ -138,7 +141,10 @@ const FILE_RULES: Record<string, {
 export class PrivateFileStorageService {
     private readonly privateRoot: string;
 
-    constructor(config: ConfigService) {
+    constructor(
+        config: ConfigService,
+        private readonly storageQuota: StorageQuotaService,
+    ) {
         this.privateRoot = resolve(
             String(config.get('UPLOAD_PRIVATE_DIR') || 'storage/private'),
         );
@@ -210,6 +216,7 @@ export class PrivateFileStorageService {
     }
 
     async storeUploads(
+        ownerId: number,
         relativeDirectory: string,
         validated: ValidatedPrivateUpload[],
     ): Promise<StoredPrivateFile[]> {
@@ -217,32 +224,58 @@ export class PrivateFileStorageService {
             return [];
         }
 
-        const directory = this.safeAbsolutePath(relativeDirectory);
-        await mkdir(directory, { recursive: true });
-        const prepared: StoredPrivateFile[] = [];
+        const reservedBytes = validated.reduce(
+            (sum, item) => sum + item.file.size,
+            0,
+        );
+        await this.storageQuota.reserve(ownerId, reservedBytes);
 
         try {
-            for (const item of validated) {
-                const storedName = `${randomUUID()}${item.extension}`;
-                const absolutePath = join(directory, storedName);
-                await writeFile(absolutePath, item.file.buffer, { flag: 'wx' });
-                prepared.push({
-                    originalName: item.originalName,
-                    mimeType: item.mimeType,
-                    fileSize: item.file.size,
-                    storedPath: relative(this.privateRoot, absolutePath)
-                        .split(sep)
-                        .join('/'),
-                });
-            }
-
-            return prepared;
+            return await this.writeUploads(relativeDirectory, validated);
         } catch (error) {
-            await this.removeStoredPaths(
-                prepared.map((item) => item.storedPath),
-            );
+            await this.storageQuota.release(ownerId, reservedBytes);
             throw error;
         }
+    }
+
+    storePlatformUploads(
+        relativeDirectory: string,
+        validated: ValidatedPrivateUpload[],
+    ): Promise<StoredPrivateFile[]> {
+        return this.writeUploads(relativeDirectory, validated);
+    }
+
+    async discardStoredFiles(
+        ownerId: number,
+        storedFiles: StoredPrivateFile[],
+    ): Promise<void> {
+        if (!storedFiles.length) {
+            return;
+        }
+
+        await this.removeStoredPaths(
+            storedFiles.map((item) => item.storedPath),
+        );
+        await this.storageQuota.release(
+            ownerId,
+            storedFiles.reduce((sum, item) => sum + item.fileSize, 0),
+        );
+    }
+
+    discardPlatformStoredFiles(
+        storedFiles: StoredPrivateFile[],
+    ): Promise<void> {
+        return this.removeStoredPaths(
+            storedFiles.map((item) => item.storedPath),
+        );
+    }
+
+    releaseQuota(
+        ownerId: number,
+        byteCount: number | bigint,
+        database?: PrismaService | Prisma.TransactionClient,
+    ): Promise<void> {
+        return this.storageQuota.release(ownerId, byteCount, database);
     }
 
     async readStoredFile(
@@ -271,6 +304,42 @@ export class PrivateFileStorageService {
                 // Отсутствующий файл не мешает очистке записи в базе.
             }
         }));
+    }
+
+    private async writeUploads(
+        relativeDirectory: string,
+        validated: ValidatedPrivateUpload[],
+    ): Promise<StoredPrivateFile[]> {
+        if (!validated.length) {
+            return [];
+        }
+
+        const directory = this.safeAbsolutePath(relativeDirectory);
+        const prepared: StoredPrivateFile[] = [];
+
+        try {
+            await mkdir(directory, { recursive: true });
+            for (const item of validated) {
+                const storedName = `${randomUUID()}${item.extension}`;
+                const absolutePath = join(directory, storedName);
+                await writeFile(absolutePath, item.file.buffer, { flag: 'wx' });
+                prepared.push({
+                    originalName: item.originalName,
+                    mimeType: item.mimeType,
+                    fileSize: item.file.size,
+                    storedPath: relative(this.privateRoot, absolutePath)
+                        .split(sep)
+                        .join('/'),
+                });
+            }
+
+            return prepared;
+        } catch (error) {
+            await this.removeStoredPaths(
+                prepared.map((item) => item.storedPath),
+            );
+            throw error;
+        }
     }
 
     private safeAbsolutePath(storedPath: string): string {

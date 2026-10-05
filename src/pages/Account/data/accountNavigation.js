@@ -5,6 +5,7 @@ export const STUDENT_NAVIGATION = [
     { id: 'diary', title: 'Дневник обучения' },
     { id: 'materials', title: 'Материалы' },
     { id: 'messages', title: 'Сообщения' },
+    { id: 'disputes', title: 'Споры' },
     { id: 'payments', title: 'Оплата' },
     { id: 'teachers', title: 'Мои преподаватели' },
     { id: 'family', title: 'Родитель' },
@@ -20,8 +21,9 @@ export const TEACHER_NAVIGATION = [
     { id: 'students', title: 'Мои ученики' },
     { id: 'materials', title: 'Материалы' },
     { id: 'accessibility', title: 'Доступное образование' },
-    { id: 'payments', title: 'Оплаты', count: 2 },
+    { id: 'payments', title: 'Финансы' },
     { id: 'messages', title: 'Сообщения' },
+    { id: 'disputes', title: 'Споры' },
     { id: 'settings', title: 'Настройки' },
 ];
 
@@ -33,6 +35,7 @@ export const PARENT_NAVIGATION = [
     { id: 'homework', title: 'Домашние задания' },
     { id: 'diary', title: 'Дневник детей' },
     { id: 'messages', title: 'Сообщения' },
+    { id: 'disputes', title: 'Споры' },
     { id: 'teachers', title: 'Преподаватели детей' },
     { id: 'settings', title: 'Настройки' },
 ];

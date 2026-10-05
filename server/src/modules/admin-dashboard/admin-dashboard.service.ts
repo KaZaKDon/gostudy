@@ -4,6 +4,8 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     HomeworkStatus,
     LessonStatus,
+    LessonPaymentStatus,
+    LessonPayoutStatus,
     MaterialPublicationStatus,
     MaterialReportStatus,
     MessageReportStatus,
@@ -35,6 +37,8 @@ export class AdminDashboardService {
             materialReportsPendingTotal,
             messagesTotal,
             messageReportsPendingTotal,
+            paymentsPaidTotal,
+            payoutsPendingTotal,
         ] = await Promise.all([
             this.prisma.user.count(),
             this.prisma.user.count({
@@ -98,6 +102,12 @@ export class AdminDashboardService {
             this.prisma.messageReport.count({
                 where: { status: MessageReportStatus.PENDING },
             }),
+            this.prisma.lessonSettlement.count({
+                where: { paymentStatus: LessonPaymentStatus.PAID },
+            }),
+            this.prisma.lessonSettlement.count({
+                where: { payoutStatus: LessonPayoutStatus.READY },
+            }),
         ]);
 
         return {
@@ -119,8 +129,8 @@ export class AdminDashboardService {
                 reviews_pending_total: reviewsPendingTotal,
                 materials_pending_total: materialsPendingTotal,
                 material_reports_pending_total: materialReportsPendingTotal,
-                payments_paid_total: 0,
-                payouts_pending_total: 0,
+                payments_paid_total: paymentsPaidTotal,
+                payouts_pending_total: payoutsPendingTotal,
             },
         };
     }

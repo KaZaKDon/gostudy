@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import type { RequestMetadata } from '../../common/http/request-metadata';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
@@ -75,7 +76,10 @@ function createService(current: Record<string, any> = child) {
     return {
         service: new AdminParentChildrenService(
             prisma,
-            new NotificationsService(prisma),
+            new NotificationsService(
+                prisma,
+                new ParentChildAccessService(prisma),
+            ),
         ),
         transaction,
     };

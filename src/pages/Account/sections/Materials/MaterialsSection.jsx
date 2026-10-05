@@ -1,4 +1,8 @@
-import { useMemo, useState } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 
 import {
     ALL_SUBJECTS_ID,
@@ -21,28 +25,51 @@ import './MaterialsSection.css';
 
 const EMPTY_MATERIALS = [];
 
-export function MaterialsSection({ role, controller }) {
+export function MaterialsSection({ role, controller, targetMaterialId }) {
     const [activeTab, setActiveTab] = useState('textbook');
     const [activeSubject, setActiveSubject] = useState(ALL_SUBJECTS_ID);
+    const [dismissedTargetId, setDismissedTargetId] = useState(null);
     const [editorMaterial, setEditorMaterial] = useState(null);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [assignmentMaterial, setAssignmentMaterial] = useState(null);
     const [reportMaterial, setReportMaterial] = useState(null);
 
+    const targetMaterial = useMemo(() => (
+        targetMaterialId && dismissedTargetId !== targetMaterialId
+            ? (controller?.materials || EMPTY_MATERIALS)
+                .find((material) => material.id === targetMaterialId) || null
+            : null
+    ), [controller?.materials, dismissedTargetId, targetMaterialId]);
+    const visibleTab = targetMaterial?.category || activeTab;
+    const visibleSubject = targetMaterial
+        ? ALL_SUBJECTS_ID
+        : activeSubject;
+
     const currentMaterials = useMemo(() => {
         return (controller?.materials || EMPTY_MATERIALS)
-            .filter((material) => material.category === activeTab);
-    }, [controller?.materials, activeTab]);
+            .filter((material) => material.category === visibleTab);
+    }, [controller?.materials, visibleTab]);
 
     const subjects = useMemo(() => {
         return getSubjectsFromMaterials(currentMaterials);
     }, [currentMaterials]);
 
     const filteredMaterials = useMemo(() => {
-        return getFilteredMaterialGroups(currentMaterials, activeSubject);
-    }, [currentMaterials, activeSubject]);
+        return getFilteredMaterialGroups(currentMaterials, visibleSubject);
+    }, [currentMaterials, visibleSubject]);
+
+    useEffect(() => {
+        if (
+            targetMaterialId
+            && role === 'teacher'
+            && controller?.view !== 'mine'
+        ) {
+            controller.setView('mine');
+        }
+    }, [controller, role, targetMaterialId]);
 
     const handleChangeTab = (tabId) => {
+        setDismissedTargetId(targetMaterialId);
         setActiveTab(tabId);
         setActiveSubject(ALL_SUBJECTS_ID);
     };
@@ -97,7 +124,7 @@ export function MaterialsSection({ role, controller }) {
                         key={tab.id}
                         type="button"
                         className={
-                            activeTab === tab.id
+                            visibleTab === tab.id
                                 ? 'materials-section__tab materials-section__tab--active'
                                 : 'materials-section__tab'
                         }
@@ -111,8 +138,11 @@ export function MaterialsSection({ role, controller }) {
             <div className="materials-layout">
                 <MaterialsSubjectSidebar
                     subjects={subjects}
-                    activeSubject={activeSubject}
-                    onSelectSubject={setActiveSubject}
+                    activeSubject={visibleSubject}
+                    onSelectSubject={(subject) => {
+                        setDismissedTargetId(targetMaterialId);
+                        setActiveSubject(subject);
+                    }}
                 />
 
                 <div className="materials-content">
@@ -134,7 +164,17 @@ export function MaterialsSection({ role, controller }) {
                                 onAssign={setAssignmentMaterial}
                                 onSubmitModeration={(id) => controller.submitModeration(id).catch(() => {})}
                                 onHide={(id) => controller.hide(id).catch(() => {})}
+                                onDelete={(material) => {
+                                    if (!window.confirm(
+                                        `Удалить материал «${material.title}» и освободить занятое место?`,
+                                    )) {
+                                        return;
+                                    }
+                                    controller.deleteMaterial(material.id)
+                                        .catch(() => {});
+                                }}
                                 onReport={setReportMaterial}
+                                isTarget={group.id === targetMaterial?.id}
                             />
                         ))
                     ) : (

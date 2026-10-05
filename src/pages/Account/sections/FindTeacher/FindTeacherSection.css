@@ -34,10 +34,51 @@
 }
 
 .find-teacher-filters__check {
-    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 9px;
+}
+
+.find-teacher-filters__advanced {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 14px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 14px;
+}
+
+.find-teacher-filters__advanced h3 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 0.95rem;
+}
+
+.find-teacher-filters__advanced-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.find-teacher-filters__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.find-teacher-filters__actions button {
+    flex: 0 0 auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 9px 15px;
+    color: var(--color-text);
+    background: var(--color-surface-strong);
+    font-weight: 800;
+}
+
+.find-teacher-filters__actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .find-teacher-filters__check input {
@@ -60,6 +101,131 @@
     background: var(--color-surface-strong);
 }
 
+.promoted-teachers {
+    display: grid;
+    gap: 12px;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--find-teacher-accent) 34%,
+        var(--color-border)
+    );
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    background: color-mix(
+        in srgb,
+        var(--find-teacher-accent) 5%,
+        var(--color-surface-paper)
+    );
+    box-shadow: var(--shadow-soft);
+}
+
+.promoted-teachers > h3 {
+    margin: 0;
+    color: var(--find-teacher-accent);
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.promoted-teachers__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.promoted-teacher-card {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--find-teacher-accent) 28%,
+        var(--color-border)
+    );
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    color: var(--color-text);
+    text-align: left;
+    background: var(--color-surface-paper);
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    font: inherit;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
+}
+
+.promoted-teacher-card:hover {
+    border-color: var(--find-teacher-accent);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-3px);
+}
+
+.promoted-teacher-card:focus-visible {
+    border-color: var(--find-teacher-accent);
+    outline: 3px solid color-mix(
+        in srgb,
+        var(--find-teacher-accent) 40%,
+        transparent
+    );
+    outline-offset: 2px;
+    box-shadow: var(--shadow-card);
+}
+
+.promoted-teacher-card__photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    color: var(--color-surface-paper);
+    background: var(--find-teacher-accent);
+    font-size: 1.45rem;
+    font-weight: 900;
+}
+
+.promoted-teacher-card__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.promoted-teacher-card__content,
+.promoted-teacher-card__rating {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.promoted-teacher-card__content > strong,
+.promoted-teacher-card__content > small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.promoted-teacher-card__content > strong {
+    font-size: 1rem;
+}
+
+.promoted-teacher-card__content > small,
+.promoted-teacher-card__rating small {
+    color: var(--color-ink-muted);
+}
+
+.promoted-teacher-card__rating {
+    margin-top: 5px;
+}
+
+.promoted-teacher-card__rating b {
+    color: var(--find-teacher-accent);
+}
+
 .teacher-search-list {
     display: flex;
     flex-direction: column;
@@ -68,18 +234,23 @@
 
 .teacher-search-row {
     display: grid;
-    grid-template-columns: 62px 58px minmax(0, 1fr) 100px 110px 90px;
+    grid-template-columns: 62px 112px minmax(0, 1fr) 100px 110px 90px;
     gap: 12px;
     align-items: center;
     width: 100%;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: 14px 16px;
+    padding: 3px 16px;
     color: var(--color-text);
     text-align: left;
     background: var(--color-surface-paper);
     box-shadow: var(--shadow-soft);
     cursor: pointer;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
 }
 
 .teacher-search-row:hover {
@@ -89,6 +260,18 @@
         var(--find-teacher-accent) 6%,
         transparent
     );
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+}
+
+.teacher-search-row:focus-visible {
+    border-color: var(--find-teacher-accent);
+    outline: 3px solid color-mix(
+        in srgb,
+        var(--find-teacher-accent) 35%,
+        transparent
+    );
+    outline-offset: 2px;
 }
 
 .teacher-search-row__rank,
@@ -112,8 +295,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
+    width: 108px;
+    height: 108px;
     border-radius: 50%;
     overflow: hidden;
     color: white;
@@ -320,7 +503,7 @@
 
 .teacher-profile-modal__header {
     display: grid;
-    grid-template-columns: 86px minmax(0, 1fr) 40px;
+    grid-template-columns: 200px minmax(0, 1fr) 40px;
     gap: 16px;
     align-items: flex-start;
     padding: 20px;
@@ -331,8 +514,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 86px;
-    height: 86px;
+    width: 200px;
+    height: 200px;
     border-radius: var(--radius-lg);
     color: var(--color-surface-paper);
     background: var(--find-teacher-accent);
@@ -542,8 +725,30 @@
 }
 
 @media (max-width: 900px) {
+    .find-teacher-filters__advanced-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .promoted-teachers__list {
+        grid-auto-columns: minmax(270px, 44vw);
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        overflow-x: auto;
+        padding: 2px 2px 8px;
+        scroll-snap-type: x proximity;
+    }
+
+    .promoted-teacher-card {
+        scroll-snap-align: start;
+    }
+
     .teacher-search-row {
-        grid-template-columns: 52px 52px minmax(0, 1fr) 92px 80px;
+        grid-template-columns: 52px 100px minmax(0, 1fr) 92px 80px;
+    }
+
+    .teacher-search-row__avatar {
+        width: 96px;
+        height: 96px;
     }
 
     .teacher-search-row__lessons {
@@ -556,22 +761,36 @@
         grid-template-columns: 1fr;
     }
 
+    .find-teacher-filters__advanced-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .find-teacher-filters__actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
     .teacher-search-row {
-        grid-template-columns: 42px 48px minmax(0, 1fr) auto;
-        gap: 6px 12px;
-        padding: 12px;
+        grid-template-columns: 50px 84px minmax(0, 1fr) auto;
+        gap: 6px 8px;
+        padding: 3px 12px;
     }
 
     .teacher-search-row__rank {
         grid-column: 1;
         grid-row: 1;
+        justify-self: center;
+        font-size: 0.78rem;
+        line-height: 1.1;
+        text-align: center;
+        white-space: nowrap;
     }
 
     .teacher-search-row__avatar {
         grid-column: 2;
         grid-row: 1;
-        width: 46px;
-        height: 46px;
+        width: 80px;
+        height: 80px;
     }
 
     .teacher-search-row__identity {
@@ -636,14 +855,14 @@
     }
 
     .teacher-profile-modal__header {
-        grid-template-columns: 64px minmax(0, 1fr) 38px;
+        grid-template-columns: 132px minmax(0, 1fr) 38px;
     }
 
     .teacher-profile-modal__avatar {
-        width: 64px;
-        height: 64px;
+        width: 132px;
+        height: 132px;
         border-radius: var(--radius-md);
-        font-size: 1.2rem;
+        font-size: 1.35rem;
     }
 
     .teacher-profile-modal__actions {

@@ -18,6 +18,7 @@ import {
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherFinanceService } from '../teacher-finance/teacher-finance.service';
 import { LessonChangesService } from './lesson-changes.service';
 
 const teacher: SessionUser = {
@@ -52,6 +53,10 @@ const notifications = {
     createForActiveParents: vi.fn().mockResolvedValue(undefined),
     markDedupeRead: vi.fn().mockResolvedValue(undefined),
 } as unknown as NotificationsService;
+
+const finance = {
+    markLessonCancelled: vi.fn().mockResolvedValue(undefined),
+} as unknown as TeacherFinanceService;
 
 function createPrisma(changeRequest: Record<string, unknown> | null = null) {
     const transaction = {
@@ -102,7 +107,7 @@ describe('LessonChangesService', () => {
 
     it('creates a cancellation request for the other participant', async () => {
         const { prisma, transaction } = createPrisma();
-        const service = new LessonChangesService(prisma, notifications);
+        const service = new LessonChangesService(prisma, notifications, finance);
         const result = await service.requestChange(teacher, {
             lesson_id: 15,
             request_type: 'cancel',
@@ -144,7 +149,7 @@ describe('LessonChangesService', () => {
             lesson,
         };
         const { prisma, transaction } = createPrisma(request);
-        const service = new LessonChangesService(prisma, notifications);
+        const service = new LessonChangesService(prisma, notifications, finance);
         const result = await service.respondChange(teacher, {
             request_id: 40,
             decision: 'approve',
@@ -155,6 +160,10 @@ describe('LessonChangesService', () => {
             where: { id: 15 },
             data: { status: LessonStatus.CANCELLED },
         });
+        expect(finance.markLessonCancelled).toHaveBeenCalledWith(
+            transaction,
+            15,
+        );
         expect(transaction.lessonChangeRequest.update).toHaveBeenCalledWith({
             where: { id: 40 },
             data: expect.objectContaining({
@@ -200,7 +209,7 @@ describe('LessonChangesService', () => {
             lesson,
         };
         const { prisma, transaction } = createPrisma(request);
-        const service = new LessonChangesService(prisma, notifications);
+        const service = new LessonChangesService(prisma, notifications, finance);
         const result = await service.withdrawChange(teacher, {
             request_id: 40,
         });
@@ -226,6 +235,7 @@ describe('LessonChangesService', () => {
         const service = new LessonChangesService(
             {} as PrismaService,
             notifications,
+            finance,
         );
 
         await expect(service.respondChange(teacher, {

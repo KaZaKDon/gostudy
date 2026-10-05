@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     LessonStatus,
@@ -99,12 +100,15 @@ function lessonRecord() {
 }
 
 function createService(prisma: PrismaService) {
+    const parentChildAccess = new ParentChildAccessService(prisma);
+
     return new JournalService(
         prisma,
-        new NotificationsService(prisma),
+        new NotificationsService(prisma, parentChildAccess),
         {
             getLessonSummaries: vi.fn().mockResolvedValue(new Map()),
         } as unknown as HomeworkService,
+        parentChildAccess,
     );
 }
 

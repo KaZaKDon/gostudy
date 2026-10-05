@@ -19,6 +19,7 @@ import {
 import type { SessionUser } from '../auth/session-user';
 import { HomeworkService } from '../homework/homework.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherFinanceService } from '../teacher-finance/teacher-finance.service';
 import {
     formatInTimezone,
     resolveTimezone,
@@ -53,6 +54,7 @@ export class ClassroomService {
         private readonly fileStorage: ClassroomFileStorageService,
         private readonly homework: HomeworkService,
         private readonly realtime: ClassroomRealtimeService,
+        private readonly finance: TeacherFinanceService,
     ) {}
 
     async authorizeRealtime(user: SessionUser, lessonId: number): Promise<void> {
@@ -306,6 +308,12 @@ export class ClassroomService {
                     result: true,
                 },
             });
+            const completedAt = completedLesson.session?.endedAt ?? new Date();
+            await this.finance.markLessonCompleted(
+                transaction,
+                lessonId,
+                completedAt,
+            );
             await transaction.lessonWorkspaceState.updateMany({
                 where: { lessonId, isSharing: true },
                 data: {
@@ -447,7 +455,11 @@ export class ClassroomService {
             );
         }
 
-        const stored = await this.fileStorage.storeUploads(lessonId, validated);
+        const stored = await this.fileStorage.storeUploads(
+            user.id,
+            lessonId,
+            validated,
+        );
         try {
             await this.prisma.lessonFile.createMany({
                 data: stored.map((file) => ({
@@ -460,9 +472,7 @@ export class ClassroomService {
                 })),
             });
         } catch (error) {
-            await this.fileStorage.removeStoredPaths(
-                stored.map((file) => file.storedPath),
-            );
+            await this.fileStorage.discardStoredFiles(user.id, stored);
             throw error;
         }
 
@@ -480,17 +490,20 @@ export class ClassroomService {
 
     async deleteFile(user: SessionUser, input: ClassroomFileDto) {
         this.requireTeacher(user, 'Удалять материалы может только преподаватель');
-        const storedPath = await this.prisma.$transaction(async (transaction) => {
+        const removedFile = await this.prisma.$transaction(async (transaction) => {
             const lesson = await this.findLesson(transaction, input.lesson_id, user);
-            const access = this.accessFor(lesson, user);
-            if (!access.canManageFiles) {
-                throw new ConflictException(
-                    access.reason || 'Сейчас материалы нельзя удалить',
+            if (lesson.teacherId !== user.id) {
+                throw new ForbiddenException(
+                    'Удалять материалы может только преподаватель этого урока',
                 );
             }
 
             const file = await transaction.lessonFile.findFirst({
-                where: { id: input.file_id, lessonId: lesson.id },
+                where: {
+                    id: input.file_id,
+                    lessonId: lesson.id,
+                    uploadedById: user.id,
+                },
             });
             if (!file) {
                 throw new NotFoundException('Материал не найден');
@@ -506,9 +519,14 @@ export class ClassroomService {
                 },
             });
             await transaction.lessonFile.delete({ where: { id: file.id } });
-            return file.storedPath;
+            await this.fileStorage.releaseQuota(
+                file.uploadedById,
+                file.fileSize,
+                transaction,
+            );
+            return file;
         });
-        await this.fileStorage.removeStoredPaths([storedPath]);
+        await this.fileStorage.removeStoredPaths([removedFile.storedPath]);
         const timezone = await this.getViewerTimezone(user);
         const [files, workspace] = await Promise.all([
             this.loadFiles(input.lesson_id),

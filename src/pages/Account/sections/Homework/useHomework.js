@@ -174,6 +174,12 @@ export function useHomework(role) {
             body: { homework_id: homeworkId },
         })), [runMutation]);
 
+    const deleteAssignmentFiles = useCallback((homeworkId) =>
+        runMutation(() => apiRequest(API.deleteHomeworkAssignmentFiles, {
+            method: 'POST',
+            body: { homework_id: homeworkId },
+        })), [runMutation]);
+
     const selectParentStudent = useCallback((studentId) => {
         setParentStudentId(Number(studentId) || null);
         setSelectedHomework(null);
@@ -223,6 +229,7 @@ export function useHomework(role) {
         submitHomework,
         reviewHomework,
         cancelHomework,
+        deleteAssignmentFiles,
         selectParentStudent,
     };
 }

@@ -172,6 +172,7 @@ export function HomeworkSection({
                 onSubmit={controller.submitHomework}
                 onReview={controller.reviewHomework}
                 onCancelHomework={controller.cancelHomework}
+                onDeleteAssignmentFiles={controller.deleteAssignmentFiles}
                 onClose={controller.closeDetails}
             />
 

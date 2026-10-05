@@ -6,6 +6,7 @@ import { PrivateFilesModule } from '../../common/files/private-files.module';
 import { AuthModule } from '../auth/auth.module';
 import { HomeworkModule } from '../homework/homework.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { TeacherFinanceModule } from '../teacher-finance/teacher-finance.module';
 import { ClassroomController } from './classroom.controller';
 import { ClassroomBoardController } from './classroom-board.controller';
 import { ClassroomBoardService } from './classroom-board.service';
@@ -18,6 +19,7 @@ import { ClassroomService } from './classroom.service';
         AuthModule,
         HomeworkModule,
         NotificationsModule,
+        TeacherFinanceModule,
         PrivateFilesModule,
         MulterModule.registerAsync({
             inject: [ConfigService],

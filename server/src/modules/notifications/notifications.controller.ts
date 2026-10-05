@@ -25,6 +25,11 @@ import { NotificationsService } from './notifications.service';
 export class NotificationsController {
     constructor(private readonly notifications: NotificationsService) {}
 
+    @Get('capabilities')
+    capabilities(): Record<string, unknown> {
+        return this.notifications.getCapabilities();
+    }
+
     @Get()
     async list(
         @CurrentUser() user: SessionUser,

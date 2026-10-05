@@ -5,10 +5,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'node:path';
+import type { Prisma } from '../../generated/prisma/client';
+import type { PrismaService } from '../../common/prisma/prisma.service';
 
 import {
     type BufferedUploadFile,
     PrivateFileStorageService,
+    type StoredPrivateFile,
     type ValidatedPrivateUpload,
 } from '../../common/files/private-file-storage.service';
 
@@ -80,6 +83,7 @@ export class TeacherProfileMediaFileStorageService {
         file: ValidatedPrivateUpload,
     ) {
         const [stored] = await this.storage.storeUploads(
+            teacherId,
             join('teacher-profile-media', String(teacherId), type),
             [file],
         );
@@ -100,6 +104,18 @@ export class TeacherProfileMediaFileStorageService {
 
     removeStoredPaths(storedPaths: string[]) {
         return this.storage.removeStoredPaths(storedPaths);
+    }
+
+    discardStoredFile(teacherId: number, file: StoredPrivateFile) {
+        return this.storage.discardStoredFiles(teacherId, [file]);
+    }
+
+    releaseQuota(
+        teacherId: number,
+        byteCount: number | bigint,
+        database: PrismaService | Prisma.TransactionClient,
+    ) {
+        return this.storage.releaseQuota(teacherId, byteCount, database);
     }
 
     photoMaxBytes(): number {

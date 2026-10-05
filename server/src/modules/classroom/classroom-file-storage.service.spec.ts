@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { describe, expect, it } from 'vitest';
 
 import { PrivateFileStorageService } from '../../common/files/private-file-storage.service';
+import { StorageQuotaService } from '../storage-quota/storage-quota.service';
 import {
     ClassroomFileStorageService,
     type ClassroomUploadFile,
@@ -23,7 +24,10 @@ describe('ClassroomFileStorageService', () => {
     const config = new ConfigService({});
     const service = new ClassroomFileStorageService(
         config,
-        new PrivateFileStorageService(config),
+        new PrivateFileStorageService(
+            config,
+            {} as StorageQuotaService,
+        ),
     );
 
     it('accepts a supported file with a matching signature', () => {

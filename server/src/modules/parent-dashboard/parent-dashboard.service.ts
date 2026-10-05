@@ -3,14 +3,12 @@ import {
     Injectable,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import {
     HomeworkStatus,
     HomeworkSubmissionStatus,
     LessonStatus,
-    ParentChildVerificationStatus,
-    ParentStudentStatus,
     UserRole,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
@@ -29,7 +27,10 @@ type DashboardChild = {
 
 @Injectable()
 export class ParentDashboardService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly parentChildAccess: ParentChildAccessService,
+    ) {}
 
     async show(user: SessionUser) {
         if (user.role !== UserRole.PARENT) {
@@ -198,56 +199,20 @@ export class ParentDashboardService {
     }
 
     private async loadChildren(parentId: number): Promise<DashboardChild[]> {
-        const links = await this.prisma.parentStudent.findMany({
-            where: {
-                parentId,
-                status: ParentStudentStatus.ACTIVE,
-                verifiedAt: { not: null },
-            },
-            select: { studentId: true },
-        });
-        const studentIds = links.map((link) => link.studentId);
+        const children = await this.parentChildAccess
+            .listCurrentMinorChildren(parentId);
 
-        if (!studentIds.length) {
-            return [];
-        }
-
-        const adultBirthDate = adultBirthDateCutoff();
-        const profiles = await this.prisma.parentChildProfile.findMany({
-            where: {
-                parentId,
-                studentId: { in: studentIds },
-                verificationStatus: ParentChildVerificationStatus.VERIFIED,
-                verifiedAt: { not: null },
-                archivedAt: null,
-                birthDate: { gt: adultBirthDate },
-            },
-            orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-            select: {
-                studentId: true,
-                firstName: true,
-                lastName: true,
-                middleName: true,
-                timezone: true,
-                student: {
-                    select: {
-                        studentProfile: { select: { timezone: true } },
-                    },
-                },
-            },
-        });
-
-        return profiles.flatMap((profile) => profile.studentId ? [{
-            studentId: profile.studentId,
+        return children.map((child) => ({
+            studentId: child.studentId,
             fullName: [
-                profile.lastName,
-                profile.firstName,
-                profile.middleName,
+                child.lastName,
+                child.firstName,
+                child.middleName,
             ].filter(Boolean).join(' '),
             timezone: resolveTimezone(
-                profile.student?.studentProfile?.timezone || profile.timezone,
+                child.studentTimezone || child.timezone,
             ),
-        }] : []);
+        }));
     }
 
     private homeworkDisplayStatus(

@@ -83,6 +83,10 @@ const navigationGroups = [
             label: 'Жалобы на сообщения',
             to: '/admin/messages',
         },
+        {
+            label: 'Споры по урокам',
+            to: '/admin/lesson-disputes',
+        },
     ],
     [
         {

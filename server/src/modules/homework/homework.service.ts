@@ -6,16 +6,14 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { normalizeUploadedFileName } from '../../common/files/upload-file-name';
-import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
 import {
     HomeworkStatus,
     HomeworkSubmissionStatus,
     LessonStatus,
-    ParentChildVerificationStatus,
-    ParentStudentStatus,
     TeacherStudentStatus,
     UserRole,
     UserStatus,
@@ -36,6 +34,7 @@ import {
     HomeworkFileStorageService,
     type HomeworkUploadFile,
 } from './homework-file-storage.service';
+import type { StoredPrivateFile } from '../../common/files/private-file-storage.service';
 
 const listHomeworkInclude = {
     teacher: { select: { fullName: true } },
@@ -87,6 +86,7 @@ export class HomeworkService {
         private readonly prisma: PrismaService,
         private readonly notifications: NotificationsService,
         private readonly files: HomeworkFileStorageService,
+        private readonly parentChildAccess: ParentChildAccessService,
     ) {}
 
     async list(user: SessionUser, requestedStudentId?: number) {
@@ -276,7 +276,7 @@ export class HomeworkService {
         const timezone = await this.getViewerTimezone(user);
         const dueDate = this.parseDueDate(input.due_date, timezone);
         const validated = this.files.validateUploads(uploads);
-        let storedPaths: string[] = [];
+        let storedFiles: StoredPrivateFile[] = [];
 
         try {
             const homeworkId = await this.prisma.$transaction(
@@ -333,10 +333,11 @@ export class HomeworkService {
                         },
                     });
                     const stored = await this.files.storeAssignment(
+                        user.id,
                         homework.id,
                         validated,
                     );
-                    storedPaths = stored.map((file) => file.storedPath);
+                    storedFiles = stored;
 
                     if (stored.length) {
                         await transaction.homeworkAttachment.createMany({
@@ -385,7 +386,9 @@ export class HomeworkService {
                 homework_id: homeworkId,
             };
         } catch (error) {
-            await this.files.removeStoredPaths(storedPaths);
+            if (storedFiles.length) {
+                await this.files.discardStoredFiles(user.id, storedFiles);
+            }
             throw error;
         }
     }
@@ -405,7 +408,7 @@ export class HomeworkService {
             );
         }
 
-        let storedPaths: string[] = [];
+        let storedFiles: StoredPrivateFile[] = [];
 
         try {
             const saved = await this.prisma.$transaction(async (transaction) => {
@@ -463,11 +466,12 @@ export class HomeworkService {
                     },
                 });
                 const stored = await this.files.storeSubmission(
+                    user.id,
                     homework.id,
                     attemptNumber,
                     validated,
                 );
-                storedPaths = stored.map((file) => file.storedPath);
+                storedFiles = stored;
 
                 if (stored.length) {
                     await transaction.homeworkSubmissionAttachment.createMany({
@@ -505,7 +509,9 @@ export class HomeworkService {
                 attempt_number: saved.attemptNumber,
             };
         } catch (error) {
-            await this.files.removeStoredPaths(storedPaths);
+            if (storedFiles.length) {
+                await this.files.discardStoredFiles(user.id, storedFiles);
+            }
             throw error;
         }
     }
@@ -677,6 +683,73 @@ export class HomeworkService {
         return {
             success: true,
             message: 'Домашнее задание отменено',
+        };
+    }
+
+    async deleteAssignmentFiles(user: SessionUser, homeworkId: number) {
+        this.requireTeacher(
+            user,
+            'Удалять файлы задания может только преподаватель',
+        );
+        const homework = await this.prisma.homework.findFirst({
+            where: {
+                id: homeworkId,
+                teacherId: user.id,
+            },
+            select: {
+                id: true,
+                status: true,
+                attachments: {
+                    select: {
+                        id: true,
+                        storedPath: true,
+                        fileSize: true,
+                    },
+                },
+            },
+        });
+
+        if (!homework) {
+            throw new NotFoundException('Домашнее задание не найдено');
+        }
+        if (
+            homework.status !== HomeworkStatus.CANCELLED
+            && homework.status !== HomeworkStatus.COMPLETED
+        ) {
+            throw new ConflictException(
+                'Файлы можно удалить после отмены или проверки задания',
+            );
+        }
+
+        const releasedBytes = homework.attachments.reduce(
+            (sum, file) => sum + file.fileSize,
+            0,
+        );
+        const storedPaths = homework.attachments.map(
+            (file) => file.storedPath,
+        );
+
+        if (homework.attachments.length) {
+            await this.prisma.$transaction(async (transaction) => {
+                await transaction.homeworkAttachment.deleteMany({
+                    where: { homeworkId: homework.id },
+                });
+                await this.files.releaseQuota(
+                    user.id,
+                    releasedBytes,
+                    transaction,
+                );
+            });
+            await this.files.removeStoredPaths(storedPaths);
+        }
+
+        return {
+            success: true,
+            message: homework.attachments.length
+                ? 'Файлы задания удалены, место освобождено'
+                : 'У задания нет файлов',
+            homework_id: homework.id,
+            released_bytes: releasedBytes,
         };
     }
 
@@ -1053,70 +1126,19 @@ export class HomeworkService {
         selectedStudentId: number;
         timezone: string;
     }> {
-        const links = await this.prisma.parentStudent.findMany({
-            where: {
-                parentId: user.id,
-                status: ParentStudentStatus.ACTIVE,
-                verifiedAt: { not: null },
-            },
-            select: { studentId: true },
-        });
-        const linkedStudentIds = links.map((link) => link.studentId);
-
-        if (!linkedStudentIds.length) {
-            throw new BadRequestException(
-                'Сначала привяжите подтверждённый аккаунт ребёнка',
-            );
-        }
-
-        const adultBirthDate = adultBirthDateCutoff();
-
-        const childProfiles = await this.prisma.parentChildProfile.findMany({
-            where: {
-                parentId: user.id,
-                studentId: { in: linkedStudentIds },
-                verificationStatus: ParentChildVerificationStatus.VERIFIED,
-                verifiedAt: { not: null },
-                archivedAt: null,
-                birthDate: { gt: adultBirthDate },
-            },
-            orderBy: [
-                { createdAt: 'asc' },
-                { id: 'asc' },
-            ],
-            select: {
-                studentId: true,
-                firstName: true,
-                lastName: true,
-                middleName: true,
-                timezone: true,
-                student: {
-                    select: {
-                        studentProfile: {
-                            select: { timezone: true },
-                        },
-                    },
-                },
-            },
-        });
-        const children = childProfiles.flatMap((child) => {
-            if (!child.studentId) {
-                return [];
-            }
-
-            return [{
-                student_id: child.studentId,
-                full_name: [
-                    child.lastName,
-                    child.firstName,
-                    child.middleName,
-                ].filter(Boolean).join(' '),
-                timezone: resolveTimezone(
-                    child.student?.studentProfile?.timezone
-                    || child.timezone,
-                ),
-            }];
-        });
+        const childProfiles = await this.parentChildAccess
+            .listCurrentMinorChildren(user.id);
+        const children = childProfiles.map((child) => ({
+            student_id: child.studentId,
+            full_name: [
+                child.lastName,
+                child.firstName,
+                child.middleName,
+            ].filter(Boolean).join(' '),
+            timezone: resolveTimezone(
+                child.studentTimezone || child.timezone,
+            ),
+        }));
 
         if (!children.length) {
             throw new BadRequestException(

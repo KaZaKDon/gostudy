@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { describe, expect, it } from 'vitest';
 
 import { PrivateFileStorageService } from '../../common/files/private-file-storage.service';
+import { StorageQuotaService } from '../storage-quota/storage-quota.service';
 import { HomeworkFileStorageService } from './homework-file-storage.service';
 
 describe('HomeworkFileStorageService', () => {
@@ -12,7 +13,10 @@ describe('HomeworkFileStorageService', () => {
         });
         const service = new HomeworkFileStorageService(
             config,
-            new PrivateFileStorageService(config),
+            new PrivateFileStorageService(
+                config,
+                {} as StorageQuotaService,
+            ),
         );
 
         expect(service.limits()).toEqual({

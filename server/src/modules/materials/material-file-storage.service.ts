@@ -5,7 +5,11 @@ import { join } from 'node:path';
 import {
     type BufferedUploadFile,
     PrivateFileStorageService,
+    type StoredPrivateFile,
 } from '../../common/files/private-file-storage.service';
+import type { PrismaService } from '../../common/prisma/prisma.service';
+import type { Prisma } from '../../generated/prisma/client';
+import { MaterialOwnerType } from '../../generated/prisma/enums';
 
 export const MATERIAL_MAX_FILES = 5;
 const DEFAULT_MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -43,13 +47,16 @@ export class MaterialFileStorageService {
         return this.storage.validateUploads(files, this.limits());
     }
 
-    storeUploads(materialId: number, files: ReturnType<
-        MaterialFileStorageService['validateUploads']
-    >) {
-        return this.storage.storeUploads(
-            join('materials', String(materialId)),
-            files,
-        );
+    storeUploads(
+        ownerType: MaterialOwnerType,
+        ownerId: number,
+        materialId: number,
+        files: ReturnType<MaterialFileStorageService['validateUploads']>,
+    ) {
+        const relativeDirectory = join('materials', String(materialId));
+        return ownerType === MaterialOwnerType.PLATFORM
+            ? this.storage.storePlatformUploads(relativeDirectory, files)
+            : this.storage.storeUploads(ownerId, relativeDirectory, files);
     }
 
     readStoredFile(storedPath: string) {
@@ -61,6 +68,24 @@ export class MaterialFileStorageService {
 
     removeStoredPaths(storedPaths: string[]) {
         return this.storage.removeStoredPaths(storedPaths);
+    }
+
+    releaseQuota(
+        ownerId: number,
+        byteCount: number | bigint,
+        database?: PrismaService | Prisma.TransactionClient,
+    ) {
+        return this.storage.releaseQuota(ownerId, byteCount, database);
+    }
+
+    discardStoredFiles(
+        ownerType: MaterialOwnerType,
+        ownerId: number,
+        files: StoredPrivateFile[],
+    ) {
+        return ownerType === MaterialOwnerType.PLATFORM
+            ? this.storage.discardPlatformStoredFiles(files)
+            : this.storage.discardStoredFiles(ownerId, files);
     }
 
     private positiveInteger(key: string, fallback: number): number {

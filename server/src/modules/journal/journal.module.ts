@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { ParentChildAccessModule } from '../../common/access/parent-child-access.module';
 import { AuthModule } from '../auth/auth.module';
 import { HomeworkModule } from '../homework/homework.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -11,7 +12,12 @@ import {
 import { JournalService } from './journal.service';
 
 @Module({
-    imports: [AuthModule, HomeworkModule, NotificationsModule],
+    imports: [
+        AuthModule,
+        HomeworkModule,
+        NotificationsModule,
+        ParentChildAccessModule,
+    ],
     controllers: [
         JournalController,
         StudentDiaryController,

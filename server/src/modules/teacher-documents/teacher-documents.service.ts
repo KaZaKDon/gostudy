@@ -99,7 +99,7 @@ export class TeacherDocumentsService {
                 document: this.serialize(document),
             };
         } catch (error) {
-            await this.files.removeStoredPath(stored.storedPath);
+            await this.files.discardStoredFile(user.id, stored);
             throw error;
         }
     }
@@ -117,8 +117,15 @@ export class TeacherDocumentsService {
             throw new NotFoundException('Документ не найден');
         }
 
-        await this.prisma.teacherDocument.delete({
-            where: { id: document.id },
+        await this.prisma.$transaction(async (transaction) => {
+            await transaction.teacherDocument.delete({
+                where: { id: document.id },
+            });
+            await this.files.releaseQuota(
+                user.id,
+                document.fileSize,
+                transaction,
+            );
         });
         await this.files.removeStoredPath(document.storedPath);
 

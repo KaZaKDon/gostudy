@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     UserRole,
@@ -45,7 +46,38 @@ const student: SessionUser = {
     profileCompleted: true,
 };
 
+function createService(prisma: PrismaService) {
+    return new NotificationsService(
+        prisma,
+        new ParentChildAccessService(prisma),
+    );
+}
+
 describe('NotificationsService', () => {
+    it('returns the current notification capabilities', () => {
+        const service = createService({} as PrismaService);
+
+        expect(service.getCapabilities()).toEqual({
+            success: true,
+            capabilities: {
+                in_app: {
+                    available: true,
+                    realtime_delivery_available: false,
+                },
+                parent_email: {
+                    delivery_available: false,
+                    preference_storage_available: true,
+                },
+                retention: {
+                    automatic_cleanup_available: false,
+                    manual_deletion_available: true,
+                    read_after_days: null,
+                    unread_after_days: null,
+                },
+            },
+        });
+    });
+
     it('returns notifications, unread count and pending request count', async () => {
         const prisma = {
             notification: {
@@ -70,7 +102,7 @@ describe('NotificationsService', () => {
                 count: vi.fn().mockResolvedValue(2),
             },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
         const result = await service.list(teacher, { limit: 20 });
 
         expect(result).toMatchObject({
@@ -89,7 +121,7 @@ describe('NotificationsService', () => {
         const client = {
             notification: { upsert },
         } as unknown as NotificationWriteClient;
-        const service = new NotificationsService({} as PrismaService);
+        const service = createService({} as PrismaService);
 
         await service.create(client, {
             userId: 7,
@@ -129,7 +161,7 @@ describe('NotificationsService', () => {
             },
             notification: { upsert },
         } as unknown as NotificationWriteClient;
-        const service = new NotificationsService({} as PrismaService);
+        const service = createService({} as PrismaService);
 
         await service.createForActiveParents(client, 9, {
             category: 'homework',
@@ -157,14 +189,24 @@ describe('NotificationsService', () => {
         );
         expect(client.parentChildProfile.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: expect.objectContaining({
-                    studentId: 9,
-                    parentId: { in: [15] },
-                    verificationStatus: 'VERIFIED',
-                    verifiedAt: { not: null },
-                    archivedAt: null,
-                    birthDate: { gt: expect.any(Date) },
-                }),
+                where: {
+                    OR: [expect.objectContaining({
+                        studentId: 9,
+                        parentId: 15,
+                        verificationStatus: 'VERIFIED',
+                        verifiedAt: { not: null },
+                        archivedAt: null,
+                        birthDate: { gt: expect.any(Date) },
+                        student: {
+                            childLinks: {
+                                some: expect.objectContaining({
+                                    parentId: 15,
+                                    status: 'ACTIVE',
+                                }),
+                            },
+                        },
+                    })],
+                },
             }),
         );
         expect(upsert).toHaveBeenCalledWith(expect.objectContaining({
@@ -194,7 +236,7 @@ describe('NotificationsService', () => {
                 findMany: vi.fn().mockResolvedValue([]),
             },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
 
         const result = await service.listParentSettings(parent);
 
@@ -232,7 +274,7 @@ describe('NotificationsService', () => {
             },
             parentNotificationPreference: { upsert },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
 
         const result = await service.updateParentSettings(parent, {
             student_id: 9,
@@ -285,7 +327,7 @@ describe('NotificationsService', () => {
             },
             notification: { upsert },
         } as unknown as NotificationWriteClient;
-        const service = new NotificationsService({} as PrismaService);
+        const service = createService({} as PrismaService);
 
         await service.createForActiveParents(client, 9, {
             category: 'homework',
@@ -306,7 +348,7 @@ describe('NotificationsService', () => {
                 }),
             },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
 
         await expect(service.getStudentSettings(student)).resolves.toMatchObject({
             success: true,
@@ -330,7 +372,7 @@ describe('NotificationsService', () => {
                 update,
             },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
 
         const result = await service.updateStudentSettings(student, {
             parent_notifications_enabled: true,
@@ -355,7 +397,7 @@ describe('NotificationsService', () => {
                 findUnique: vi.fn().mockResolvedValue({ parentEmail: null }),
             },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
 
         await expect(service.updateStudentSettings(student, {
             parent_notifications_enabled: true,
@@ -371,7 +413,7 @@ describe('NotificationsService', () => {
                 count: vi.fn().mockResolvedValue(0),
             },
         } as unknown as PrismaService;
-        const service = new NotificationsService(prisma);
+        const service = createService(prisma);
         const result = await service.markRead(teacher, {
             notification_id: 12,
         });
@@ -388,7 +430,7 @@ describe('NotificationsService', () => {
         const client = {
             notification: { updateMany },
         } as unknown as NotificationWriteClient;
-        const service = new NotificationsService({} as PrismaService);
+        const service = createService({} as PrismaService);
 
         await service.markEntityRead(client, 7, 'homework', 21);
 

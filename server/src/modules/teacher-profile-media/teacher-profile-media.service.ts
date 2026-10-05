@@ -55,13 +55,21 @@ export class TeacherProfileMediaService {
                         ],
                     },
                 },
-                select: { id: true, storedPath: true },
+                select: { id: true, storedPath: true, fileSize: true },
             });
             const media = await this.prisma.$transaction(async (transaction) => {
                 if (obsolete.length) {
                     await transaction.teacherProfileMedia.deleteMany({
                         where: { id: { in: obsolete.map((item) => item.id) } },
                     });
+                    await this.files.releaseQuota(
+                        user.id,
+                        obsolete.reduce(
+                            (sum, item) => sum + item.fileSize,
+                            0n,
+                        ),
+                        transaction,
+                    );
                 }
 
                 return transaction.teacherProfileMedia.create({
@@ -89,7 +97,7 @@ export class TeacherProfileMediaService {
                 media: this.serialize(media),
             };
         } catch (error) {
-            await this.files.removeStoredPath(stored.storedPath);
+            await this.files.discardStoredFile(user.id, stored);
             throw error;
         }
     }
@@ -119,6 +127,11 @@ export class TeacherProfileMediaService {
                 await transaction.teacherProfileMedia.delete({
                     where: { id: media.id },
                 });
+                await this.files.releaseQuota(
+                    user.id,
+                    media.fileSize,
+                    transaction,
+                );
             }
 
             if (!input.media_id || media?.status === TeacherProfileMediaStatus.APPROVED) {

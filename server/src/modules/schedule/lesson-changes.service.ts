@@ -17,6 +17,7 @@ import {
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherFinanceService } from '../teacher-finance/teacher-finance.service';
 import type { RequestLessonChangeDto } from './dto/request-lesson-change.dto';
 import type { RespondLessonChangeDto } from './dto/respond-lesson-change.dto';
 import type { WithdrawLessonChangeDto } from './dto/withdraw-lesson-change.dto';
@@ -38,6 +39,7 @@ export class LessonChangesService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly notifications: NotificationsService,
+        private readonly finance: TeacherFinanceService,
     ) {}
 
     async requestChange(
@@ -254,6 +256,10 @@ export class LessonChangesService {
                         where: { id: request.lesson.id },
                         data: { status: LessonStatus.CANCELLED },
                     });
+                    await this.finance.markLessonCancelled(
+                        transaction,
+                        request.lesson.id,
+                    );
                 }
             }
 

@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import {
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 
 import { PUBLICATION_LABELS } from '../constants.js';
 import { getMaterialCountLabel } from '../utils.js';
@@ -15,16 +19,32 @@ export function MaterialsGroupRow({
     onAssign,
     onSubmitModeration,
     onHide,
+    onDelete,
     onReport,
+    isTarget = false,
 }) {
     const [isOpen, setIsOpen] = useState(false);
+    const rowRef = useRef(null);
+    const expanded = isOpen || isTarget;
+
+    useEffect(() => {
+        if (!isTarget) return;
+
+        rowRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+        });
+    }, [isTarget]);
 
     return (
         <article
+            ref={rowRef}
             className={
-                isOpen
-                    ? 'materials-group materials-group--open'
-                    : 'materials-group'
+                [
+                    'materials-group',
+                    expanded ? 'materials-group--open' : '',
+                    isTarget ? 'materials-group--target' : '',
+                ].filter(Boolean).join(' ')
             }
         >
             <button
@@ -49,7 +69,7 @@ export function MaterialsGroupRow({
                 </span>
             </button>
 
-            {isOpen && (
+            {expanded && (
                 <div className="materials-group__content">
                     {'description' in group && group.description && (
                         <p className="materials-group__description">
@@ -91,6 +111,9 @@ export function MaterialsGroupRow({
                         )}
                         {group.is_owner && ['pending', 'approved'].includes(group.publication_status) && (
                             <button type="button" className="material-item__danger" disabled={isSaving} onClick={() => onHide(group.id)}>Скрыть</button>
+                        )}
+                        {group.is_owner && ['private', 'rejected', 'hidden'].includes(group.publication_status) && (
+                            <button type="button" className="material-item__danger" disabled={isSaving} onClick={() => onDelete(group)}>Удалить</button>
                         )}
                         {group.can_report && (
                             <button type="button" className="material-item__danger" onClick={() => onReport(group)}>Пожаловаться</button>

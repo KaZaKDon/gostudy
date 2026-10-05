@@ -118,6 +118,11 @@ export function useMaterials(role) {
             method: 'POST',
         })), [mutate]);
 
+    const deleteMaterial = useCallback((materialId) => mutate(() =>
+        apiRequest(`${API.materials}/${materialId}`, {
+            method: 'DELETE',
+        })), [mutate]);
+
     const assign = useCallback((materialId, relationId) => mutate(() =>
         apiRequest(`${API.materials}/${materialId}/assign`, {
             method: 'POST',
@@ -178,6 +183,7 @@ export function useMaterials(role) {
         update,
         submitModeration,
         hide,
+        deleteMaterial,
         assign,
         unassign,
         report,

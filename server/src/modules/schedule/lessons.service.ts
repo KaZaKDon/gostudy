@@ -15,6 +15,7 @@ import {
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherFinanceService } from '../teacher-finance/teacher-finance.service';
 import type { CreateLessonDto } from './dto/create-lesson.dto';
 import {
     formatInTimezone,
@@ -31,6 +32,7 @@ export class LessonsService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly notifications: NotificationsService,
+        private readonly finance: TeacherFinanceService,
     ) {}
 
     async getCreationOptions(user: SessionUser): Promise<Record<string, unknown>> {
@@ -259,6 +261,12 @@ export class LessonsService {
                     lessonTopic: topic,
                     lessonNotes: notes,
                 },
+            });
+            await this.finance.createLessonSnapshot(transaction, {
+                lessonId: lesson.id,
+                teacherId: lesson.teacherId,
+                studentId: lesson.studentId,
+                grossAmount: selectedPrice,
             });
             const studentTimezone = resolveTimezone(
                 relation.student.studentProfile?.timezone,

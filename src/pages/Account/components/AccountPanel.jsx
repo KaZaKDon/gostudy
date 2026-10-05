@@ -16,6 +16,7 @@ import { ParentDashboard } from '../sections/ParentDashboard/ParentDashboard.jsx
 import { StudentFamilySection } from '../sections/StudentFamily/StudentFamilySection.jsx';
 import { TeacherRatingDashboard } from '../sections/TeacherRating/TeacherRatingDashboard.jsx';
 import { AccessibilitySection } from '../sections/Accessibility/AccessibilitySection.jsx';
+import { DisputesSection } from '../sections/Disputes/DisputesSection.jsx';
 
 export function AccountPanel({
     title,
@@ -30,6 +31,7 @@ export function AccountPanel({
     activeSection,
     accessibilityTab,
     materialsController,
+    targetMaterialId,
     homeworkController,
     targetHomeworkId,
     createHomeworkRelationId,
@@ -38,6 +40,7 @@ export function AccountPanel({
     targetJournalLessonId,
     targetJournalStudentId,
     targetJournalSubjectId,
+    targetDisputeId,
     messagesController,
     notificationsController,
     messageTarget,
@@ -75,6 +78,7 @@ export function AccountPanel({
     const isJournalSection = activeSection === 'journal';
     const isDiarySection = activeSection === 'diary';
     const isMessagesSection = activeSection === 'messages';
+    const isDisputesSection = activeSection === 'disputes';
     const isReviewsSection =
         activeSection === 'reviews' || activeSection === 'teachers';
     const isPaymentsSection = activeSection === 'payments';
@@ -133,6 +137,7 @@ export function AccountPanel({
                 !isJournalSection &&
                 !isDiarySection &&
                 !isMessagesSection &&
+                !isDisputesSection &&
                 !isReviewsSection &&
                 !isPaymentsSection &&
                 !isSettingsSection &&
@@ -188,6 +193,7 @@ export function AccountPanel({
                 <MaterialsSection
                     role={role}
                     controller={materialsController}
+                    targetMaterialId={targetMaterialId}
                 />
             ) : isAccessibilitySection ? (
                 <AccessibilitySection
@@ -220,6 +226,11 @@ export function AccountPanel({
                     role={role}
                     messagesController={messagesController}
                     messageTarget={messageTarget}
+                />
+            ) : isDisputesSection ? (
+                <DisputesSection
+                    role={role}
+                    targetDisputeId={targetDisputeId}
                 />
             ) : isReviewsSection ? (
                 <ReviewsSection

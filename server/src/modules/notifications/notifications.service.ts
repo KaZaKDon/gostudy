@@ -4,10 +4,9 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import {
-    ParentChildVerificationStatus,
     ParentStudentStatus,
     UserRole,
     UserStatus,
@@ -19,6 +18,7 @@ import type { ListNotificationsQueryDto } from './dto/list-notifications-query.d
 import type { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
 import type { UpdateParentNotificationSettingsDto } from './dto/update-parent-notification-settings.dto';
 import type { UpdateStudentNotificationSettingsDto } from './dto/update-student-notification-settings.dto';
+import { notificationCapabilities } from './notification-capabilities';
 import type {
     CreateNotificationInput,
     CreateParentNotificationInput,
@@ -35,7 +35,17 @@ const PARENT_PREFERENCE_FIELD = {
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly parentChildAccess: ParentChildAccessService,
+    ) {}
+
+    getCapabilities(): Record<string, unknown> {
+        return {
+            success: true,
+            capabilities: notificationCapabilities(),
+        };
+    }
 
     async list(
         user: SessionUser,
@@ -294,7 +304,7 @@ export class NotificationsService {
 
         return {
             success: true,
-            message: 'Настройки уведомлений сохранены',
+            message: 'Настройка будущей email-доставки сохранена',
             settings: this.serializeStudentSettings(updated),
         };
     }
@@ -359,24 +369,14 @@ export class NotificationsService {
             return;
         }
 
-        const adultBirthDate = adultBirthDateCutoff();
-
-        const childProfiles = await client.parentChildProfile.findMany({
-            where: {
-                studentId,
-                parentId: { in: links.map((link) => link.parentId) },
-                verificationStatus: ParentChildVerificationStatus.VERIFIED,
-                verifiedAt: { not: null },
-                archivedAt: null,
-                birthDate: { gt: adultBirthDate },
-            },
-            select: {
-                parentId: true,
-                firstName: true,
-                lastName: true,
-                middleName: true,
-            },
-        });
+        const childProfiles = await this.parentChildAccess
+            .listCurrentMinorChildrenForPairsIn(
+                client,
+                links.map((link) => ({
+                    parentId: link.parentId,
+                    studentId,
+                })),
+            );
 
         const preferences = childProfiles.length
             ? await client.parentNotificationPreference.findMany({
@@ -489,54 +489,17 @@ export class NotificationsService {
     }
 
     private async activeParentChildren(parentId: number) {
-        const links = await this.prisma.parentStudent.findMany({
-            where: {
-                parentId,
-                status: ParentStudentStatus.ACTIVE,
-                verifiedAt: { not: null },
-            },
-            select: { studentId: true },
-        });
+        const children = await this.parentChildAccess
+            .listCurrentMinorChildren(parentId);
 
-        if (!links.length) {
-            return [];
-        }
-
-        const adultBirthDate = adultBirthDateCutoff();
-
-        const profiles = await this.prisma.parentChildProfile.findMany({
-            where: {
-                parentId,
-                studentId: {
-                    in: links.map((link) => link.studentId),
-                },
-                verificationStatus: ParentChildVerificationStatus.VERIFIED,
-                verifiedAt: { not: null },
-                archivedAt: null,
-                birthDate: { gt: adultBirthDate },
-            },
-            orderBy: [
-                { createdAt: 'asc' },
-                { id: 'asc' },
-            ],
-            select: {
-                studentId: true,
-                firstName: true,
-                lastName: true,
-                middleName: true,
-            },
-        });
-
-        return profiles.flatMap((profile) => profile.studentId
-            ? [{
-                studentId: profile.studentId,
-                fullName: [
-                    profile.lastName,
-                    profile.firstName,
-                    profile.middleName,
-                ].filter(Boolean).join(' '),
-            }]
-            : []);
+        return children.map((child) => ({
+            studentId: child.studentId,
+            fullName: [
+                child.lastName,
+                child.firstName,
+                child.middleName,
+            ].filter(Boolean).join(' '),
+        }));
     }
 
     private serializeParentSetting(

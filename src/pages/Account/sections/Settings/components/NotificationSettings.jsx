@@ -1,4 +1,9 @@
+import { useNotificationCapabilities } from '../hooks/useNotificationCapabilities.js';
+import { NotificationRetentionStatus } from './NotificationRetentionStatus.jsx';
+
 export function NotificationSettings({ role }) {
+    const { capabilities, status } = useNotificationCapabilities();
+
     return (
         <section className="settings-panel">
             <header className="settings-panel__header">
@@ -20,16 +25,10 @@ export function NotificationSettings({ role }) {
                 </strong>
             </section>
 
-            <section className="settings-card">
-                <div>
-                    <h4>Хранение уведомлений</h4>
-                    <p>
-                        Прочитанные уведомления удаляются через 30 дней,
-                        непрочитанные — через 180 дней. Каждое уведомление
-                        можно удалить отдельно в меню колокольчика.
-                    </p>
-                </div>
-            </section>
+            <NotificationRetentionStatus
+                capabilities={capabilities}
+                status={status}
+            />
 
             {role === 'teacher' && (
                 <p className="settings-panel__note">

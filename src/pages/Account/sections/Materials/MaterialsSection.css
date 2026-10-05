@@ -275,6 +275,15 @@
     color: var(--color-accent-red);
 }
 
+.materials-group--target {
+    outline: 2px solid color-mix(
+        in srgb,
+        var(--materials-accent) 70%,
+        transparent
+    );
+    outline-offset: 2px;
+}
+
 .material-modal {
     position: fixed;
     inset: 0;

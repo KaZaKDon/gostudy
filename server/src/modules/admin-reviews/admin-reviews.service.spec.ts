@@ -137,7 +137,10 @@ describe('AdminReviewsService', () => {
                     callback(transaction),
             ),
         } as unknown as PrismaService;
-        const notifications = new NotificationsService(prisma);
+        const notifications = new NotificationsService(
+            prisma,
+            new ParentChildAccessService(prisma),
+        );
         const reviews = new ReviewsService(
             prisma,
             {} as ParentChildAccessService,

@@ -133,6 +133,44 @@ enum LessonChangeStatus {
   WITHDRAWN
 }
 
+enum LessonDisputeReason {
+  NO_SHOW
+  LATE_CANCELLATION
+  LESSON_NOT_HELD
+  LESSON_QUALITY
+  OTHER
+}
+
+enum LessonDisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum LessonDisputeResolution {
+  APPLICANT_SUPPORTED
+  RESPONDENT_SUPPORTED
+  MUTUAL_AGREEMENT
+  NO_VIOLATION
+}
+
+enum LessonPaymentStatus {
+  NOT_DUE
+  AWAITING_PAYMENT
+  PAY_LATER
+  PAID
+  WAIVED
+  REFUNDED
+}
+
+enum LessonPayoutStatus {
+  NOT_READY
+  READY
+  PAID
+  HELD
+}
+
 enum TeacherStudentStatus {
   ACTIVE
   ARCHIVED
@@ -305,6 +343,15 @@ model User {
   homeworkSubmissions                HomeworkSubmission[]
   lessonChangesRequested             LessonChangeRequest[]       @relation("LessonChangeRequester")
   lessonChangesResponded             LessonChangeRequest[]       @relation("LessonChangeResponder")
+  lessonDisputesOpened               LessonDispute[]             @relation("LessonDisputeOpener")
+  lessonDisputesAsTeacher            LessonDispute[]             @relation("LessonDisputeTeacher")
+  lessonDisputesAsStudent            LessonDispute[]             @relation("LessonDisputeStudent")
+  lessonDisputesHandled              LessonDispute[]             @relation("LessonDisputeHandler")
+  lessonDisputeMessages              LessonDisputeMessage[]      @relation("LessonDisputeMessageAuthor")
+  lessonDisputeAttachments           LessonDisputeAttachment[]   @relation("LessonDisputeAttachmentUploader")
+  lessonDisputeEvents                LessonDisputeEvent[]        @relation("LessonDisputeEventActor")
+  lessonSettlementsAsTeacher         LessonSettlement[]          @relation("LessonSettlementTeacher")
+  lessonSettlementsAsStudent         LessonSettlement[]          @relation("LessonSettlementStudent")
   teachingRelations                  TeacherStudent[]            @relation("TeacherStudentTeacher")
   learningRelations                  TeacherStudent[]            @relation("TeacherStudentStudent")
   teachingRequests                   TeacherStudentRequest[]     @relation("TeacherRequestTeacher")
@@ -346,10 +393,21 @@ model User {
   accessibilityApplicationsSubmitted AccessibilityApplication[]  @relation("AccessibilityApplicationSubmitter")
   tariffPublicationsCreated          TariffPublication[]         @relation("TariffPublicationCreator")
   tariffPublicationsPublished        TariffPublication[]         @relation("TariffPublicationPublisher")
+  storageUsage                       UserStorageUsage?
 
   @@index([role, status])
   @@index([archivedById])
   @@map("users")
+}
+
+model UserStorageUsage {
+  userId     Int      @id @map("user_id")
+  usedBytes  BigInt   @default(0) @map("used_bytes")
+  limitBytes BigInt?  @map("limit_bytes")
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_storage_usages")
 }
 
 model AdminAuditLog {
@@ -1030,11 +1088,41 @@ model Lesson {
   result          LessonResult?
   homework        Homework[]
   changeRequests  LessonChangeRequest[]
+  dispute         LessonDispute?
+  settlement      LessonSettlement?
 
   @@index([teacherId, lessonDate])
   @@index([studentId, lessonDate])
   @@index([status, lessonDate])
   @@map("lessons")
+}
+
+model LessonSettlement {
+  id                Int                 @id @default(autoincrement())
+  lessonId          Int                 @unique @map("lesson_id")
+  teacherId         Int                 @map("teacher_id")
+  studentId         Int                 @map("student_id")
+  grossAmount       Decimal             @map("gross_amount") @db.Decimal(12, 2)
+  commissionPercent Decimal             @map("commission_percent") @db.Decimal(5, 2)
+  commissionAmount  Decimal             @map("commission_amount") @db.Decimal(12, 2)
+  teacherAmount     Decimal             @map("teacher_amount") @db.Decimal(12, 2)
+  tariffVersion     Int?                @map("tariff_version")
+  paymentStatus     LessonPaymentStatus @default(NOT_DUE) @map("payment_status")
+  payoutStatus      LessonPayoutStatus  @default(NOT_READY) @map("payout_status")
+  paymentDueAt      DateTime?           @map("payment_due_at") @db.Timestamptz(3)
+  paidAt            DateTime?           @map("paid_at") @db.Timestamptz(3)
+  payoutPaidAt      DateTime?           @map("payout_paid_at") @db.Timestamptz(3)
+  paymentComment    String?              @map("payment_comment") @db.VarChar(1000)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lesson            Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  teacher           User                 @relation("LessonSettlementTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  student           User                 @relation("LessonSettlementStudent", fields: [studentId], references: [id], onDelete: Restrict)
+
+  @@index([teacherId, paymentStatus, paymentDueAt])
+  @@index([teacherId, payoutStatus, updatedAt])
+  @@index([studentId, paymentStatus, paymentDueAt])
+  @@map("lesson_settlements")
 }
 
 model LessonSession {
@@ -1380,6 +1468,90 @@ model LessonChangeRequest {
   @@index([lessonId, status, createdAt])
   @@index([requestedBy, status])
   @@map("lesson_change_requests")
+}
+
+model LessonDispute {
+  id                Int                       @id @default(autoincrement())
+  lessonId          Int                       @unique @map("lesson_id")
+  openedById        Int                       @map("opened_by")
+  teacherId         Int                       @map("teacher_id")
+  studentId         Int                       @map("student_id")
+  reason            LessonDisputeReason
+  description       String                    @db.Text
+  status            LessonDisputeStatus       @default(OPEN)
+  resolution        LessonDisputeResolution?
+  resolutionComment String?                   @map("resolution_comment") @db.Text
+  handledById       Int?                      @map("handled_by")
+  handledAt         DateTime?                 @map("handled_at") @db.Timestamptz(3)
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lesson            Lesson                    @relation(fields: [lessonId], references: [id], onDelete: Restrict)
+  openedBy          User                      @relation("LessonDisputeOpener", fields: [openedById], references: [id], onDelete: Restrict)
+  teacher           User                      @relation("LessonDisputeTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  student           User                      @relation("LessonDisputeStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  handledBy         User?                     @relation("LessonDisputeHandler", fields: [handledById], references: [id], onDelete: SetNull)
+  messages          LessonDisputeMessage[]
+  attachments       LessonDisputeAttachment[]
+  events            LessonDisputeEvent[]
+
+  @@index([status, updatedAt, id])
+  @@index([teacherId, status, createdAt])
+  @@index([studentId, status, createdAt])
+  @@index([openedById, createdAt])
+  @@index([handledById, handledAt])
+  @@map("lesson_disputes")
+}
+
+model LessonDisputeMessage {
+  id          Int                       @id @default(autoincrement())
+  disputeId   Int                       @map("dispute_id")
+  authorId    Int                       @map("author_id")
+  messageText String?                   @map("message_text") @db.Text
+  createdAt   DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  dispute     LessonDispute             @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  author      User                      @relation("LessonDisputeMessageAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  attachments LessonDisputeAttachment[]
+
+  @@index([disputeId, id])
+  @@index([authorId, createdAt])
+  @@map("lesson_dispute_messages")
+}
+
+model LessonDisputeAttachment {
+  id           Int                   @id @default(autoincrement())
+  disputeId    Int                   @map("dispute_id")
+  messageId    Int?                  @map("message_id")
+  uploadedById Int                   @map("uploaded_by")
+  storedPath   String                @map("stored_path") @db.VarChar(500)
+  originalName String                @map("original_name") @db.VarChar(255)
+  mimeType     String                @map("mime_type") @db.VarChar(120)
+  fileSize     Int                   @map("file_size")
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  dispute      LessonDispute         @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  message      LessonDisputeMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  uploadedBy   User                  @relation("LessonDisputeAttachmentUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([disputeId, id])
+  @@index([messageId, id])
+  @@index([uploadedById, id])
+  @@map("lesson_dispute_attachments")
+}
+
+model LessonDisputeEvent {
+  id         Int                  @id @default(autoincrement())
+  disputeId  Int                  @map("dispute_id")
+  actorId    Int?                 @map("actor_id")
+  eventType  String               @map("event_type") @db.VarChar(80)
+  fromStatus LessonDisputeStatus? @map("from_status")
+  toStatus   LessonDisputeStatus? @map("to_status")
+  details    Json?
+  createdAt  DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  dispute    LessonDispute        @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  actor      User?                @relation("LessonDisputeEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([disputeId, id])
+  @@index([actorId, createdAt])
+  @@map("lesson_dispute_events")
 }
 
 model AuthSession {

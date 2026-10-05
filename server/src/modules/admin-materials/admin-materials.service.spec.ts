@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import type { RequestMetadata } from '../../common/http/request-metadata';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
@@ -56,7 +57,10 @@ describe('AdminMaterialsService', () => {
         } as unknown as PrismaService;
         const service = new AdminMaterialsService(
             prisma,
-            new NotificationsService(prisma),
+            new NotificationsService(
+                prisma,
+                new ParentChildAccessService(prisma),
+            ),
             {} as MaterialsService,
         );
 
@@ -109,7 +113,10 @@ describe('AdminMaterialsService', () => {
         } as unknown as PrismaService;
         const service = new AdminMaterialsService(
             prisma,
-            new NotificationsService(prisma),
+            new NotificationsService(
+                prisma,
+                new ParentChildAccessService(prisma),
+            ),
             {} as MaterialsService,
         );
 

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
     type BufferedUploadFile,
     PrivateFileStorageService,
+    type StoredPrivateFile,
 } from '../../common/files/private-file-storage.service';
 
 export const MESSAGE_MAX_FILES = 5;
@@ -44,10 +45,12 @@ export class MessageFileStorageService {
     }
 
     storeUploads(
+        ownerId: number,
         messageId: number,
         files: ReturnType<MessageFileStorageService['validateUploads']>,
     ) {
         return this.storage.storeUploads(
+            ownerId,
             join('messages', String(messageId)),
             files,
         );
@@ -62,6 +65,10 @@ export class MessageFileStorageService {
 
     removeStoredPaths(paths: string[]) {
         return this.storage.removeStoredPaths(paths);
+    }
+
+    discardStoredFiles(ownerId: number, files: StoredPrivateFile[]) {
+        return this.storage.discardStoredFiles(ownerId, files);
     }
 
     private positiveInteger(key: string, fallback: number): number {

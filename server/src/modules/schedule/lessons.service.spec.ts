@@ -16,6 +16,7 @@ import {
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherFinanceService } from '../teacher-finance/teacher-finance.service';
 import { LessonsService } from './lessons.service';
 
 const teacher: SessionUser = {
@@ -54,6 +55,10 @@ const relation = {
 const notifications = {
     create: vi.fn().mockResolvedValue(undefined),
 } as unknown as NotificationsService;
+
+const finance = {
+    createLessonSnapshot: vi.fn().mockResolvedValue(undefined),
+} as unknown as TeacherFinanceService;
 
 function createPrisma(conflicts: Array<Record<string, unknown>> = []) {
     const transaction = {
@@ -108,7 +113,7 @@ describe('LessonsService', () => {
 
     it('returns active relations and configured prices', async () => {
         const { prisma } = createPrisma();
-        const service = new LessonsService(prisma, notifications);
+        const service = new LessonsService(prisma, notifications, finance);
         const result = await service.getCreationOptions(teacher);
 
         expect(result).toMatchObject({
@@ -131,7 +136,7 @@ describe('LessonsService', () => {
 
     it('creates a future lesson in the teacher timezone', async () => {
         const { prisma, transaction } = createPrisma();
-        const service = new LessonsService(prisma, notifications);
+        const service = new LessonsService(prisma, notifications, finance);
         const result = await service.createLesson(teacher, {
             relation_id: 4,
             lesson_date: '2026-08-31T18:00',
@@ -164,6 +169,15 @@ describe('LessonsService', () => {
                 targetEntityId: 15,
             }),
         );
+        expect(finance.createLessonSnapshot).toHaveBeenCalledWith(
+            transaction,
+            {
+                lessonId: 15,
+                teacherId: 7,
+                studentId: 9,
+                grossAmount: 1_100,
+            },
+        );
     });
 
     it('rejects an overlapping teacher lesson', async () => {
@@ -175,7 +189,7 @@ describe('LessonsService', () => {
                 durationMinutes: 60,
             },
         ]);
-        const service = new LessonsService(prisma, notifications);
+        const service = new LessonsService(prisma, notifications, finance);
 
         await expect(service.createLesson(teacher, {
             relation_id: 4,

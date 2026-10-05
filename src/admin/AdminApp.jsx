@@ -65,6 +65,7 @@ import { AccessibilityOffersPage } from './pages/Accessibility/AccessibilityOffe
 import { TariffsAdminPage } from './pages/Tariffs/TariffsAdminPage.jsx';
 import { DocumentsPage } from './pages/Documents/DocumentsPage.jsx';
 import { ProfileMediaPage } from './pages/ProfileMedia/ProfileMediaPage.jsx';
+import { LessonDisputesAdminPage } from './pages/LessonDisputes/LessonDisputesAdminPage.jsx';
 
 export function AdminApp() {
     return (
@@ -150,6 +151,11 @@ export function AdminApp() {
                         <Route
                             path="messages"
                             element={<MessagesPage />}
+                        />
+
+                        <Route
+                            path="lesson-disputes"
+                            element={<LessonDisputesAdminPage />}
                         />
 
                         <Route

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { ParentChildAccessModule } from '../../common/access/parent-child-access.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { AccessibilityApplicationsController } from './accessibility-applications.controller';
 import { AccessibilityApplicationsService } from './accessibility-applications.service';
 
 @Module({
-    imports: [AuthModule, NotificationsModule],
+    imports: [AuthModule, NotificationsModule, ParentChildAccessModule],
     controllers: [AccessibilityApplicationsController],
     providers: [AccessibilityApplicationsService],
 })

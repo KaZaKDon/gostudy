@@ -6,14 +6,29 @@ import {
 import { API } from '../../../../../api/api.js';
 import { apiRequest } from '../../../../../api/apiRequest.js';
 
+import { useNotificationCapabilities } from '../hooks/useNotificationCapabilities.js';
+import { NotificationRetentionStatus } from './NotificationRetentionStatus.jsx';
 import { SettingsMessage } from './SettingsMessage.jsx';
 
 export function StudentNotificationSettings({
     onEditContacts,
 }) {
+    const {
+        capabilities,
+        status: capabilitiesStatus,
+    } = useNotificationCapabilities();
     const [settings, setSettings] = useState(null);
     const [status, setStatus] = useState('loading');
     const [message, setMessage] = useState('');
+    const emailCapability = capabilities?.parent_email;
+    const emailDeliveryAvailable = Boolean(
+        emailCapability?.delivery_available,
+    );
+    const canSaveParentPreference = Boolean(
+        settings?.parent_email
+        && capabilitiesStatus === 'success'
+        && emailCapability?.preference_storage_available,
+    );
 
     useEffect(() => {
         const controller = new AbortController();
@@ -82,10 +97,25 @@ export function StudentNotificationSettings({
                     <div className="settings-parent-notifications">
                         <div>
                             <h4>Письма родителю</h4>
-                            <p>
-                                Родитель получит письмо при выдаче задания,
-                                напоминание перед сроком и результат проверки.
-                            </p>
+                            {capabilitiesStatus === 'loading' ? (
+                                <p>Проверяем доступность email-доставки...</p>
+                            ) : capabilitiesStatus !== 'success' ? (
+                                <p>
+                                    Доступность email-доставки не подтверждена.
+                                    Письма не считаются включёнными.
+                                </p>
+                            ) : emailDeliveryAvailable ? (
+                                <p>
+                                    Родитель получает письма об учебных
+                                    событиях согласно сохранённой настройке.
+                                </p>
+                            ) : (
+                                <p>
+                                    Отправка учебных событий по email пока не
+                                    подключена. Настройку можно сохранить
+                                    заранее для будущего запуска.
+                                </p>
+                            )}
                             <small>
                                 Email: {settings.parent_email || 'не указан'}
                             </small>
@@ -97,7 +127,7 @@ export function StudentNotificationSettings({
                                 checked={settings.parent_notifications_enabled}
                                 disabled={
                                     status === 'saving'
-                                    || !settings.parent_email
+                                    || !canSaveParentPreference
                                 }
                                 onChange={(event) => setSettings((current) => ({
                                     ...current,
@@ -105,26 +135,29 @@ export function StudentNotificationSettings({
                                         event.target.checked,
                                 }))}
                             />
-                            <span>{settings.parent_notifications_enabled ? 'Включены' : 'Выключены'}</span>
+                            <span>
+                                {emailDeliveryAvailable
+                                    ? settings.parent_notifications_enabled
+                                        ? 'Включены'
+                                        : 'Выключены'
+                                    : settings.parent_notifications_enabled
+                                        ? 'Настройка сохранена'
+                                        : 'Не выбрано'}
+                            </span>
                         </label>
                     </div>
 
                     {!settings.parent_email && (
                         <p className="settings-panel__note">
-                            Чтобы включить письма, сначала укажите email
-                            родителя в анкете ученика.
+                            Чтобы сохранить настройку будущей email-доставки,
+                            сначала укажите email родителя в анкете ученика.
                         </p>
                     )}
 
-                    <section className="settings-card">
-                        <div>
-                            <h4>Хранение уведомлений</h4>
-                            <p>
-                                Прочитанные уведомления удаляются через
-                                30 дней, непрочитанные — через 180 дней.
-                            </p>
-                        </div>
-                    </section>
+                    <NotificationRetentionStatus
+                        capabilities={capabilities}
+                        status={capabilitiesStatus}
+                    />
 
                     <SettingsMessage
                         type={status === 'error' ? 'error' : 'success'}
@@ -146,7 +179,10 @@ export function StudentNotificationSettings({
                         <button
                             type="button"
                             className="settings-panel__save"
-                            disabled={status === 'saving' || !settings.parent_email}
+                            disabled={
+                                status === 'saving'
+                                || !canSaveParentPreference
+                            }
                             onClick={save}
                         >
                             {status === 'saving' ? 'Сохраняем...' : 'Сохранить'}

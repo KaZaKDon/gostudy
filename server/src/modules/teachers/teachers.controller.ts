@@ -15,19 +15,23 @@ import type { SessionUser } from '../auth/session-user';
 import { FindTeachersQueryDto } from './dto/find-teachers-query.dto';
 import { SendTeacherRequestDto } from './dto/send-teacher-request.dto';
 import { TeacherDetailsQueryDto } from './dto/teacher-details-query.dto';
+import { TeacherDirectoryService } from './teacher-directory.service';
 import { TeachersService } from './teachers.service';
 
 @Controller('teachers')
 @UseGuards(SessionAuthGuard)
 export class TeachersController {
-    constructor(private readonly teachersService: TeachersService) {}
+    constructor(
+        private readonly teacherDirectory: TeacherDirectoryService,
+        private readonly teachersService: TeachersService,
+    ) {}
 
     @Get()
     async find(
         @CurrentUser() user: SessionUser,
         @Query() query: FindTeachersQueryDto,
     ): Promise<Record<string, unknown>> {
-        return this.teachersService.findTeachers(user, query);
+        return this.teacherDirectory.findTeachers(user, query);
     }
 
     @Get('details')
@@ -35,7 +39,7 @@ export class TeachersController {
         @CurrentUser() user: SessionUser,
         @Query() query: TeacherDetailsQueryDto,
     ): Promise<Record<string, unknown>> {
-        return this.teachersService.getTeacher(
+        return this.teacherDirectory.getTeacher(
             user,
             query.teacher_id,
             query.student_id,

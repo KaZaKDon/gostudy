@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     LessonChangeStatus,
     LessonChangeType,
     LessonSessionStatus,
     LessonStatus,
-    ParentChildVerificationStatus,
-    ParentStudentStatus,
     UserRole,
     UserStatus,
 } from '../../generated/prisma/enums';
@@ -102,10 +101,17 @@ function createPrisma() {
     } as unknown as PrismaService;
 }
 
+function createService(prisma: PrismaService) {
+    return new ScheduleService(
+        prisma,
+        new ParentChildAccessService(prisma),
+    );
+}
+
 describe('ScheduleService', () => {
     it('returns only the viewer period in the profile timezone', async () => {
         const prisma = createPrisma();
-        const service = new ScheduleService(prisma);
+        const service = createService(prisma);
         const result = await service.getSchedule(teacher, {
             from: '2026-08-31',
             to: '2026-09-06',
@@ -160,7 +166,7 @@ describe('ScheduleService', () => {
                 },
             },
         ]);
-        const service = new ScheduleService(prisma);
+        const service = createService(prisma);
         const result = await service.getSchedule(parent, {
             from: '2026-08-31',
             to: '2026-09-06',
@@ -185,20 +191,19 @@ describe('ScheduleService', () => {
                 where: expect.objectContaining({ studentId: 9 }),
             }),
         );
-        expect(prisma.parentStudent.findMany).toHaveBeenCalledWith({
-            where: {
-                parentId: 15,
-                status: ParentStudentStatus.ACTIVE,
-                verifiedAt: { not: null },
-            },
-            select: { studentId: true },
-        });
         expect(prisma.parentChildProfile.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: expect.objectContaining({
                     parentId: 15,
-                    verificationStatus:
-                        ParentChildVerificationStatus.VERIFIED,
+                    verificationStatus: 'VERIFIED',
+                    student: {
+                        childLinks: {
+                            some: expect.objectContaining({
+                                parentId: 15,
+                                status: 'ACTIVE',
+                            }),
+                        },
+                    },
                 }),
             }),
         );
@@ -215,7 +220,7 @@ describe('ScheduleService', () => {
             timezone: 'Europe/Moscow',
             student: { studentProfile: { timezone: 'Europe/Moscow' } },
         }]);
-        const service = new ScheduleService(prisma);
+        const service = createService(prisma);
 
         await expect(service.getSchedule(parent, {
             from: '2026-08-31',
@@ -226,7 +231,7 @@ describe('ScheduleService', () => {
     });
 
     it('rejects a request longer than 32 calendar days', async () => {
-        const service = new ScheduleService(createPrisma());
+        const service = createService(createPrisma());
 
         await expect(service.getSchedule(teacher, {
             from: '2026-01-01',
@@ -263,7 +268,7 @@ describe('ScheduleService', () => {
             },
         ]);
         prisma.lesson.findFirst.mockResolvedValue({ studentId: 10 });
-        const service = new ScheduleService(prisma);
+        const service = createService(prisma);
 
         const result = await service.getSchedule(parent, {
             from: '2026-08-31',

@@ -666,7 +666,7 @@
 
 @media (max-width: 520px) {
     .account-panel {
-        padding: 22px;
+        padding: 82px 22px 22px;
     }
 
     .account-sidebar__nav {

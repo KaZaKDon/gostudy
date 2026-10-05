@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
     Header,
     Param,
@@ -95,6 +96,14 @@ export class MaterialsController {
         @Param('id', ParseIntPipe) materialId: number,
     ) {
         return this.materials.hide(user, materialId);
+    }
+
+    @Delete(':id')
+    delete(
+        @CurrentUser() user: SessionUser,
+        @Param('id', ParseIntPipe) materialId: number,
+    ) {
+        return this.materials.delete(user, materialId);
     }
 
     @Post(':id/assign')

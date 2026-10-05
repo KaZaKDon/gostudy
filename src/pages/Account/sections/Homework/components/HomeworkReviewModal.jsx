@@ -42,6 +42,7 @@ export function HomeworkReviewModal({
     onSubmit,
     onReview,
     onCancelHomework,
+    onDeleteAssignmentFiles,
     onClose,
 }) {
     const [answerText, setAnswerText] = useState('');
@@ -64,6 +65,9 @@ export function HomeworkReviewModal({
     const canCancel = role === 'teacher'
         && homework.status === 'active'
         && !latestSubmission;
+    const canDeleteAssignmentFiles = role === 'teacher'
+        && ['cancelled', 'completed'].includes(homework.status)
+        && homework.attachments?.length > 0;
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -118,6 +122,21 @@ export function HomeworkReviewModal({
             onClose();
         } catch (cancelError) {
             setError(cancelError.message);
+        }
+    };
+
+    const handleDeleteAssignmentFiles = async () => {
+        if (!window.confirm(
+            'Удалить файлы задания? Ученик больше не сможет их скачать. Само задание и результат проверки останутся в истории.',
+        )) {
+            return;
+        }
+
+        setError('');
+        try {
+            await onDeleteAssignmentFiles(homework.id);
+        } catch (deleteError) {
+            setError(deleteError.message);
         }
     };
 
@@ -291,6 +310,16 @@ export function HomeworkReviewModal({
                 </div>
 
                 <footer className="homework-modal__actions">
+                    {canDeleteAssignmentFiles && (
+                        <button
+                            type="button"
+                            className="homework-modal__revision"
+                            disabled={isSaving}
+                            onClick={handleDeleteAssignmentFiles}
+                        >
+                            Удалить файлы и освободить место
+                        </button>
+                    )}
                     {canCancel && (
                         <button type="button" className="homework-modal__revision" onClick={handleCancel}>
                             Отменить задание

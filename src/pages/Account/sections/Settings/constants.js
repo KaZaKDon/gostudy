@@ -3,6 +3,7 @@ export const STUDENT_SETTINGS_TABS = [
     { id: 'contacts', label: 'Контакты' },
     { id: 'security', label: 'Безопасность' },
     { id: 'notifications', label: 'Уведомления' },
+    { id: 'storage', label: 'Хранилище' },
 ];
 
 export const TEACHER_SETTINGS_TABS = [
@@ -10,6 +11,7 @@ export const TEACHER_SETTINGS_TABS = [
     { id: 'contacts', label: 'Контакты' },
     { id: 'security', label: 'Безопасность' },
     { id: 'notifications', label: 'Уведомления' },
+    { id: 'storage', label: 'Хранилище' },
     { id: 'documents', label: 'Документы' },
     { id: 'publicProfile', label: 'Публичная анкета' },
     { id: 'payouts', label: 'Платёжные данные' },
@@ -19,6 +21,7 @@ export const PARENT_SETTINGS_TABS = [
     { id: 'contacts', label: 'Контакты' },
     { id: 'security', label: 'Безопасность' },
     { id: 'notifications', label: 'Уведомления' },
+    { id: 'storage', label: 'Хранилище' },
 ];
 
 export const VERIFICATION_LABELS = {

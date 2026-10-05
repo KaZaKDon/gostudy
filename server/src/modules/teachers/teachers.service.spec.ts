@@ -1,14 +1,16 @@
+import { ForbiddenException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     TeacherStudentRequestStatus,
-    TeacherVerificationStatus,
     UserRole,
     UserStatus,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherApplicantAccessService } from './teacher-applicant-access.service';
 import { TeachersService } from './teachers.service';
 
 const student: SessionUser = {
@@ -34,85 +36,17 @@ const parent: SessionUser = {
 const notifications = {
     create: vi.fn().mockResolvedValue(undefined),
 } as unknown as NotificationsService;
+const parentChildAccess = {
+    hasCurrentMinorAccessIn: vi.fn().mockResolvedValue(true),
+} as unknown as ParentChildAccessService;
 
-describe('TeachersService', () => {
-    it('returns only public verified teacher cards', async () => {
-        const prisma = {
-            teacherProfile: {
-                findMany: vi.fn().mockResolvedValue([
-                    {
-                        userId: 7,
-                        firstName: 'Анна',
-                        lastName: 'Учитель',
-                        slug: 'teacher-7',
-                        city: 'Москва',
-                        headline: 'Английский язык',
-                        experienceYears: 8,
-                        accessibilityEnabled: false,
-                        introVideoUrl: null,
-                        rating: 4.9,
-                        reviewsCount: 12,
-                        price45: 900,
-                        price60: 1_100,
-                        price90: null,
-                        createdAt: new Date(),
-                        user: {
-                            fullName: 'Анна Учитель',
-                            avatarUrl: null,
-                            phone: null,
-                            emailVerifiedAt: new Date(),
-                            lastLoginAt: new Date(),
-                            createdAt: new Date(),
-                            teacherEducation: [],
-                            teacherSubjects: [
-                                { subject: { name: 'Английский язык' } },
-                            ],
-                        },
-                    },
-                ]),
-            },
-            lesson: {
-                groupBy: vi.fn().mockResolvedValue([{
-                    teacherId: 7,
-                    _count: { _all: 30 },
-                }]),
-                findMany: vi.fn().mockResolvedValue([]),
-            },
-            subject: {
-                findMany: vi.fn().mockResolvedValue([{
-                    id: 11,
-                    name: 'Английский язык',
-                }]),
-            },
-            learningMaterial: { findMany: vi.fn().mockResolvedValue([]) },
-            review: { findMany: vi.fn().mockResolvedValue([]) },
-        } as unknown as PrismaService;
-        const service = new TeachersService(prisma, notifications);
-        const result = await service.findTeachers(student, {
-            search: 'английский',
-            page: 1,
-        });
+function applicantAccess(
+    access: ParentChildAccessService = parentChildAccess,
+): TeacherApplicantAccessService {
+    return new TeacherApplicantAccessService(access);
+}
 
-        expect(result.teachers).toEqual([
-            expect.objectContaining({
-                teacher_id: 7,
-                name: 'Анна Учитель',
-                price_from: 900,
-                is_verified: true,
-                rank: 1,
-                completed_lessons_count: 30,
-            }),
-        ]);
-        expect(prisma.teacherProfile.findMany).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: expect.objectContaining({
-                    isVisible: true,
-                    verificationStatus: TeacherVerificationStatus.VERIFIED,
-                }),
-            }),
-        );
-    });
-
+describe('TeachersService requests', () => {
     it('does not duplicate an already pending request', async () => {
         const transaction = {
             teacherProfile: {
@@ -142,7 +76,11 @@ describe('TeachersService', () => {
                     callback(transaction),
             ),
         } as unknown as PrismaService;
-        const service = new TeachersService(prisma, notifications);
+        const service = new TeachersService(
+            prisma,
+            notifications,
+            applicantAccess(),
+        );
         const result = await service.sendRequest(student, {
             teacher_id: 7,
             subject_id: 11,
@@ -170,9 +108,6 @@ describe('TeachersService', () => {
             status: TeacherStudentRequestStatus.PENDING,
         });
         const transaction = {
-            parentChildProfile: {
-                findFirst: vi.fn().mockResolvedValue({ studentId: 15 }),
-            },
             user: {
                 findUnique: vi.fn().mockResolvedValue({
                     fullName: 'Пётр Ученик',
@@ -202,7 +137,11 @@ describe('TeachersService', () => {
                     callback(transaction),
             ),
         } as unknown as PrismaService;
-        const service = new TeachersService(prisma, notifications);
+        const service = new TeachersService(
+            prisma,
+            notifications,
+            applicantAccess(),
+        );
 
         await expect(service.sendRequest(parent, {
             teacher_id: 7,
@@ -213,85 +152,42 @@ describe('TeachersService', () => {
             success: true,
             request: { id: 8, status: 'pending' },
         });
-        expect(transaction.parentChildProfile.findFirst).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: expect.objectContaining({
-                    parentId: 10,
-                    studentId: 15,
-                }),
-            }),
+        expect(parentChildAccess.hasCurrentMinorAccessIn).toHaveBeenCalledWith(
+            transaction,
+            10,
+            15,
         );
         expect(upsert).toHaveBeenCalledWith(expect.objectContaining({
             create: expect.objectContaining({ studentId: 15 }),
         }));
     });
 
-    it('loads pending requests for the child selected by a parent', async () => {
+    it('rejects a parent request when current child access is lost', async () => {
+        const transaction = {};
         const prisma = {
-            teacherProfile: {
-                findFirst: vi.fn().mockResolvedValue({
-                    userId: 7,
-                    firstName: 'Анна',
-                    lastName: 'Учитель',
-                    slug: 'teacher-7',
-                    city: 'Москва',
-                    headline: 'Английский язык',
-                    experienceYears: 8,
-                    about: 'Описание',
-                    teachingMethod: null,
-                    firstLessonDescription: null,
-                    studentGets: null,
-                    pricingComment: null,
-                    trialLessonEnabled: false,
-                    scheduleDescription: null,
-                    accessibilityComment: null,
-                    introVideoUrl: null,
-                    rating: 4.9,
-                    reviewsCount: 12,
-                    price45: 900,
-                    price60: 1_100,
-                    price90: null,
-                    user: {
-                        fullName: 'Анна Учитель',
-                        avatarUrl: null,
-                        teacherSubjects: [{
-                            subject: {
-                                id: 11,
-                                name: 'Английский язык',
-                                slug: 'english',
-                            },
-                        }],
-                        teacherSubjectPreparations: [],
-                        teacherAgeGroups: [],
-                        teacherEducation: [],
-                        reviewsAsTeacher: [],
-                        accessibilityOffers: [],
-                    },
-                }),
-            },
-            parentChildProfile: {
-                findFirst: vi.fn().mockResolvedValue({ studentId: 15 }),
-            },
-            teacherStudentRequest: {
-                findMany: vi.fn().mockResolvedValue([{ subjectId: 11 }]),
-            },
-            teacherStudent: {
-                findMany: vi.fn().mockResolvedValue([]),
-            },
+            $transaction: vi.fn(
+                async (callback: (client: typeof transaction) => unknown) =>
+                    callback(transaction),
+            ),
         } as unknown as PrismaService;
-        const service = new TeachersService(prisma, notifications);
+        const access = {
+            hasCurrentMinorAccessIn: vi.fn().mockResolvedValue(false),
+        } as unknown as ParentChildAccessService;
+        const service = new TeachersService(
+            prisma,
+            notifications,
+            applicantAccess(access),
+        );
 
-        await expect(service.getTeacher(parent, 7, 15)).resolves.toMatchObject({
-            teacher: {
-                teacher_id: 7,
-                pending_subject_ids: [11],
-                active_subject_ids: [],
-            },
-        });
-        expect(prisma.teacherStudentRequest.findMany).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: expect.objectContaining({ studentId: 15 }),
-            }),
+        await expect(service.sendRequest(parent, {
+            teacher_id: 7,
+            subject_id: 11,
+            student_id: 15,
+        })).rejects.toBeInstanceOf(ForbiddenException);
+        expect(access.hasCurrentMinorAccessIn).toHaveBeenCalledWith(
+            transaction,
+            parent.id,
+            15,
         );
     });
 });

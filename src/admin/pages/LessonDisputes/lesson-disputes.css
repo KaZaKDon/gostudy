@@ -1,0 +1,112 @@
+.admin-disputes__intro {
+    max-width: 820px;
+    margin: 8px 0 0;
+    color: var(--admin-text-muted);
+    line-height: 1.55;
+}
+
+.admin-disputes__filter {
+    max-width: 300px;
+    margin-bottom: 20px;
+}
+
+.admin-disputes__success {
+    color: var(--admin-success, #2f7d4a);
+}
+
+.admin-disputes small {
+    display: block;
+    margin-top: 4px;
+    color: var(--admin-text-muted);
+}
+
+.admin-disputes__detail {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.admin-disputes__detail > section {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    background: var(--admin-surface-soft);
+}
+
+.admin-disputes__detail h3,
+.admin-disputes__detail p {
+    margin: 0;
+}
+
+.admin-disputes__detail > section > p,
+.admin-disputes__messages article > p {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.admin-disputes__meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-disputes__attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-disputes__messages {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-disputes__messages article {
+    display: grid;
+    gap: 9px;
+    padding: 13px;
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    background: var(--admin-surface);
+}
+
+.admin-disputes__messages header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-disputes__messages header span,
+.admin-disputes__events span,
+.admin-disputes__events small {
+    color: var(--admin-text-muted);
+    font-size: 0.82rem;
+}
+
+.admin-disputes__events {
+    display: grid;
+    gap: 8px;
+}
+
+.admin-disputes__events p {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-disputes__resolution {
+    border-color: var(--admin-success, #2f7d4a) !important;
+}
+
+.admin-disputes__decision {
+    background: var(--admin-surface) !important;
+}
+
+@media (max-width: 760px) {
+    .admin-disputes__meta,
+    .admin-disputes__events p {
+        grid-template-columns: 1fr;
+    }
+}

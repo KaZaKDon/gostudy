@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     LessonSessionStatus,
@@ -11,6 +12,7 @@ import {
 import type { SessionUser } from '../auth/session-user';
 import { HomeworkService } from '../homework/homework.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeacherFinanceService } from '../teacher-finance/teacher-finance.service';
 import { ClassroomFileStorageService } from './classroom-file-storage.service';
 import { ClassroomRealtimeService } from './classroom-realtime.service';
 import { ClassroomService } from './classroom.service';
@@ -71,6 +73,10 @@ function lessonRecord() {
     };
 }
 
+const finance = {
+    markLessonCompleted: vi.fn().mockResolvedValue(undefined),
+} as unknown as TeacherFinanceService;
+
 describe('ClassroomService', () => {
     it('lets only the teacher finish a lesson', async () => {
         const service = new ClassroomService(
@@ -79,6 +85,7 @@ describe('ClassroomService', () => {
             {} as ClassroomFileStorageService,
             {} as HomeworkService,
             {} as ClassroomRealtimeService,
+            finance,
         );
 
         await expect(service.finish(student, 12))
@@ -134,7 +141,10 @@ describe('ClassroomService', () => {
                 }),
             },
         } as unknown as PrismaService;
-        const notifications = new NotificationsService(prisma);
+        const notifications = new NotificationsService(
+            prisma,
+            new ParentChildAccessService(prisma),
+        );
         const realtime = {
             publish: vi.fn(),
         } as unknown as ClassroomRealtimeService;
@@ -144,6 +154,7 @@ describe('ClassroomService', () => {
             {} as ClassroomFileStorageService,
             {} as HomeworkService,
             realtime,
+            finance,
         );
 
         const result = await service.finish(teacher, 12);
@@ -162,6 +173,11 @@ describe('ClassroomService', () => {
                 data: { status: LessonStatus.COMPLETED },
             }),
         );
+        expect(finance.markLessonCompleted).toHaveBeenCalledWith(
+            transaction,
+            12,
+            endedSession.endedAt,
+        );
         expect(transaction.notification.upsert).toHaveBeenCalledOnce();
         expect(realtime.publish).toHaveBeenCalledWith(12, 'lesson');
         expect(result).toMatchObject({
@@ -170,5 +186,132 @@ describe('ClassroomService', () => {
             session: { status: 'ended' },
             access: { can_join: false },
         });
+    });
+
+    it('deletes the teacher own file after the lesson has ended', async () => {
+        const lesson = {
+            ...lessonRecord(),
+            status: LessonStatus.COMPLETED,
+            session: {
+                ...lessonRecord().session,
+                status: LessonSessionStatus.ENDED,
+                endedById: teacher.id,
+                endedAt: new Date('2026-09-03T13:00:00.000Z'),
+            },
+        };
+        const file = {
+            id: 41,
+            lessonId: lesson.id,
+            uploadedById: teacher.id,
+            storedPath: 'classroom/12/materials/file.pdf',
+            originalName: 'lesson.pdf',
+            mimeType: 'application/pdf',
+            fileSize: 4_096,
+            createdAt: new Date('2026-09-03T12:05:00.000Z'),
+        };
+        const transaction = {
+            lesson: {
+                findFirst: vi.fn().mockResolvedValue(lesson),
+            },
+            lessonFile: {
+                findFirst: vi.fn().mockResolvedValue(file),
+                delete: vi.fn().mockResolvedValue(file),
+            },
+            lessonWorkspaceState: {
+                updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+            },
+        };
+        const prisma = {
+            $transaction: vi.fn(
+                async (callback: (client: typeof transaction) => unknown) =>
+                    callback(transaction),
+            ),
+            teacherProfile: {
+                findUnique: vi.fn().mockResolvedValue({ timezone: 'Europe/Moscow' }),
+            },
+            lessonFile: {
+                findMany: vi.fn().mockResolvedValue([]),
+            },
+            lessonWorkspaceState: {
+                findUnique: vi.fn().mockResolvedValue(null),
+            },
+        } as unknown as PrismaService;
+        const fileStorage = {
+            releaseQuota: vi.fn().mockResolvedValue(undefined),
+            removeStoredPaths: vi.fn().mockResolvedValue(undefined),
+        } as unknown as ClassroomFileStorageService;
+        const realtime = {
+            publish: vi.fn(),
+        } as unknown as ClassroomRealtimeService;
+        const service = new ClassroomService(
+            prisma,
+            {} as NotificationsService,
+            fileStorage,
+            {} as HomeworkService,
+            realtime,
+            finance,
+        );
+
+        await expect(service.deleteFile(teacher, {
+            lesson_id: lesson.id,
+            file_id: file.id,
+        })).resolves.toMatchObject({
+            success: true,
+            message: 'Материал удалён',
+            files: [],
+        });
+
+        expect(transaction.lessonFile.findFirst).toHaveBeenCalledWith({
+            where: {
+                id: file.id,
+                lessonId: lesson.id,
+                uploadedById: teacher.id,
+            },
+        });
+        expect(fileStorage.releaseQuota).toHaveBeenCalledWith(
+            teacher.id,
+            file.fileSize,
+            transaction,
+        );
+        expect(fileStorage.removeStoredPaths).toHaveBeenCalledWith([
+            file.storedPath,
+        ]);
+        expect(realtime.publish).toHaveBeenCalledWith(lesson.id, 'files');
+    });
+
+    it('does not let a teacher delete a file from another teacher lesson', async () => {
+        const anotherTeacherLesson = {
+            ...lessonRecord(),
+            teacherId: 99,
+            studentId: teacher.id,
+        };
+        const transaction = {
+            lesson: {
+                findFirst: vi.fn().mockResolvedValue(anotherTeacherLesson),
+            },
+            lessonFile: {
+                findFirst: vi.fn(),
+            },
+        };
+        const prisma = {
+            $transaction: vi.fn(
+                async (callback: (client: typeof transaction) => unknown) =>
+                    callback(transaction),
+            ),
+        } as unknown as PrismaService;
+        const service = new ClassroomService(
+            prisma,
+            {} as NotificationsService,
+            {} as ClassroomFileStorageService,
+            {} as HomeworkService,
+            {} as ClassroomRealtimeService,
+            finance,
+        );
+
+        await expect(service.deleteFile(teacher, {
+            lesson_id: anotherTeacherLesson.id,
+            file_id: 41,
+        })).rejects.toBeInstanceOf(ForbiddenException);
+        expect(transaction.lessonFile.findFirst).not.toHaveBeenCalled();
     });
 });

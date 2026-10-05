@@ -28,7 +28,7 @@ import {
 
 import { createAccountIdentity } from './utils/accountIdentity.js';
 
-import { teacherPayments, studentPayments } from './data/demoAccountData.js';
+import { studentPayments } from './data/demoAccountData.js';
 
 import './Account.css';
 
@@ -189,15 +189,25 @@ export function Account() {
             ? teacherStats
             : [];
 
-    const payments =
-        role === 'teacher'
-            ? teacherPayments
-            : role === 'student'
-                ? studentPayments
-                : [];
+    const payments = role === 'student' ? studentPayments : null;
 
     const activeNavigationItem =
         navigation.find((item) => item.id === activeSection) ?? navigation[0];
+
+    const requestedDialogId = activeSection === 'messages'
+        ? Number(searchParams.get('dialog')) || null
+        : null;
+    const selectedMessageTarget = requestedDialogId
+        ? {
+            dialogId: requestedDialogId,
+            requestId: `storage-dialog-${requestedDialogId}`,
+        }
+        : searchParams.get('storage') === '1'
+            ? null
+            : messageTarget;
+    const targetDisputeId = activeSection === 'disputes'
+        ? Number(searchParams.get('dispute')) || null
+        : null;
 
     const handleSelectSection = (sectionId) => {
         if (!availableSectionIds.has(sectionId)) {
@@ -279,6 +289,19 @@ export function Account() {
             setSearchParams({
                 section: 'homework',
                 homework: String(notification.targetEntityId),
+            });
+            setIsSidebarOpen(false);
+            return;
+        }
+
+        if (
+            targetSection === 'disputes'
+            && notification.targetEntityType === 'lesson_dispute'
+            && notification.targetEntityId
+        ) {
+            setSearchParams({
+                section: 'disputes',
+                dispute: String(notification.targetEntityId),
             });
             setIsSidebarOpen(false);
             return;
@@ -380,6 +403,11 @@ export function Account() {
                     identity={identity}
                     activeSection={activeSection}
                     materialsController={materialsController}
+                    targetMaterialId={
+                        activeSection === 'materials'
+                            ? Number(searchParams.get('material')) || null
+                            : null
+                    }
                     homeworkController={homeworkController}
                     targetHomeworkId={
                         Number(searchParams.get('homework')) || null
@@ -412,9 +440,10 @@ export function Account() {
                             ? Number(searchParams.get('subject')) || null
                             : null
                     }
+                    targetDisputeId={targetDisputeId}
                     messagesController={messagesController}
                     notificationsController={notificationsController}
-                    messageTarget={messageTarget}
+                    messageTarget={selectedMessageTarget}
                     teacherStudentsView={
                         searchParams.get('view') === 'reviews'
                             ? 'reviews'

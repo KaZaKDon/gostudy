@@ -415,7 +415,11 @@ export class MessagesService {
         let stored: Awaited<ReturnType<MessageFileStorageService['storeUploads']>> = [];
 
         try {
-            stored = await this.files.storeUploads(created.id, validated);
+            stored = await this.files.storeUploads(
+                user.id,
+                created.id,
+                validated,
+            );
             const recipientId = user.id === access.teacherId
                 ? (access.channelType === MessageChannelType.STUDENT
                     ? access.studentId
@@ -489,9 +493,9 @@ export class MessagesService {
                 }
             });
         } catch (error) {
-            await this.files.removeStoredPaths(
-                stored.map((file) => file.storedPath),
-            );
+            if (stored.length) {
+                await this.files.discardStoredFiles(user.id, stored);
+            }
             await this.prisma.message.deleteMany({ where: { id: created.id } });
             throw error;
         }

@@ -18,6 +18,7 @@ import { AccountContactSettings } from './components/AccountContactSettings.jsx'
 import { SecuritySettings } from './components/SecuritySettings.jsx';
 import { NotificationSettings } from './components/NotificationSettings.jsx';
 import { TeacherVisibilitySettings } from './components/TeacherVisibilitySettings.jsx';
+import { StorageUsageSettings } from './components/StorageUsageSettings.jsx';
 
 import './SettingsSection.css';
 
@@ -263,6 +264,10 @@ export function SettingsSection({
             return role === 'parent'
                 ? <ParentChildNotificationSettings />
                 : <NotificationSettings role={role} />;
+        }
+
+        if (activeTab === 'storage') {
+            return <StorageUsageSettings role={role} />;
         }
 
         if (role === 'teacher' && activeTab === 'publicProfile') {

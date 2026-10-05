@@ -6,13 +6,12 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma } from '../../generated/prisma/client';
 import {
     AccessibilityApplicationStatus,
     AccessibilityOfferStatus,
-    ParentChildVerificationStatus,
-    ParentStudentStatus,
     TeacherStudentStatus,
     UserRole,
 } from '../../generated/prisma/enums';
@@ -39,6 +38,7 @@ export class AccessibilityApplicationsService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly notifications: NotificationsService,
+        private readonly parentChildAccess: ParentChildAccessService,
     ) {}
 
     async create(user: SessionUser, input: CreateAccessibilityApplicationDto) {
@@ -272,6 +272,18 @@ export class AccessibilityApplicationsService {
             },
         });
         if (!application) throw new NotFoundException('Заявка не найдена');
+        if (
+            user.role === UserRole.PARENT
+            && !await this.parentChildAccess.hasCurrentMinorAccess(
+                user.id,
+                application.studentId,
+                now,
+            )
+        ) {
+            throw new ForbiddenException(
+                'Ребёнок не подтверждён, не привязан или уже достиг 18 лет',
+            );
+        }
         if (!application.confirmationExpiresAt || application.confirmationExpiresAt <= now) {
             await this.prisma.accessibilityApplication.update({
                 where: { id: application.id },
@@ -339,27 +351,16 @@ export class AccessibilityApplicationsService {
         if (user.role !== UserRole.PARENT || !requestedStudentId) {
             throw new BadRequestException('Выберите ребёнка');
         }
-        const child = await this.prisma.parentChildProfile.findFirst({
-            where: {
-                parentId: user.id,
-                studentId: requestedStudentId,
-                archivedAt: null,
-                verificationStatus: ParentChildVerificationStatus.VERIFIED,
-                student: {
-                    childLinks: {
-                        some: {
-                            parentId: user.id,
-                            status: ParentStudentStatus.ACTIVE,
-                        },
-                    },
-                },
-            },
-            select: { studentId: true },
-        });
-        if (!child?.studentId) {
-            throw new ForbiddenException('Ребёнок не подтверждён или не привязан');
+        const hasAccess = await this.parentChildAccess.hasCurrentMinorAccess(
+            user.id,
+            requestedStudentId,
+        );
+        if (!hasAccess) {
+            throw new ForbiddenException(
+                'Ребёнок не подтверждён, не привязан или уже достиг 18 лет',
+            );
         }
-        return child.studentId;
+        return requestedStudentId;
     }
 
     private async expireAccepted(transaction: Prisma.TransactionClient) {

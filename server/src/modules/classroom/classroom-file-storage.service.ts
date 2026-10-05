@@ -4,6 +4,8 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'node:path';
+import type { Prisma } from '../../generated/prisma/client';
+import type { PrismaService } from '../../common/prisma/prisma.service';
 
 import {
     type BufferedUploadFile,
@@ -62,10 +64,12 @@ export class ClassroomFileStorageService {
     }
 
     storeUploads(
+        ownerId: number,
         lessonId: number,
         validated: ReturnType<ClassroomFileStorageService['validateUploads']>,
     ): Promise<PreparedClassroomFile[]> {
         return this.storage.storeUploads(
+            ownerId,
             join('classroom', String(lessonId), 'materials'),
             validated,
         );
@@ -80,6 +84,21 @@ export class ClassroomFileStorageService {
 
     removeStoredPaths(storedPaths: string[]): Promise<void> {
         return this.storage.removeStoredPaths(storedPaths);
+    }
+
+    discardStoredFiles(
+        ownerId: number,
+        files: PreparedClassroomFile[],
+    ): Promise<void> {
+        return this.storage.discardStoredFiles(ownerId, files);
+    }
+
+    releaseQuota(
+        ownerId: number,
+        byteCount: number | bigint,
+        database: PrismaService | Prisma.TransactionClient,
+    ): Promise<void> {
+        return this.storage.releaseQuota(ownerId, byteCount, database);
     }
 
     private positiveInteger(key: string, fallback: number): number {

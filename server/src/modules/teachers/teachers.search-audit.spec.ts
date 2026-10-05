@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     TeacherVerificationStatus,
@@ -8,8 +9,8 @@ import {
     UserStatus,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
-import { NotificationsService } from '../notifications/notifications.service';
-import { TeachersService } from './teachers.service';
+import { TeacherApplicantAccessService } from './teacher-applicant-access.service';
+import { TeacherDirectoryService } from './teacher-directory.service';
 
 const student: SessionUser = {
     id: 501,
@@ -39,9 +40,9 @@ const teacherUser: SessionUser = {
     fullName: 'Тестовый преподаватель',
 };
 
-const notifications = {
-    create: vi.fn().mockResolvedValue(undefined),
-} as unknown as NotificationsService;
+const parentChildAccess = {
+    hasCurrentMinorAccessIn: vi.fn().mockResolvedValue(true),
+} as unknown as ParentChildAccessService;
 
 type TeacherFixtureOptions = {
     subjectId?: number;
@@ -52,6 +53,11 @@ type TeacherFixtureOptions = {
     accessibilitySlots?: number;
     accessibilityApplications?: number;
     headline?: string;
+    preparationId?: number;
+    ageGroupId?: number;
+    city?: string;
+    experienceYears?: number;
+    price45?: number | null;
 };
 
 type TeacherSearchResult = {
@@ -88,13 +94,13 @@ function teacherFixture(
             firstName: `Имя${id}`,
             lastName: `Фамилия${id}`,
             slug: `teacher-${id}`,
-            city: id % 2 ? 'Москва' : 'Ростов-на-Дону',
+            city: options.city ?? (id % 2 ? 'Москва' : 'Ростов-на-Дону'),
             headline: options.headline ?? `${subjectName} для школьников`,
-            experienceYears: 5 + id,
+            experienceYears: options.experienceYears ?? 5 + id,
             introVideoUrl: null,
             rating: options.rating ?? 4.5,
             reviewsCount: options.reviewsCount ?? 3,
-            price45: 700 + id,
+            price45: options.price45 === undefined ? 700 + id : options.price45,
             price60: 900 + id,
             price90: null,
             verificationStatus: TeacherVerificationStatus.VERIFIED,
@@ -114,6 +120,18 @@ function teacherFixture(
                         name: subjectName,
                     },
                 }],
+                teacherSubjectPreparations: options.preparationId ? [{
+                    subjectId,
+                    preparationId: options.preparationId,
+                    preparation: {
+                        name: options.preparationId === 21
+                            ? 'Подготовка к ОГЭ'
+                            : 'Общее развитие',
+                    },
+                }] : [],
+                teacherAgeGroups: options.ageGroupId ? [{
+                    ageGroupId: options.ageGroupId,
+                }] : [],
                 accessibilityOffers: accessibilitySlots > 0 ? [{
                     slots: accessibilitySlots,
                     subjects: [{ subjectId }],
@@ -150,17 +168,40 @@ function createService(fixtures: ReturnType<typeof teacherFixture>[]) {
                 { id: 12, name: 'Английский язык' },
             ]),
         },
+        preparation: {
+            findMany: vi.fn().mockResolvedValue([
+                {
+                    id: 21,
+                    name: 'Подготовка к ОГЭ',
+                    subjects: [{ subjectId: 11 }],
+                },
+                {
+                    id: 22,
+                    name: 'Общее развитие',
+                    subjects: [{ subjectId: 11 }, { subjectId: 12 }],
+                },
+            ]),
+        },
+        studentAgeGroup: {
+            findMany: vi.fn().mockResolvedValue([
+                { id: 31, name: '5–9 классы' },
+                { id: 32, name: 'Взрослые' },
+            ]),
+        },
         learningMaterial: { findMany: vi.fn().mockResolvedValue([]) },
         review: { findMany: vi.fn().mockResolvedValue([]) },
     } as unknown as PrismaService;
 
     return {
         prisma,
-        service: new TeachersService(prisma, notifications),
+        service: new TeacherDirectoryService(
+            prisma,
+            new TeacherApplicantAccessService(parentChildAccess),
+        ),
     };
 }
 
-describe('TeachersService search audit with 18 teachers', () => {
+describe('TeacherDirectoryService search audit with 18 teachers', () => {
     it('returns 12 teachers on the first page and the remaining six on the second', async () => {
         const fixtures = Array.from(
             { length: 18 },
@@ -284,6 +325,52 @@ describe('TeachersService search audit with 18 teachers', () => {
             .toEqual([2, 3, 1]);
         expect(result.teachers.map((item) => item.rank))
             .toEqual([1, 2, 3]);
+    });
+
+    it('combines advanced filters without changing the global rank', async () => {
+        const fixtures = [
+            teacherFixture(1, {
+                rating: 4.2,
+                preparationId: 22,
+                ageGroupId: 32,
+                city: 'Ростов-на-Дону',
+            }),
+            teacherFixture(2, {
+                rating: 4.9,
+                reviewsCount: 30,
+                completedLessons: 100,
+                preparationId: 21,
+                ageGroupId: 31,
+                city: 'Москва',
+                experienceYears: 12,
+                price45: 950,
+            }),
+            teacherFixture(3, {
+                rating: 4.8,
+                reviewsCount: 12,
+                completedLessons: 50,
+                preparationId: 21,
+                ageGroupId: 31,
+                city: 'Москва',
+                experienceYears: 3,
+                price45: 1_400,
+            }),
+        ];
+        const { service } = createService(fixtures);
+
+        const result = searchResult(await service.findTeachers(student, {
+            preparation_id: 21,
+            age_group_id: 31,
+            city: 'москва',
+            min_experience: 5,
+            max_price: 1_000,
+            min_rating: 4.5,
+            page: 1,
+        }));
+
+        expect(result.teachers).toEqual([
+            expect.objectContaining({ teacher_id: 2, rank: 1 }),
+        ]);
     });
 
     it('allows students and parents to browse but rejects a teacher', async () => {

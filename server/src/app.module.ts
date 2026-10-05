@@ -9,6 +9,7 @@ import { AdminDashboardModule } from './modules/admin-dashboard/admin-dashboard.
 import { AdminDictionariesModule } from './modules/admin-dictionaries/admin-dictionaries.module';
 import { AdminDocumentsModule } from './modules/admin-documents/admin-documents.module';
 import { AdminMaterialsModule } from './modules/admin-materials/admin-materials.module';
+import { AdminLessonDisputesModule } from './modules/admin-lesson-disputes/admin-lesson-disputes.module';
 import { AdminMessagesModule } from './modules/admin-messages/admin-messages.module';
 import { AdminParentChildrenModule } from './modules/admin-parent-children/admin-parent-children.module';
 import { AdminProfileMediaModule } from './modules/admin-profile-media/admin-profile-media.module';
@@ -23,6 +24,7 @@ import { HealthModule } from './modules/health/health.module';
 import { HomeworkModule } from './modules/homework/homework.module';
 import { JournalModule } from './modules/journal/journal.module';
 import { LegalConsentsModule } from './modules/legal-consents/legal-consents.module';
+import { LessonDisputesModule } from './modules/lesson-disputes/lesson-disputes.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MaterialsModule } from './modules/materials/materials.module';
 import { MessagesModule } from './modules/messages/messages.module';
@@ -36,6 +38,8 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
 import { TariffsModule } from './modules/tariffs/tariffs.module';
 import { TeachersModule } from './modules/teachers/teachers.module';
 import { TeacherDashboardModule } from './modules/teacher-dashboard/teacher-dashboard.module';
+import { TeacherFinanceModule } from './modules/teacher-finance/teacher-finance.module';
+import { StorageQuotaModule } from './modules/storage-quota/storage-quota.module';
 
 @Module({
     imports: [
@@ -46,6 +50,7 @@ import { TeacherDashboardModule } from './modules/teacher-dashboard/teacher-dash
         }),
         PrismaModule,
         LegalConsentsModule,
+        LessonDisputesModule,
         MailModule,
         AuthModule,
         AccessibilityProgramModule,
@@ -61,6 +66,7 @@ import { TeacherDashboardModule } from './modules/teacher-dashboard/teacher-dash
         AdminDictionariesModule,
         AdminDocumentsModule,
         AdminMaterialsModule,
+        AdminLessonDisputesModule,
         AdminMessagesModule,
         AdminParentChildrenModule,
         AdminProfileMediaModule,
@@ -77,6 +83,8 @@ import { TeacherDashboardModule } from './modules/teacher-dashboard/teacher-dash
         TariffsModule,
         TeachersModule,
         TeacherDashboardModule,
+        TeacherFinanceModule,
+        StorageQuotaModule,
         HealthModule,
     ],
 })

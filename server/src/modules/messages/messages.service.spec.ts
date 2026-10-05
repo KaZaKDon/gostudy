@@ -52,6 +52,7 @@ function createService(
         validateUploads: vi.fn((items) => items),
         storeUploads: vi.fn().mockResolvedValue([]),
         removeStoredPaths: vi.fn().mockResolvedValue(undefined),
+        discardStoredFiles: vi.fn().mockResolvedValue(undefined),
         readStoredFile: vi.fn().mockResolvedValue({
             absolutePath: '/private/messages/file.pdf',
             size: 100,

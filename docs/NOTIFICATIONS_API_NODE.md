@@ -1,7 +1,7 @@
 # GoStudy — уведомления в Node API
 
-**Дата:** 20 сентября 2026 года  
-**Статус:** лента, колокольчик, счётчики, события детей и настройки подключены к Node API
+**Дата:** 24 сентября 2026 года  
+**Статус:** лента, колокольчик, счётчики, события детей, настройки и контракт возможностей подключены к Node API
 
 ## Реализовано
 
@@ -14,6 +14,10 @@
 - удаление одного уведомления и очистка прочитанных либо всей ленты;
 - чтение и сохранение настройки писем родителю из кабинета ученика без legacy
   PHP;
+- отдельный серверный контракт фактически доступных способов доставки и
+  хранения;
+- честные состояния интерфейса: будущая email-доставка и автоматическая
+  очистка не отображаются как уже работающие функции;
 - обновление ленты каждые 15 секунд, при возврате на вкладку браузера и после
   обработки заявки.
 
@@ -48,6 +52,7 @@
 
 ```text
 GET  /api/v1/notifications?limit=20&before_id=ID
+GET  /api/v1/notifications/capabilities
 POST /api/v1/notifications/read
 POST /api/v1/notifications/delete
 POST /api/v1/notifications/clear
@@ -56,6 +61,35 @@ POST /api/v1/notifications/parent-settings
 GET  /api/v1/notifications/student-settings
 POST /api/v1/notifications/student-settings
 ```
+
+`GET /capabilities` не обращается к базе и возвращает текущие возможности
+версии приложения:
+
+```json
+{
+  "success": true,
+  "capabilities": {
+    "in_app": {
+      "available": true,
+      "realtime_delivery_available": false
+    },
+    "parent_email": {
+      "delivery_available": false,
+      "preference_storage_available": true
+    },
+    "retention": {
+      "automatic_cleanup_available": false,
+      "manual_deletion_available": true,
+      "read_after_days": null,
+      "unread_after_days": null
+    }
+  }
+}
+```
+
+Интерфейс строит подписи и доступность элементов по этому контракту. Поэтому
+сохранённое предпочтение будущих писем не называется включённой рассылкой, а
+неподключённая автоматическая очистка не показывает вымышленные сроки.
 
 Ответ списка содержит `unread_count` и
 `counters.teacher_requests`. Счётчик заявок вычисляется по фактическим заявкам
@@ -107,5 +141,6 @@ email родителя. Маршруты сохраняют настройку �
 ## Следующие этапы
 
 - email-уведомления;
+- автоматическая очистка по утверждённым срокам;
 - push-уведомления;
 - мгновенная доставка через WebSocket.

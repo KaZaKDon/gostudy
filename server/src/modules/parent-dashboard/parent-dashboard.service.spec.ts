@@ -7,6 +7,7 @@ import {
     vi,
 } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     HomeworkSubmissionStatus,
@@ -29,13 +30,20 @@ const parent: SessionUser = {
     profileCompleted: true,
 };
 
+function createService(prisma: PrismaService) {
+    return new ParentDashboardService(
+        prisma,
+        new ParentChildAccessService(prisma),
+    );
+}
+
 describe('ParentDashboardService', () => {
     afterEach(() => {
         vi.useRealTimers();
     });
 
     it('rejects access for a non-parent account', async () => {
-        const service = new ParentDashboardService({} as PrismaService);
+        const service = createService({} as PrismaService);
 
         await expect(service.show({
             ...parent,
@@ -45,9 +53,9 @@ describe('ParentDashboardService', () => {
 
     it('returns an empty summary when no child is connected', async () => {
         const prisma = {
-            parentStudent: { findMany: vi.fn().mockResolvedValue([]) },
+            parentChildProfile: { findMany: vi.fn().mockResolvedValue([]) },
         } as unknown as PrismaService;
-        const service = new ParentDashboardService(prisma);
+        const service = createService(prisma);
 
         await expect(service.show(parent)).resolves.toMatchObject({
             success: true,
@@ -129,7 +137,7 @@ describe('ParentDashboardService', () => {
                 }]),
             },
         } as unknown as PrismaService;
-        const service = new ParentDashboardService(prisma);
+        const service = createService(prisma);
 
         const result = await service.show(parent);
 

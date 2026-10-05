@@ -213,7 +213,12 @@ export class MaterialsService {
 
         let stored: Awaited<ReturnType<MaterialFileStorageService['storeUploads']>> = [];
         try {
-            stored = await this.files.storeUploads(material.id, validated);
+            stored = await this.files.storeUploads(
+                material.ownerType,
+                user.id,
+                material.id,
+                validated,
+            );
             await this.prisma.materialItem.createMany({
                 data: [
                     ...stored.map((file, index) => ({
@@ -239,9 +244,13 @@ export class MaterialsService {
                 ],
             });
         } catch (error) {
-            await this.files.removeStoredPaths(
-                stored.map((file) => file.storedPath),
-            );
+            if (stored.length) {
+                await this.files.discardStoredFiles(
+                    material.ownerType,
+                    user.id,
+                    stored,
+                );
+            }
             await this.prisma.learningMaterial.delete({
                 where: { id: material.id },
             });
@@ -349,6 +358,88 @@ export class MaterialsService {
         return {
             success: true,
             message: 'Материал скрыт из общего каталога',
+        };
+    }
+
+    async delete(user: SessionUser, materialId: number) {
+        this.requireTeacher(user);
+        const now = new Date();
+        const material = await this.prisma.learningMaterial.findFirst({
+            where: {
+                id: materialId,
+                creatorId: user.id,
+                ownerType: MaterialOwnerType.TEACHER,
+            },
+            include: {
+                items: {
+                    select: {
+                        storedPath: true,
+                        fileSize: true,
+                    },
+                },
+                assignments: {
+                    where: { revokedAt: null },
+                    select: { id: true },
+                    take: 1,
+                },
+                accessGrants: {
+                    where: {
+                        revokedAt: null,
+                        OR: [
+                            { expiresAt: null },
+                            { expiresAt: { gt: now } },
+                        ],
+                    },
+                    select: { id: true },
+                    take: 1,
+                },
+            },
+        });
+
+        if (!material) {
+            throw new NotFoundException('Материал не найден');
+        }
+        if (
+            material.publicationStatus === MaterialPublicationStatus.PENDING
+            || material.publicationStatus === MaterialPublicationStatus.APPROVED
+        ) {
+            throw new ConflictException(
+                'Сначала скройте материал из общего каталога',
+            );
+        }
+        if (material.assignments.length || material.accessGrants.length) {
+            throw new ConflictException(
+                'Сначала отмените все активные назначения материала',
+            );
+        }
+
+        const storedFiles = material.items.filter((item) => (
+            item.storedPath && item.fileSize
+        ));
+        const releasedBytes = storedFiles.reduce(
+            (sum, item) => sum + (item.fileSize || 0),
+            0,
+        );
+
+        await this.prisma.$transaction(async (transaction) => {
+            await transaction.learningMaterial.delete({
+                where: { id: material.id },
+            });
+            await this.files.releaseQuota(
+                user.id,
+                releasedBytes,
+                transaction,
+            );
+        });
+        await this.files.removeStoredPaths(
+            storedFiles.map((item) => item.storedPath!),
+        );
+
+        return {
+            success: true,
+            message: 'Материал удалён, место в хранилище освобождено',
+            material_id: material.id,
+            released_bytes: releasedBytes,
         };
     }
 

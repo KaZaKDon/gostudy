@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     LegalRepresentativeType,
@@ -137,7 +138,10 @@ function createService(options: {
                 EMAIL_VERIFICATION_HOURS: 24,
             }),
             mail,
-            new NotificationsService(prisma),
+            new NotificationsService(
+                prisma,
+                new ParentChildAccessService(prisma),
+            ),
         ),
     };
 }

@@ -95,6 +95,17 @@ export class HomeworkController {
         return this.homework.cancel(user, input.homework_id);
     }
 
+    @Post('delete-assignment-files')
+    deleteAssignmentFiles(
+        @CurrentUser() user: SessionUser,
+        @Body() input: HomeworkIdDto,
+    ) {
+        return this.homework.deleteAssignmentFiles(
+            user,
+            input.homework_id,
+        );
+    }
+
     @Post('viewed')
     markViewed(
         @CurrentUser() user: SessionUser,

@@ -46,6 +46,11 @@ describe('AdminDashboardService', () => {
             messageReport: {
                 count: vi.fn().mockResolvedValue(2),
             },
+            lessonSettlement: {
+                count: vi.fn()
+                    .mockResolvedValueOnce(5)
+                    .mockResolvedValueOnce(4),
+            },
         } as unknown as PrismaService;
         const service = new AdminDashboardService(prisma);
 
@@ -69,8 +74,8 @@ describe('AdminDashboardService', () => {
                 reviews_pending_total: 3,
                 materials_pending_total: 8,
                 material_reports_pending_total: 9,
-                payments_paid_total: 0,
-                payouts_pending_total: 0,
+                payments_paid_total: 5,
+                payouts_pending_total: 4,
             },
         });
     });

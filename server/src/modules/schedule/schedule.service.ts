@@ -4,13 +4,11 @@ import {
     Injectable,
 } from '@nestjs/common';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { adultBirthDateCutoff } from '../../common/date/birth-date';
 import {
     LessonChangeStatus,
     LessonStatus,
-    ParentChildVerificationStatus,
-    ParentStudentStatus,
     UserRole,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
@@ -26,7 +24,10 @@ import {
 
 @Injectable()
 export class ScheduleService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly parentChildAccess: ParentChildAccessService,
+    ) {}
 
     async getSchedule(
         user: SessionUser,
@@ -198,69 +199,17 @@ export class ScheduleService {
         selectedStudentId: number;
         timezone: string;
     }> {
-        const links = await this.prisma.parentStudent.findMany({
-            where: {
-                parentId: user.id,
-                status: ParentStudentStatus.ACTIVE,
-                verifiedAt: { not: null },
-            },
-            select: { studentId: true },
-        });
-        const linkedStudentIds = links.map((link) => link.studentId);
-
-        if (linkedStudentIds.length === 0) {
-            throw new BadRequestException(
-                'Сначала привяжите подтверждённый аккаунт ребёнка',
-            );
-        }
-
-        const adultBirthDate = adultBirthDateCutoff();
-
-        const childProfiles = await this.prisma.parentChildProfile.findMany({
-            where: {
-                parentId: user.id,
-                studentId: { in: linkedStudentIds },
-                verificationStatus: ParentChildVerificationStatus.VERIFIED,
-                verifiedAt: { not: null },
-                archivedAt: null,
-                birthDate: { gt: adultBirthDate },
-            },
-            orderBy: [
-                { createdAt: 'asc' },
-                { id: 'asc' },
-            ],
-            select: {
-                studentId: true,
-                firstName: true,
-                lastName: true,
-                middleName: true,
-                timezone: true,
-                student: {
-                    select: {
-                        studentProfile: {
-                            select: { timezone: true },
-                        },
-                    },
-                },
-            },
-        });
-        const children = childProfiles.flatMap((child) => {
-            if (!child.studentId) {
-                return [];
-            }
-
-            return [{
-                studentId: child.studentId,
-                fullName: [
-                    child.lastName,
-                    child.firstName,
-                    child.middleName,
-                ].filter(Boolean).join(' '),
-                timezone:
-                    child.student?.studentProfile?.timezone
-                    || child.timezone,
-            }];
-        });
+        const childProfiles = await this.parentChildAccess
+            .listCurrentMinorChildren(user.id);
+        const children = childProfiles.map((child) => ({
+            studentId: child.studentId,
+            fullName: [
+                child.lastName,
+                child.firstName,
+                child.middleName,
+            ].filter(Boolean).join(' '),
+            timezone: child.studentTimezone || child.timezone,
+        }));
 
         if (children.length === 0) {
             throw new BadRequestException(

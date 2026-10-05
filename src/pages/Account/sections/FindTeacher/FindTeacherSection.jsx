@@ -1,6 +1,5 @@
 import {
     useEffect,
-    useMemo,
     useState,
 } from 'react';
 
@@ -12,6 +11,11 @@ import { apiRequest } from '../../../../api/apiRequest.js';
 import { TeacherSearchFilters } from './components/TeacherSearchFilters.jsx';
 import { TeacherSearchList } from './components/TeacherSearchList.jsx';
 import { TeacherProfileModal } from './components/TeacherProfileModal.jsx';
+import { PromotedTeachersSection } from './components/PromotedTeachersSection.jsx';
+import {
+    buildTeacherDirectorySearchParams,
+    createTeacherDirectoryFilters,
+} from './teacherDirectoryFilters.js';
 
 import './FindTeacherSection.css';
 
@@ -50,11 +54,15 @@ export function FindTeacherSection({
     role,
     onRequestSent,
 }) {
-    const [searchValue, setSearchValue] = useState('');
-    const [subjectId, setSubjectId] = useState('');
-    const [accessibleOnly, setAccessibleOnly] = useState(false);
-    const [subjects, setSubjects] = useState([]);
+    const [filters, setFilters] = useState(createTeacherDirectoryFilters);
+    const [filterOptions, setFilterOptions] = useState({
+        subjects: [],
+        preparations: [],
+        ageGroups: [],
+        cities: [],
+    });
     const [teachers, setTeachers] = useState([]);
+    const [promotedTeachers, setPromotedTeachers] = useState([]);
     const [selectedTeacher, setSelectedTeacher] = useState(null);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({
@@ -73,16 +81,13 @@ export function FindTeacherSection({
         async function loadTeachers() {
             setRequestStatus('loading');
             setErrorMessage('');
+            setPromotedTeachers([]);
 
             try {
-                const params = new URLSearchParams();
-
-                if (searchValue.trim()) {
-                    params.set('search', searchValue.trim());
-                }
-                if (subjectId) params.set('subject_id', subjectId);
-                if (accessibleOnly) params.set('accessible_only', 'true');
-                params.set('page', String(page));
+                const params = buildTeacherDirectorySearchParams(
+                    filters,
+                    page,
+                );
 
                 const result = await apiRequest(
                     `${API.findTeachers}?${params.toString()}`,
@@ -96,11 +101,27 @@ export function FindTeacherSection({
                         ? result.teachers.map(mapTeacherFromApi)
                         : [],
                 );
-                setSubjects(
-                    Array.isArray(result.filters?.subjects)
-                        ? result.filters.subjects
+                setPromotedTeachers(
+                    Array.isArray(result.promoted_teachers)
+                        ? result.promoted_teachers
+                            .slice(0, 3)
+                            .map(mapTeacherFromApi)
                         : [],
                 );
+                setFilterOptions({
+                    subjects: Array.isArray(result.filters?.subjects)
+                        ? result.filters.subjects
+                        : [],
+                    preparations: Array.isArray(result.filters?.preparations)
+                        ? result.filters.preparations
+                        : [],
+                    ageGroups: Array.isArray(result.filters?.age_groups)
+                        ? result.filters.age_groups
+                        : [],
+                    cities: Array.isArray(result.filters?.cities)
+                        ? result.filters.cities
+                        : [],
+                });
                 setPagination({
                     page: Number(result.pagination?.page) || page,
                     limit: Number(result.pagination?.limit) || 12,
@@ -129,19 +150,23 @@ export function FindTeacherSection({
 
         const timerId = window.setTimeout(
             loadTeachers,
-            searchValue.trim() ? 350 : 0,
+            filters.search.trim() ? 350 : 0,
         );
 
         return () => {
             window.clearTimeout(timerId);
             controller.abort();
         };
-    }, [searchValue, subjectId, accessibleOnly, page]);
+    }, [filters, page]);
 
-    const displayedTeachers = useMemo(
-        () => teachers,
-        [teachers],
-    );
+    function updateFilter(name, value) {
+        setFilters((current) => ({
+            ...current,
+            [name]: value,
+            ...(name === 'subjectId' ? { preparationId: '' } : {}),
+        }));
+        setPage(1);
+    }
 
     return (
         <section className="find-teacher-section">
@@ -153,23 +178,21 @@ export function FindTeacherSection({
             </header>
 
             <TeacherSearchFilters
-                searchValue={searchValue}
-                onSearchChange={(value) => {
-                    setSearchValue(value);
-                    setPage(1);
-                }}
-                subjectId={subjectId}
-                subjects={subjects}
-                onSubjectChange={(value) => {
-                    setSubjectId(value);
-                    setPage(1);
-                }}
-                accessibleOnly={accessibleOnly}
-                onAccessibleOnlyChange={(value) => {
-                    setAccessibleOnly(value);
+                filters={filters}
+                options={filterOptions}
+                onChange={updateFilter}
+                onReset={() => {
+                    setFilters(createTeacherDirectoryFilters());
                     setPage(1);
                 }}
             />
+
+            {requestStatus === 'success' && (
+                <PromotedTeachersSection
+                    teachers={promotedTeachers}
+                    onOpenTeacher={setSelectedTeacher}
+                />
+            )}
 
             {requestStatus === 'loading' ? (
                 <div className="teacher-search-list__empty">
@@ -181,7 +204,7 @@ export function FindTeacherSection({
                 </div>
             ) : (
                 <TeacherSearchList
-                    teachers={displayedTeachers}
+                    teachers={teachers}
                     onOpenTeacher={setSelectedTeacher}
                 />
             )}

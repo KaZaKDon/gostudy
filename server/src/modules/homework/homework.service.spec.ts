@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     HomeworkStatus,
@@ -78,14 +79,19 @@ function fileStorage() {
         storeAssignment: vi.fn().mockResolvedValue([]),
         storeSubmission: vi.fn().mockResolvedValue([]),
         removeStoredPaths: vi.fn().mockResolvedValue(undefined),
+        releaseQuota: vi.fn().mockResolvedValue(undefined),
+        discardStoredFiles: vi.fn().mockResolvedValue(undefined),
     } as unknown as HomeworkFileStorageService;
 }
 
 function service(prisma: PrismaService) {
+    const parentChildAccess = new ParentChildAccessService(prisma);
+
     return new HomeworkService(
         prisma,
-        new NotificationsService(prisma),
+        new NotificationsService(prisma, parentChildAccess),
         fileStorage(),
+        parentChildAccess,
     );
 }
 
@@ -351,5 +357,117 @@ describe('HomeworkService', () => {
             type: 'assignment',
             id: 41,
         })).rejects.toThrow('Файл не найден');
+    });
+
+    it('deletes files only from a cancelled assignment and releases quota', async () => {
+        const transaction = {
+            homeworkAttachment: {
+                deleteMany: vi.fn().mockResolvedValue({ count: 2 }),
+            },
+        };
+        const prisma = {
+            homework: {
+                findFirst: vi.fn().mockResolvedValue({
+                    id: 21,
+                    status: HomeworkStatus.CANCELLED,
+                    attachments: [
+                        {
+                            id: 1,
+                            storedPath: 'homework/21/assignment/a.pdf',
+                            fileSize: 300,
+                        },
+                        {
+                            id: 2,
+                            storedPath: 'homework/21/assignment/b.pdf',
+                            fileSize: 700,
+                        },
+                    ],
+                }),
+            },
+            $transaction: vi.fn(async (callback) => callback(transaction)),
+        } as unknown as PrismaService;
+        const files = fileStorage();
+        const parentChildAccess = new ParentChildAccessService(prisma);
+        const instance = new HomeworkService(
+            prisma,
+            new NotificationsService(prisma, parentChildAccess),
+            files,
+            parentChildAccess,
+        );
+
+        await expect(instance.deleteAssignmentFiles(teacher, 21))
+            .resolves.toMatchObject({
+                success: true,
+                homework_id: 21,
+                released_bytes: 1_000,
+            });
+        expect(transaction.homeworkAttachment.deleteMany).toHaveBeenCalledWith({
+            where: { homeworkId: 21 },
+        });
+        expect(files.releaseQuota).toHaveBeenCalledWith(
+            teacher.id,
+            1_000,
+            transaction,
+        );
+        expect(files.removeStoredPaths).toHaveBeenCalledWith([
+            'homework/21/assignment/a.pdf',
+            'homework/21/assignment/b.pdf',
+        ]);
+    });
+
+    it('keeps files while an assignment is active', async () => {
+        const prisma = {
+            homework: {
+                findFirst: vi.fn().mockResolvedValue({
+                    id: 21,
+                    status: HomeworkStatus.ACTIVE,
+                    attachments: [],
+                }),
+            },
+        } as unknown as PrismaService;
+
+        await expect(service(prisma).deleteAssignmentFiles(teacher, 21))
+            .rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('allows files to be removed after the assignment is checked', async () => {
+        const transaction = {
+            homeworkAttachment: {
+                deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+            },
+        };
+        const prisma = {
+            homework: {
+                findFirst: vi.fn().mockResolvedValue({
+                    id: 22,
+                    status: HomeworkStatus.COMPLETED,
+                    attachments: [{
+                        id: 3,
+                        storedPath: 'homework/22/assignment/result.pdf',
+                        fileSize: 450,
+                    }],
+                }),
+            },
+            $transaction: vi.fn(async (callback) => callback(transaction)),
+        } as unknown as PrismaService;
+        const files = fileStorage();
+        const parentChildAccess = new ParentChildAccessService(prisma);
+        const instance = new HomeworkService(
+            prisma,
+            new NotificationsService(prisma, parentChildAccess),
+            files,
+            parentChildAccess,
+        );
+
+        await expect(instance.deleteAssignmentFiles(teacher, 22))
+            .resolves.toMatchObject({
+                success: true,
+                released_bytes: 450,
+            });
+        expect(files.releaseQuota).toHaveBeenCalledWith(
+            teacher.id,
+            450,
+            transaction,
+        );
     });
 });

@@ -515,6 +515,250 @@
     font-style: normal;
 }
 
+.settings-storage {
+    display: grid;
+    gap: 16px;
+    border-radius: var(--radius-md);
+    padding: 18px;
+    background: var(--color-surface-strong);
+}
+
+.settings-storage-layout {
+    display: grid;
+    gap: 18px;
+}
+
+.settings-storage__summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.settings-storage__summary > div {
+    display: grid;
+    gap: 5px;
+}
+
+.settings-storage__summary span,
+.settings-storage p {
+    color: var(--color-ink-muted);
+}
+
+.settings-storage__summary strong {
+    color: var(--color-text);
+    font-size: 1.25rem;
+}
+
+.settings-storage__progress {
+    height: 12px;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-paper);
+}
+
+.settings-storage__progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--settings-accent);
+    transition: width 180ms ease;
+}
+
+.settings-storage p {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.settings-storage-details {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-paper);
+}
+
+.settings-storage-details > header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.settings-storage-details > header div {
+    display: grid;
+    gap: 4px;
+}
+
+.settings-storage-details > header span {
+    color: var(--settings-accent);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.settings-storage-details > header h4 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.05rem;
+}
+
+.settings-storage-details > header > small,
+.settings-storage-details__empty {
+    color: var(--color-ink-muted);
+}
+
+.settings-storage-details__hint {
+    margin: 0;
+    color: var(--color-ink-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.settings-storage-categories {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.settings-storage-category {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.settings-storage-category:hover,
+.settings-storage-category:focus-visible,
+.settings-storage-file:hover,
+.settings-storage-file:focus-within {
+    border-color: var(--settings-accent);
+}
+
+.settings-storage-category:hover,
+.settings-storage-category:focus-visible {
+    transform: translateY(-1px);
+}
+
+.settings-storage-category > span {
+    color: var(--color-ink-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.settings-storage-category > strong {
+    overflow: hidden;
+    font-size: 1.1rem;
+    text-overflow: ellipsis;
+}
+
+.settings-storage-category > small,
+.settings-storage-file small {
+    color: var(--color-ink-muted);
+    line-height: 1.4;
+}
+
+.settings-storage-files {
+    display: grid;
+    gap: 8px;
+}
+
+.settings-storage-file {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+    color: var(--color-text);
+    transition: border-color 160ms ease;
+}
+
+.settings-storage-file__open {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 14px;
+    align-items: center;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.settings-storage-file__open--static {
+    cursor: default;
+}
+
+.settings-storage-file__name {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.settings-storage-file__name strong,
+.settings-storage-file__name small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-storage-file__size {
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.settings-storage-file__action {
+    color: var(--settings-accent);
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.settings-storage-file__delete {
+    align-self: stretch;
+    margin: 6px 6px 6px 0;
+    padding: 0 12px;
+    border: 1px solid var(--color-error, #a33a32);
+    border-radius: calc(var(--radius-md) - 4px);
+    background: transparent;
+    color: var(--color-error, #a33a32);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.settings-storage-file__delete:hover,
+.settings-storage-file__delete:focus-visible {
+    background: var(--color-danger-soft, #f8e2df);
+}
+
+.settings-storage-file__delete:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.settings-storage-details__empty {
+    margin: 0;
+}
+
 
 @media (max-width: 800px) {
     .settings-section__layout {
@@ -523,6 +767,10 @@
 
     .settings-sidebar {
         display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .settings-storage-categories {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -574,6 +822,31 @@
 
     .settings-panel__secondary {
         width: 100%;
+    }
+
+    .settings-storage__summary {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-storage-categories {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-storage-file {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-storage-file__open {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .settings-storage-file__open .settings-storage-file__action {
+        grid-column: 1 / -1;
+    }
+
+    .settings-storage-file__delete {
+        min-height: 40px;
+        margin: 0 8px 8px;
     }
 
 }

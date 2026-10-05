@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'node:path';
+import type { Prisma } from '../../generated/prisma/client';
+import type { PrismaService } from '../../common/prisma/prisma.service';
 
 import {
     type BufferedUploadFile,
     PrivateFileStorageService,
+    type StoredPrivateFile,
 } from '../../common/files/private-file-storage.service';
 
 export const TEACHER_DOCUMENT_MAX_FILES = 1;
@@ -46,6 +49,7 @@ export class TeacherDocumentFileStorageService {
         >,
     ) {
         return this.storage.storeUploads(
+            teacherId,
             join('teacher-documents', String(teacherId)),
             file,
         );
@@ -60,6 +64,18 @@ export class TeacherDocumentFileStorageService {
 
     removeStoredPath(storedPath: string) {
         return this.storage.removeStoredPaths([storedPath]);
+    }
+
+    discardStoredFile(teacherId: number, file: StoredPrivateFile) {
+        return this.storage.discardStoredFiles(teacherId, [file]);
+    }
+
+    releaseQuota(
+        teacherId: number,
+        byteCount: number | bigint,
+        database: PrismaService | Prisma.TransactionClient,
+    ) {
+        return this.storage.releaseQuota(teacherId, byteCount, database);
     }
 
     maxFileBytes(): number {

@@ -7,6 +7,9 @@ export function validateEnvironment(
     const rateLimitMaxBuckets = Number(
         environment.AUTH_RATE_LIMIT_MAX_BUCKETS || 50_000,
     );
+    const userStorageQuotaBytes = Number(
+        environment.UPLOAD_USER_QUOTA_BYTES || 300 * 1024 * 1024,
+    );
     const rateLimitEnabledValue = String(
         environment.AUTH_RATE_LIMIT_ENABLED ?? 'true',
     ).trim().toLowerCase();
@@ -55,6 +58,16 @@ export function validateEnvironment(
         );
     }
 
+    if (
+        !Number.isSafeInteger(userStorageQuotaBytes)
+        || userStorageQuotaBytes < 10 * 1024 * 1024
+        || userStorageQuotaBytes > 1024 * 1024 * 1024 * 1024
+    ) {
+        throw new Error(
+            'UPLOAD_USER_QUOTA_BYTES должен быть целым числом от 10485760 до 1099511627776.',
+        );
+    }
+
     return {
         ...environment,
         DATABASE_URL: databaseUrl,
@@ -62,5 +75,6 @@ export function validateEnvironment(
         TRUST_PROXY_HOPS: trustProxyHops,
         AUTH_RATE_LIMIT_ENABLED: booleanValues[rateLimitEnabledValue],
         AUTH_RATE_LIMIT_MAX_BUCKETS: rateLimitMaxBuckets,
+        UPLOAD_USER_QUOTA_BYTES: userStorageQuotaBytes,
     };
 }

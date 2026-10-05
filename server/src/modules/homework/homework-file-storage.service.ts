@@ -5,7 +5,10 @@ import { join } from 'node:path';
 import {
     type BufferedUploadFile,
     PrivateFileStorageService,
+    type StoredPrivateFile,
 } from '../../common/files/private-file-storage.service';
+import type { PrismaService } from '../../common/prisma/prisma.service';
+import type { Prisma } from '../../generated/prisma/client';
 
 export const HOMEWORK_MAX_FILES = 5;
 const DEFAULT_MAX_FILE_BYTES = 10 * 1024 * 1024;
@@ -43,21 +46,24 @@ export class HomeworkFileStorageService {
         return this.storage.validateUploads(files, this.limits());
     }
 
-    storeAssignment(homeworkId: number, files: ReturnType<
+    storeAssignment(ownerId: number, homeworkId: number, files: ReturnType<
         HomeworkFileStorageService['validateUploads']
     >) {
         return this.storage.storeUploads(
+            ownerId,
             join('homework', String(homeworkId), 'assignment'),
             files,
         );
     }
 
     storeSubmission(
+        ownerId: number,
         homeworkId: number,
         attemptNumber: number,
         files: ReturnType<HomeworkFileStorageService['validateUploads']>,
     ) {
         return this.storage.storeUploads(
+            ownerId,
             join(
                 'homework',
                 String(homeworkId),
@@ -76,6 +82,21 @@ export class HomeworkFileStorageService {
 
     removeStoredPaths(storedPaths: string[]): Promise<void> {
         return this.storage.removeStoredPaths(storedPaths);
+    }
+
+    releaseQuota(
+        ownerId: number,
+        byteCount: number | bigint,
+        database?: PrismaService | Prisma.TransactionClient,
+    ): Promise<void> {
+        return this.storage.releaseQuota(ownerId, byteCount, database);
+    }
+
+    discardStoredFiles(
+        ownerId: number,
+        files: StoredPrivateFile[],
+    ): Promise<void> {
+        return this.storage.discardStoredFiles(ownerId, files);
     }
 
     private positiveInteger(key: string, fallback: number): number {

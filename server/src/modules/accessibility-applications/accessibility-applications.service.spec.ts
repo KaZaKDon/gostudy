@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ParentChildAccessService } from '../../common/access/parent-child-access.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
     AccessibilityApplicationStatus,
@@ -23,6 +24,20 @@ const student: SessionUser = {
     emailVerifiedAt: new Date(),
     profileCompleted: true,
 };
+
+const parent: SessionUser = {
+    ...student,
+    id: 12,
+    role: UserRole.PARENT,
+    email: 'parent@example.com',
+    fullName: 'Мария Родитель',
+};
+
+function parentAccess(allowed: boolean): ParentChildAccessService {
+    return {
+        hasCurrentMinorAccess: vi.fn().mockResolvedValue(allowed),
+    } as unknown as ParentChildAccessService;
+}
 
 function application() {
     const now = new Date();
@@ -87,7 +102,11 @@ describe('AccessibilityApplicationsService', () => {
         const notifications = {
             create: vi.fn().mockResolvedValue({}),
         } as unknown as NotificationsService;
-        const service = new AccessibilityApplicationsService(prisma, notifications);
+        const service = new AccessibilityApplicationsService(
+            prisma,
+            notifications,
+            parentAccess(true),
+        );
 
         await expect(service.create(student, {
             offer_id: 4,
@@ -125,6 +144,7 @@ describe('AccessibilityApplicationsService', () => {
         const service = new AccessibilityApplicationsService(
             prisma,
             {} as NotificationsService,
+            parentAccess(true),
         );
 
         await expect(service.create(student, {
@@ -134,18 +154,47 @@ describe('AccessibilityApplicationsService', () => {
     });
 
     it('allows only a verified linked child for a parent application', async () => {
-        const prisma = {
-            parentChildProfile: { findFirst: vi.fn().mockResolvedValue(null) },
-        } as unknown as PrismaService;
+        const prisma = {} as PrismaService;
+        const access = parentAccess(false);
         const service = new AccessibilityApplicationsService(
             prisma,
             {} as NotificationsService,
+            access,
         );
 
-        await expect(service.create({ ...student, id: 12, role: UserRole.PARENT }, {
+        await expect(service.create(parent, {
             offer_id: 4,
             subject_id: 2,
             student_id: 9,
         })).rejects.toBeInstanceOf(ForbiddenException);
+        expect(access.hasCurrentMinorAccess).toHaveBeenCalledWith(12, 9);
+    });
+
+    it('does not let a parent confirm after current child access is lost', async () => {
+        const prisma = {
+            accessibilityApplication: {
+                findFirst: vi.fn().mockResolvedValue({
+                    ...application(),
+                    submittedById: parent.id,
+                    confirmationExpiresAt: new Date(Date.now() + 60_000),
+                }),
+            },
+            $transaction: vi.fn(),
+        } as unknown as PrismaService;
+        const access = parentAccess(false);
+        const service = new AccessibilityApplicationsService(
+            prisma,
+            {} as NotificationsService,
+            access,
+        );
+
+        await expect(service.confirm(parent, 31))
+            .rejects.toBeInstanceOf(ForbiddenException);
+        expect(access.hasCurrentMinorAccess).toHaveBeenCalledWith(
+            parent.id,
+            student.id,
+            expect.any(Date),
+        );
+        expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 });
