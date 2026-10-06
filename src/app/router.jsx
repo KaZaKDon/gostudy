@@ -29,6 +29,18 @@ const PricingPage = lazyNamed(
     () => import('../pages/Pricing/PricingPage.jsx'),
     'PricingPage'
 );
+const PaymentAndRefundsPage = lazyNamed(
+    () => import('../pages/CommercialInfo/PaymentAndRefundsPage.jsx'),
+    'PaymentAndRefundsPage'
+);
+const RequisitesPage = lazyNamed(
+    () => import('../pages/CommercialInfo/RequisitesPage.jsx'),
+    'RequisitesPage'
+);
+const SupportPage = lazyNamed(
+    () => import('../pages/CommercialInfo/SupportPage.jsx'),
+    'SupportPage'
+);
 const Login = lazyNamed(
     () => import('../pages/Login/Login.jsx'),
     'Login'
@@ -116,6 +128,18 @@ const router = createBrowserRouter([
                 element: <PricingPage />,
             },
             {
+                path: '/payment-and-refunds',
+                element: <PaymentAndRefundsPage />,
+            },
+            {
+                path: '/requisites',
+                element: <RequisitesPage />,
+            },
+            {
+                path: '/support',
+                element: <SupportPage />,
+            },
+            {
                 path: '/login',
                 element: <Login />,
             },
@@ -154,6 +178,18 @@ const router = createBrowserRouter([
             {
                 path: '/rules',
                 element: <Navigate to="/legal/rules" replace />,
+            },
+            {
+                path: '/offer',
+                element: <Navigate to="/legal/offer" replace />,
+            },
+            {
+                path: '/payment',
+                element: <Navigate to="/payment-and-refunds" replace />,
+            },
+            {
+                path: '/refund',
+                element: <Navigate to="/payment-and-refunds" replace />,
             },
             {
                 path: '/admin/*',

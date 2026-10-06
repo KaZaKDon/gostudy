@@ -17,7 +17,26 @@ import {
     UserStatus,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
+import { TeacherFinancePolicyService } from './teacher-finance-policy.service';
 import { TeacherFinanceService } from './teacher-finance.service';
+
+const enabledPolicy = {
+    isLessonSettlementsEnabled: () => true,
+    publicState: () => ({
+        enabled: true,
+        mode: 'platform' as const,
+        notice: 'Расчёты по занятиям проводятся через GoStudy.',
+    }),
+} as unknown as TeacherFinancePolicyService;
+
+const disabledPolicy = {
+    isLessonSettlementsEnabled: () => false,
+    publicState: () => ({
+        enabled: false,
+        mode: 'direct' as const,
+        notice: 'Оплата занятий производится напрямую.',
+    }),
+} as unknown as TeacherFinancePolicyService;
 
 const teacher: SessionUser = {
     id: 7,
@@ -99,7 +118,10 @@ describe('TeacherFinanceService', () => {
                 create: vi.fn().mockResolvedValue({ id: 1 }),
             },
         };
-        const service = new TeacherFinanceService({} as PrismaService);
+        const service = new TeacherFinanceService(
+            {} as PrismaService,
+            enabledPolicy,
+        );
 
         await service.createLessonSnapshot(database as never, {
             lessonId: 15,
@@ -126,7 +148,10 @@ describe('TeacherFinanceService', () => {
                 updateMany: vi.fn().mockResolvedValue({ count: 1 }),
             },
         };
-        const service = new TeacherFinanceService({} as PrismaService);
+        const service = new TeacherFinanceService(
+            {} as PrismaService,
+            enabledPolicy,
+        );
 
         await service.markLessonCompleted(
             database as never,
@@ -185,7 +210,7 @@ describe('TeacherFinanceService', () => {
                 }),
             },
         } as unknown as PrismaService;
-        const service = new TeacherFinanceService(prisma);
+        const service = new TeacherFinanceService(prisma, enabledPolicy);
 
         const result = await service.overview(teacher, {
             period: 'all',
@@ -213,5 +238,90 @@ describe('TeacherFinanceService', () => {
                 ],
             },
         });
+    });
+
+    it('keeps the commission model dormant when settlements are disabled', async () => {
+        const database = {
+            tariffPublication: {
+                findFirst: vi.fn(),
+            },
+            lessonSettlement: {
+                create: vi.fn(),
+                updateMany: vi.fn(),
+            },
+        };
+        const service = new TeacherFinanceService(
+            {} as PrismaService,
+            disabledPolicy,
+        );
+
+        await expect(service.createLessonSnapshot(database as never, {
+            lessonId: 15,
+            teacherId: 7,
+            studentId: 9,
+            grossAmount: 1_100,
+        })).resolves.toBeNull();
+        await expect(service.markLessonCompleted(
+            database as never,
+            15,
+            new Date(),
+        )).resolves.toEqual({ count: 0 });
+        await expect(service.markLessonCancelled(
+            database as never,
+            15,
+        )).resolves.toEqual({ count: 0 });
+
+        expect(database.tariffPublication.findFirst).not.toHaveBeenCalled();
+        expect(database.lessonSettlement.create).not.toHaveBeenCalled();
+        expect(database.lessonSettlement.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('returns subscription terms instead of settlement history while disabled', async () => {
+        const prisma = {
+            tariffPublication: {
+                findFirst: vi.fn().mockResolvedValue({
+                    version: 5,
+                    content: {
+                        individual: {
+                            price_rubles: 1_190,
+                            period_days: 30,
+                            students_included: 2,
+                            extra_block_students: 2,
+                            extra_block_price_rubles: 400,
+                        },
+                    },
+                }),
+            },
+            lessonSettlement: {
+                findMany: vi.fn(),
+            },
+        } as unknown as PrismaService;
+        const service = new TeacherFinanceService(prisma, disabledPolicy);
+
+        const result = await service.overview(teacher, {
+            period: 'all',
+            status: '',
+            page: 1,
+            limit: 20,
+        });
+
+        expect(result).toMatchObject({
+            success: true,
+            data: {
+                enabled: false,
+                mode: 'direct',
+                subscription: {
+                    version: 5,
+                    price_rubles: 1_190,
+                    period_days: 30,
+                    students_included: 2,
+                    extra_block_students: 2,
+                    extra_block_price_rubles: 400,
+                },
+                items: [],
+                payouts: [],
+            },
+        });
+        expect(prisma.lessonSettlement.findMany).not.toHaveBeenCalled();
     });
 });

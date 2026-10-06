@@ -93,10 +93,6 @@ const navigationGroups = [
             label: 'Тарифы',
             to: '/admin/tariffs',
         },
-        {
-            label: 'Финансы',
-            to: '/admin/payments',
-        },
     ],
     [
         {

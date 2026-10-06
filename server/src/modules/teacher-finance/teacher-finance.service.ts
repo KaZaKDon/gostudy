@@ -13,6 +13,7 @@ import {
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
 import type { ListTeacherFinanceQueryDto } from './dto/list-teacher-finance-query.dto';
+import { TeacherFinancePolicyService } from './teacher-finance-policy.service';
 import {
     calculateLessonSettlement,
     resolveTeacherFinanceStatus,
@@ -36,18 +37,34 @@ type TariffTerms = {
     payoutFrequency: string;
 };
 
+type SubscriptionTerms = {
+    version: number | null;
+    priceRubles: number;
+    periodDays: number;
+    studentsIncluded: number;
+    extraBlockStudents: number;
+    extraBlockPriceRubles: number;
+};
+
 type FinanceRow = Awaited<ReturnType<TeacherFinanceService['loadRows']>>[number];
 
 const PAYMENT_DEADLINE_HOURS = 24;
 
 @Injectable()
 export class TeacherFinanceService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly policy: TeacherFinancePolicyService,
+    ) {}
 
     async createLessonSnapshot(
         database: DatabaseClient,
         input: SettlementSnapshotInput,
     ) {
+        if (!this.policy.isLessonSettlementsEnabled()) {
+            return null;
+        }
+
         const terms = await this.currentTariffTerms(database);
         const amounts = calculateLessonSettlement(
             input.grossAmount,
@@ -73,6 +90,10 @@ export class TeacherFinanceService {
         lessonId: number,
         completedAt: Date,
     ) {
+        if (!this.policy.isLessonSettlementsEnabled()) {
+            return { count: 0 };
+        }
+
         const paymentDueAt = new Date(
             completedAt.getTime() + PAYMENT_DEADLINE_HOURS * 60 * 60 * 1_000,
         );
@@ -91,6 +112,10 @@ export class TeacherFinanceService {
     }
 
     async markLessonCancelled(database: DatabaseClient, lessonId: number) {
+        if (!this.policy.isLessonSettlementsEnabled()) {
+            return { count: 0 };
+        }
+
         return database.lessonSettlement.updateMany({
             where: {
                 lessonId,
@@ -109,6 +134,31 @@ export class TeacherFinanceService {
         query: ListTeacherFinanceQueryDto,
     ): Promise<Record<string, unknown>> {
         this.requireTeacher(user);
+
+        if (!this.policy.isLessonSettlementsEnabled()) {
+            const subscription = await this.currentSubscriptionTerms(
+                this.prisma,
+            );
+
+            return {
+                success: true,
+                data: {
+                    ...this.policy.publicState(),
+                    subscription: {
+                        version: subscription.version,
+                        price_rubles: subscription.priceRubles,
+                        period_days: subscription.periodDays,
+                        students_included: subscription.studentsIncluded,
+                        extra_block_students: subscription.extraBlockStudents,
+                        extra_block_price_rubles:
+                            subscription.extraBlockPriceRubles,
+                    },
+                    items: [],
+                    payouts: [],
+                },
+            };
+        }
+
         const now = new Date();
         const [rows, terms] = await Promise.all([
             this.loadRows(user.id, query.period, now),
@@ -124,6 +174,7 @@ export class TeacherFinanceService {
         return {
             success: true,
             data: {
+                ...this.policy.publicState(),
                 summary: this.buildSummary(rows, now),
                 tariff: {
                     version: terms.version,
@@ -348,6 +399,36 @@ export class TeacherFinanceService {
             payoutFrequency: typeof business.payout_frequency === 'string'
                 ? business.payout_frequency
                 : 'Раз в неделю',
+        };
+    }
+
+    private async currentSubscriptionTerms(
+        database: DatabaseClient,
+    ): Promise<SubscriptionTerms> {
+        const publication = await database.tariffPublication.findFirst({
+            where: { status: TariffPublicationStatus.PUBLISHED },
+            orderBy: [
+                { effectiveFrom: 'desc' },
+                { version: 'desc' },
+            ],
+            select: { version: true, content: true },
+        });
+        const content = this.record(publication?.content);
+        const subscription = this.record(content.individual);
+
+        return {
+            version: publication?.version ?? null,
+            priceRubles: this.number(subscription.price_rubles, 0),
+            periodDays: this.number(subscription.period_days, 30),
+            studentsIncluded: this.number(subscription.students_included, 2),
+            extraBlockStudents: this.number(
+                subscription.extra_block_students,
+                2,
+            ),
+            extraBlockPriceRubles: this.number(
+                subscription.extra_block_price_rubles,
+                0,
+            ),
         };
     }
 

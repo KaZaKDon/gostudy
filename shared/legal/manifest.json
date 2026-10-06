@@ -2,13 +2,23 @@
   "schemaVersion": 1,
   "documents": [
     {
+      "key": "platform_subscription_offer",
+      "slug": "offer",
+      "label": "Публичная оферта на подписку GoStudy",
+      "title": "Публичная оферта на подписку GoStudy",
+      "path": "/legal/offer",
+      "version": "1.1",
+      "status": "active",
+      "file": "platform-subscription-offer.md"
+    },
+    {
       "key": "user_agreement",
       "slug": "agreement",
       "label": "Пользовательское соглашение",
       "title": "Пользовательское соглашение",
       "path": "/legal/agreement",
-      "version": "draft-0.1",
-      "status": "draft",
+      "version": "1.1",
+      "status": "active",
       "file": "user-agreement.md"
     },
     {
@@ -17,8 +27,8 @@
       "label": "Политика конфиденциальности",
       "title": "Политика конфиденциальности",
       "path": "/legal/privacy",
-      "version": "1.5",
-      "status": "draft",
+      "version": "2.0",
+      "status": "active",
       "file": "privacy-policy.md"
     },
     {
@@ -27,8 +37,8 @@
       "label": "Правила платформы",
       "title": "Правила платформы",
       "path": "/legal/rules",
-      "version": "1.3",
-      "status": "draft",
+      "version": "1.4",
+      "status": "active",
       "file": "platform-rules.md"
     },
     {
@@ -37,8 +47,8 @@
       "label": "Согласие на обработку персональных данных",
       "title": "Согласие на обработку персональных данных",
       "path": "/legal/personal-data-consent",
-      "version": "1.9",
-      "status": "draft",
+      "version": "2.0",
+      "status": "active",
       "file": "personal-data-consent.md"
     },
     {
@@ -47,8 +57,8 @@
       "label": "Согласие Родителя на обработку данных ребёнка",
       "title": "Согласие Родителя на обработку данных ребёнка",
       "path": "/legal/parent-child-data-consent",
-      "version": "1.0",
-      "status": "draft",
+      "version": "1.1",
+      "status": "active",
       "file": "parent-child-data-consent.md"
     },
     {
@@ -57,18 +67,18 @@
       "label": "Согласие на информационные и рекламные сообщения",
       "title": "Согласие на информационные и рекламные сообщения",
       "path": "/legal/marketing-consent",
-      "version": "1.5",
-      "status": "draft",
+      "version": "1.6",
+      "status": "active",
       "file": "marketing-consent.md"
     },
     {
       "key": "tariffs",
       "slug": "tariffs",
-      "label": "Тарифы, подписки и приоритетное размещение",
-      "title": "Тарифы, подписки и приоритетное размещение",
+      "label": "Правила тарифа и подписки",
+      "title": "Правила тарифа и подписки",
       "path": "/legal/tariffs",
-      "version": "1.1",
-      "status": "draft",
+      "version": "2.1",
+      "status": "active",
       "file": "tariffs.md"
     },
     {
@@ -78,7 +88,8 @@
       "title": "Оферта на подписку преподавателя",
       "path": "/legal/teacher-subscription-offer",
       "version": "1.5",
-      "status": "draft",
+      "status": "archived",
+      "enabled": false,
       "file": "teacher-subscription-offer.md"
     },
     {
@@ -88,7 +99,8 @@
       "title": "Оферта для преподавателей-ИП и плательщиков НПД",
       "path": "/legal/ip-npd-commission-offer",
       "version": "1.9",
-      "status": "draft",
+      "status": "archived",
+      "enabled": false,
       "file": "ip-npd-commission-offer.md"
     }
   ]

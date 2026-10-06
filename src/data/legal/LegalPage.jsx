@@ -3,11 +3,15 @@ import Markdown from 'react-markdown';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 
+import { usePublicLightTheme } from '../../hooks/usePublicLightTheme.js';
+
 import { getLegalDocument } from './legalDocuments.js';
 
 import './LegalPage.css';
 
 export function LegalPage({ documentType: legacyDocumentType }) {
+    usePublicLightTheme();
+
     const { documentType: routeDocumentType } = useParams();
     const document = getLegalDocument(
         legacyDocumentType || routeDocumentType,

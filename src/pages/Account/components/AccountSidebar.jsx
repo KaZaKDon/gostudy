@@ -1,3 +1,5 @@
+import { LogOut } from 'lucide-react';
+
 import { AccountThemeSwitcher } from './AccountThemeSwitcher.jsx';
 
 export function AccountSidebar({
@@ -5,6 +7,8 @@ export function AccountSidebar({
     navigation,
     activeSection,
     onSelectSection,
+    onLogout,
+    isLoggingOut,
     isOpen,
 }) {
     const avatarUrl = identity?.avatarUrl;
@@ -54,7 +58,19 @@ export function AccountSidebar({
                 ))}
             </nav>
 
-            <AccountThemeSwitcher />
+            <div className="account-sidebar__footer">
+                <AccountThemeSwitcher />
+
+                <button
+                    className="account-sidebar__logout"
+                    type="button"
+                    onClick={onLogout}
+                    disabled={isLoggingOut}
+                >
+                    <LogOut aria-hidden="true" />
+                    <span>{isLoggingOut ? 'Выходим…' : 'Выйти'}</span>
+                </button>
+            </div>
         </aside>
     );
 }

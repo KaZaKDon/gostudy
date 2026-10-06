@@ -99,6 +99,26 @@ export function SeoManager() {
             seo.image
         );
         setMetaContent(
+            'meta[property="og:image:width"]',
+            ['property', 'og:image:width'],
+            seo.imageWidth
+        );
+        setMetaContent(
+            'meta[property="og:image:height"]',
+            ['property', 'og:image:height'],
+            seo.imageHeight
+        );
+        setMetaContent(
+            'meta[property="og:image:alt"]',
+            ['property', 'og:image:alt'],
+            seo.imageAlt
+        );
+        setMetaContent(
+            'meta[name="twitter:card"]',
+            ['name', 'twitter:card'],
+            seo.image ? 'summary_large_image' : 'summary'
+        );
+        setMetaContent(
             'meta[name="twitter:title"]',
             ['name', 'twitter:title'],
             seo.title
@@ -112,6 +132,11 @@ export function SeoManager() {
             'meta[name="twitter:image"]',
             ['name', 'twitter:image'],
             seo.image
+        );
+        setMetaContent(
+            'meta[name="twitter:image:alt"]',
+            ['name', 'twitter:image:alt'],
+            seo.imageAlt
         );
 
         setCanonical(seo.canonical);

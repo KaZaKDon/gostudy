@@ -9,8 +9,22 @@ import {
     UserStatus,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
+import { TeacherFinancePolicyService } from '../teacher-finance/teacher-finance-policy.service';
 import type { SaveTariffDraftDto } from './dto/save-tariff-draft.dto';
+import { MarketplaceSalesPolicyService } from './marketplace-sales-policy.service';
 import { TariffsService } from './tariffs.service';
+
+const disabledFinancePolicy = {
+    isLessonSettlementsEnabled: () => false,
+} as unknown as TeacherFinancePolicyService;
+
+const disabledMarketplaceSalesPolicy = {
+    isMaterialSalesEnabled: () => false,
+    publicState: () => ({
+        enabled: false,
+        notice: 'Платная продажа материалов отключена.',
+    }),
+} as unknown as MarketplaceSalesPolicyService;
 
 const admin: SessionUser = {
     id: 1,
@@ -130,7 +144,11 @@ describe('TariffsService', () => {
                 findFirst: vi.fn().mockResolvedValue(publication()),
             },
         } as unknown as PrismaService;
-        const service = new TariffsService(prisma);
+        const service = new TariffsService(
+            prisma,
+            disabledFinancePolicy,
+            disabledMarketplaceSalesPolicy,
+        );
 
         const result = await service.publicTariffs();
 
@@ -140,9 +158,20 @@ describe('TariffsService', () => {
                 version: 1,
                 status: 'published',
                 content: {
-                    individual: { price_rubles: 990 },
-                    business: { commission_percent: 15 },
+                    individual: {
+                        title: 'Единый тариф преподавателя',
+                        price_rubles: 990,
+                    },
+                    business: {
+                        enabled: false,
+                        commission_percent: 15,
+                    },
+                    lesson_payments: {
+                        enabled: false,
+                        mode: 'direct',
+                    },
                     materials: {
+                        sales_enabled: false,
                         sale_commission_percent: 25,
                         payout_hold_days: 7,
                     },
@@ -164,7 +193,11 @@ describe('TariffsService', () => {
                 findFirst: vi.fn().mockResolvedValue(null),
             },
         } as unknown as PrismaService;
-        const service = new TariffsService(prisma);
+        const service = new TariffsService(
+            prisma,
+            disabledFinancePolicy,
+            disabledMarketplaceSalesPolicy,
+        );
 
         await expect(service.publicTariffs())
             .rejects
@@ -198,7 +231,11 @@ describe('TariffsService', () => {
                     callback(transaction),
             ),
         } as unknown as PrismaService;
-        const service = new TariffsService(prisma);
+        const service = new TariffsService(
+            prisma,
+            disabledFinancePolicy,
+            disabledMarketplaceSalesPolicy,
+        );
 
         const result = await service.saveDraft(admin, input, metadata);
 
@@ -253,7 +290,11 @@ describe('TariffsService', () => {
                     callback(transaction),
             ),
         } as unknown as PrismaService;
-        const service = new TariffsService(prisma);
+        const service = new TariffsService(
+            prisma,
+            disabledFinancePolicy,
+            disabledMarketplaceSalesPolicy,
+        );
 
         const result = await service.publishDraft(admin, metadata);
 
@@ -275,7 +316,11 @@ describe('TariffsService', () => {
     });
 
     it('does not allow a moderator to change tariff values', async () => {
-        const service = new TariffsService({} as PrismaService);
+        const service = new TariffsService(
+            {} as PrismaService,
+            disabledFinancePolicy,
+            disabledMarketplaceSalesPolicy,
+        );
 
         await expect(
             service.saveDraft(moderator, input, metadata),

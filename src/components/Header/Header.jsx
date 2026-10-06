@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 
-import { SiteThemeToggle } from '../SiteThemeToggle/SiteThemeToggle.jsx';
+import { usePublicLightTheme } from '../../hooks/usePublicLightTheme.js';
 
 import './Header.css';
 
 export function Header() {
+    usePublicLightTheme();
+
     return (
         <header className="site-header">
             <Link
@@ -22,8 +24,6 @@ export function Header() {
                 className="site-header__nav"
                 aria-label="Навигация"
             >
-                <SiteThemeToggle />
-
                 <Link
                     className="site-header__link"
                     to="/login"

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { API_FEATURES } from '../../../../api/api.js';
+import { DirectLessonPaymentNotice } from './components/DirectLessonPaymentNotice.jsx';
 import { PaymentSummary } from './components/PaymentSummary.jsx';
 import { StudentPayments } from './components/StudentPayments.jsx';
 import { PaymentModal } from './components/PaymentModal.jsx';
@@ -25,7 +27,7 @@ export function PaymentsSection({
 
                     <h2>
                         {isTeacher
-                            ? 'Статистика и выплаты'
+                            ? 'Подписка и расчёты'
                             : 'Мои оплаты'}
                     </h2>
                 </div>
@@ -33,6 +35,8 @@ export function PaymentsSection({
 
             {isTeacher ? (
                 <TeacherFinanceDashboard controller={teacherFinance} />
+            ) : !API_FEATURES.lessonSettlements ? (
+                <DirectLessonPaymentNotice />
             ) : (
                 <>
                     <PaymentSummary
@@ -46,7 +50,7 @@ export function PaymentsSection({
                 </>
             )}
 
-            {!isTeacher && (
+            {!isTeacher && API_FEATURES.lessonSettlements && (
                 <PaymentModal
                     role={role}
                     payment={selectedPayment}

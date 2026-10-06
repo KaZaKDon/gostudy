@@ -5,6 +5,7 @@ function loadMarkdown(importDocument) {
 }
 
 const contentLoaders = {
+    offer: () => import('../../../shared/legal/platform-subscription-offer.md?raw'),
     agreement: () => import('../../../shared/legal/user-agreement.md?raw'),
     privacy: () => import('../../../shared/legal/privacy-policy.md?raw'),
     rules: () => import('../../../shared/legal/platform-rules.md?raw'),
@@ -18,22 +19,18 @@ const contentLoaders = {
         import('../../../shared/legal/marketing-consent.md?raw')
     ),
     tariffs: () => import('../../../shared/legal/tariffs.md?raw'),
-    'teacher-subscription-offer': () => (
-        import('../../../shared/legal/teacher-subscription-offer.md?raw')
-    ),
-    'ip-npd-commission-offer': () => (
-        import('../../../shared/legal/ip-npd-commission-offer.md?raw')
-    ),
 };
 
 export const LEGAL_DOCUMENTS = Object.fromEntries(
-    legalManifest.documents.map((document) => [
-        document.slug,
-        {
-            ...document,
-            loadContent: () => loadMarkdown(contentLoaders[document.slug]),
-        },
-    ]),
+    legalManifest.documents
+        .filter((document) => document.enabled !== false)
+        .map((document) => [
+            document.slug,
+            {
+                ...document,
+                loadContent: () => loadMarkdown(contentLoaders[document.slug]),
+            },
+        ]),
 );
 
 export const LEGAL_DOCUMENT_LINKS = [

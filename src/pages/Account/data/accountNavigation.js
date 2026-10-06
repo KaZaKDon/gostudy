@@ -21,7 +21,7 @@ export const TEACHER_NAVIGATION = [
     { id: 'students', title: 'Мои ученики' },
     { id: 'materials', title: 'Материалы' },
     { id: 'accessibility', title: 'Доступное образование' },
-    { id: 'payments', title: 'Финансы' },
+    { id: 'payments', title: 'Подписка' },
     { id: 'messages', title: 'Сообщения' },
     { id: 'disputes', title: 'Споры' },
     { id: 'settings', title: 'Настройки' },

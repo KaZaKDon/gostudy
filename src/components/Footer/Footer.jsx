@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { LEGAL_DOCUMENT_LINKS } from '../../data/legal/legalDocuments.js';
+import { PUBLIC_FOOTER_LINKS } from '../../data/publicFooterLinks.js';
 
 import './Footer.css';
 
@@ -22,13 +22,13 @@ export function Footer() {
 
                 <nav
                     className="footer__links"
-                    aria-label="Документы платформы"
+                    aria-label="Разделы и документы платформы"
                 >
-                    {LEGAL_DOCUMENT_LINKS.map((link) => (
+                    {PUBLIC_FOOTER_LINKS.map((link) => (
                         <Link
                             className="footer__link"
-                            key={link.key}
-                            to={link.path}
+                            key={link.id}
+                            to={link.to}
                         >
                             {link.label}
                         </Link>

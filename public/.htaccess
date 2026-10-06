@@ -1,19 +1,43 @@
-Options -Indexes
+Options -Indexes -MultiViews
 
 RewriteEngine On
+
+# Один основной адрес сайта: HTTPS без www.
+RewriteCond %{HTTP_HOST} !^gostudyonline\.ru$ [NC]
+RewriteRule ^ https://gostudyonline.ru%{REQUEST_URI} [R=301,L,NE]
+
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !^https$ [NC]
+RewriteRule ^ https://gostudyonline.ru%{REQUEST_URI} [R=301,L,NE]
+
+# Старые публичные адреса переводятся на канонические до запуска React.
+RewriteRule ^agreement/?$ /legal/agreement [R=301,L,NE]
+RewriteRule ^privacy/?$ /legal/privacy [R=301,L,NE]
+RewriteRule ^rules/?$ /legal/rules [R=301,L,NE]
+RewriteRule ^offer/?$ /legal/offer [R=301,L,NE]
+RewriteRule ^(?:payment|refund)/?$ /payment-and-refunds [R=301,L,NE]
+
+# Прямое обращение к техническому HTML-файлу переводится на чистый URL.
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html(?:[?\s]) [NC]
+RewriteRule ^(.+)\.html$ /$1 [R=301,L,NE]
+
+# Канонические публичные адреса не имеют завершающего слеша.
+RewriteRule ^(about|students|teachers|pricing|payment-and-refunds|requisites|support)/$ /$1 [R=301,L,NE]
+RewriteRule ^legal/(offer|agreement|privacy|rules|tariffs|personal-data-consent|parent-child-data-consent|marketing-consent)/$ /legal/$1 [R=301,L,NE]
 
 # Реальные файлы и каталоги обслуживаются напрямую.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Отсутствующие API-методы и файлы загрузок должны возвращать серверный 404,
-# а не HTML приложения.
+# Отсутствующие API-методы и файлы загрузок должны возвращать серверный 404.
 RewriteRule ^(?:api|uploads)(?:/|$) - [L]
 
 # Разрешённые маршруты React-приложения.
 RewriteRule ^$ index.html [L]
-RewriteRule ^(?:about|students|teachers|pricing|login|register|password-reset|profile-start|account|agreement|privacy|rules|verify-email)/?$ index.html [L]
+RewriteRule ^(about|students|teachers|pricing|payment-and-refunds|requisites|support)/?$ $1.html [L]
+RewriteRule ^(?:login|register|password-reset|profile-start|account|verify-email)/?$ index.html [L]
+RewriteRule ^legal/(offer|agreement|privacy|rules|tariffs|personal-data-consent|parent-child-data-consent|marketing-consent)/?$ legal/$1.html [L]
 RewriteRule ^classroom/[1-9][0-9]*/?$ index.html [L]
 RewriteRule ^admin(?:/.*)?$ index.html [L]
 
@@ -21,31 +45,40 @@ RewriteRule ^admin(?:/.*)?$ index.html [L]
 RewriteRule ^ 404.php [L]
 
 <IfModule mod_setenvif.c>
-    SetEnvIf Request_URI "^/(?:about(?:/|$)|students(?:/|$)|teachers(?:/|$)|pricing(?:/|$)|login|register|password-reset|profile-start|account|classroom(?:/|$)|admin(?:/|$)|verify-email(?:/|$)|api(?:/|$)|uploads(?:/|$))" gostudy_noindex=1
+    SetEnvIf Request_URI "^/(?:login|register|password-reset|profile-start|account|classroom(?:/|$)|admin(?:/|$)|verify-email(?:/|$)|api(?:/|$)|uploads(?:/|$))" gostudy_noindex=1
+    SetEnvIf Request_URI "^/assets/" gostudy_hashed_asset=1
 </IfModule>
 
 <IfModule mod_headers.c>
     Header always set X-Robots-Tag "noindex, nofollow, noarchive" env=gostudy_noindex
 
-    <FilesMatch "^(?:index\.html|404\.php)$">
+    <FilesMatch "^(?:index\.html|404\.php|about\.html|students\.html|teachers\.html|pricing\.html|payment-and-refunds\.html|requisites\.html|support\.html|offer\.html|agreement\.html|privacy\.html|rules\.html|tariffs\.html|personal-data-consent\.html|parent-child-data-consent\.html|marketing-consent\.html)$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
     </FilesMatch>
 
     <FilesMatch "\.(?:css|js|mjs|png|jpe?g|webp|svg|ico|woff2?)$">
-        Header set Cache-Control "public, max-age=31536000, immutable"
+        Header set Cache-Control "public, max-age=86400, must-revalidate"
     </FilesMatch>
+
+    <FilesMatch "^sitemap\.xml$">
+        Header set Cache-Control "public, max-age=3600, must-revalidate"
+    </FilesMatch>
+
+    Header set Cache-Control "public, max-age=31536000, immutable" env=gostudy_hashed_asset
 </IfModule>
+
+AddDefaultCharset UTF-8
 
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType text/css "access plus 1 year"
-    ExpiresByType application/javascript "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/webp "access plus 1 year"
-    ExpiresByType image/svg+xml "access plus 1 year"
-    ExpiresByType image/x-icon "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType application/javascript "access plus 1 day"
+    ExpiresByType image/png "access plus 1 day"
+    ExpiresByType image/jpeg "access plus 1 day"
+    ExpiresByType image/webp "access plus 1 day"
+    ExpiresByType image/svg+xml "access plus 1 day"
+    ExpiresByType image/x-icon "access plus 1 day"
+    ExpiresByType font/woff2 "access plus 1 day"
 </IfModule>
 
 <IfModule mod_deflate.c>

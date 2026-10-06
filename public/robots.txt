@@ -13,4 +13,4 @@ Disallow: /register
 Disallow: /password-reset
 Disallow: /verify-email
 
-Sitemap: https://gostudyonline.ru/sitemap.php
+Sitemap: https://gostudyonline.ru/sitemap.xml

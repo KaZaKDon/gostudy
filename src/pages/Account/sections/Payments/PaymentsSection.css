@@ -104,6 +104,54 @@
     text-align: right;
 }
 
+.direct-lesson-payment-notice {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.8fr);
+    gap: 18px;
+    padding: 22px;
+    border: 1px solid color-mix(in srgb, var(--payments-accent) 38%, var(--color-border));
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--payments-accent) 7%, var(--color-surface-paper));
+    box-shadow: var(--shadow-soft);
+}
+
+.direct-lesson-payment-notice > div,
+.direct-lesson-payment-notice aside {
+    display: grid;
+    align-content: start;
+    gap: 7px;
+}
+
+.direct-lesson-payment-notice span {
+    color: var(--color-ink-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.direct-lesson-payment-notice h3,
+.direct-lesson-payment-notice p {
+    margin: 0;
+}
+
+.direct-lesson-payment-notice p {
+    color: var(--color-ink-muted);
+    line-height: 1.55;
+}
+
+.direct-lesson-payment-notice aside {
+    padding: 16px 18px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-paper);
+}
+
+.direct-lesson-payment-notice aside strong {
+    color: var(--color-ink-strong);
+    font-size: 1.2rem;
+}
+
 .teacher-finance-filters {
     display: flex;
     flex-wrap: wrap;
@@ -611,6 +659,11 @@
 
     .teacher-finance-terms p {
         text-align: left;
+    }
+
+    .direct-lesson-payment-notice {
+        grid-template-columns: 1fr;
+        padding: 18px;
     }
 
     .teacher-finance-row {

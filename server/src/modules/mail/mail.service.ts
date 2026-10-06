@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import nodemailer, { type Transporter } from 'nodemailer';
 
+import { PLATFORM_EMAIL } from '../../config/platform-email';
+
 @Injectable()
 export class MailService {
     private readonly logger = new Logger(MailService.name);
@@ -46,6 +48,7 @@ export class MailService {
         try {
             await this.transporter.sendMail({
                 from: this.getFrom(),
+                replyTo: this.getSupportEmail(),
                 to: email,
                 subject: 'Подтвердите электронную почту — GoStudy',
                 text: [
@@ -55,13 +58,14 @@ export class MailService {
                     verificationUrl,
                     '',
                     'Ссылка действует 24 часа.',
-                    `Поддержка: ${this.config.get('SUPPORT_EMAIL')}`,
+                    `Поддержка: ${this.getSupportEmail()}`,
                 ].join('\n'),
                 html: [
                     `<p>Здравствуйте, ${this.escapeHtml(displayName)}!</p>`,
                     '<p>Подтвердите электронную почту для завершения регистрации GoStudy.</p>',
                     `<p><a href="${this.escapeHtml(verificationUrl)}">Подтвердить почту</a></p>`,
                     '<p>Ссылка действует 24 часа.</p>',
+                    `<p>Поддержка: <a href="mailto:${this.getSupportEmail()}">${this.getSupportEmail()}</a></p>`,
                 ].join(''),
             });
 
@@ -97,6 +101,7 @@ export class MailService {
         try {
             await this.transporter.sendMail({
                 from: this.getFrom(),
+                replyTo: this.getSupportEmail(),
                 to: email,
                 subject: 'Восстановление пароля — GoStudy',
                 text: [
@@ -107,7 +112,7 @@ export class MailService {
                     '',
                     `Ссылка действует ${expiresInMinutes} минут.`,
                     'Если вы не запрашивали восстановление, просто проигнорируйте это письмо.',
-                    `Поддержка: ${this.config.get('SUPPORT_EMAIL')}`,
+                    `Поддержка: ${this.getSupportEmail()}`,
                 ].join('\n'),
                 html: [
                     `<p>Здравствуйте, ${this.escapeHtml(displayName)}!</p>`,
@@ -115,6 +120,7 @@ export class MailService {
                     `<p><a href="${this.escapeHtml(resetUrl)}">Установить новый пароль</a></p>`,
                     `<p>Ссылка действует ${expiresInMinutes} минут.</p>`,
                     '<p>Если вы не запрашивали восстановление, просто проигнорируйте это письмо.</p>',
+                    `<p>Поддержка: <a href="mailto:${this.getSupportEmail()}">${this.getSupportEmail()}</a></p>`,
                 ].join(''),
             });
 
@@ -129,7 +135,19 @@ export class MailService {
     }
 
     private getFrom(): string {
-        return `GoStudy <${this.config.get<string>('MAIL_FROM', 'noreply@gostudyonline.ru')}>`;
+        const address = this.config.get<string>(
+            'MAIL_FROM',
+            PLATFORM_EMAIL.fromAddress,
+        );
+
+        return `${PLATFORM_EMAIL.fromName} <${address}>`;
+    }
+
+    private getSupportEmail(): string {
+        return this.config.get<string>(
+            'SUPPORT_EMAIL',
+            PLATFORM_EMAIL.supportAddress,
+        );
     }
 
     private escapeHtml(value: string): string {

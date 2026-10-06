@@ -12,7 +12,9 @@ import {
     UserRole,
 } from '../../generated/prisma/enums';
 import type { SessionUser } from '../auth/session-user';
+import { TeacherFinancePolicyService } from '../teacher-finance/teacher-finance-policy.service';
 import type { SaveTariffDraftDto } from './dto/save-tariff-draft.dto';
+import { MarketplaceSalesPolicyService } from './marketplace-sales-policy.service';
 
 type TariffContent = {
     page_title: string;
@@ -30,6 +32,7 @@ type TariffContent = {
         features: string[];
     };
     business: {
+        enabled: boolean;
         title: string;
         badge: string;
         summary: string;
@@ -39,11 +42,21 @@ type TariffContent = {
         settlement_text: string;
         features: string[];
     };
+    lesson_payments: LessonPaymentsContent;
     materials: MaterialsContent;
     notice: string;
 };
 
+type LessonPaymentsContent = {
+    enabled: boolean;
+    mode: 'direct' | 'platform';
+    title: string;
+    notice: string;
+};
+
 type MaterialsContent = {
+    sales_enabled: boolean;
+    sales_notice: string;
     title: string;
     lead: string;
     personal_library_text: string;
@@ -57,6 +70,8 @@ type MaterialsContent = {
 };
 
 const DEFAULT_MATERIALS_CONTENT: MaterialsContent = {
+    sales_enabled: false,
+    sales_notice: '',
     title: 'Учебные материалы',
     lead: 'Личная библиотека и материалы для занятий входят в оба варианта. Публикация в общем каталоге проходит модерацию.',
     personal_library_text: 'Личная библиотека, материалы для уроков, домашних заданий и передача своим ученикам включены в тариф.',
@@ -68,6 +83,25 @@ const DEFAULT_MATERIALS_CONTENT: MaterialsContent = {
     licenses_text: 'Автор самостоятельно устанавливает цены Личной и Профессиональной лицензий в рублях в пределах правил платформы.',
     moderation_text: 'Каждый материал для общего каталога проходит модерацию. Автор подтверждает права на публикацию, а выплата за платный материал производится после периода возврата при отсутствии спора.',
 };
+
+const DEFAULT_LESSON_PAYMENTS_CONTENT: LessonPaymentsContent = {
+    enabled: false,
+    mode: 'direct',
+    title: 'Оплата занятий напрямую',
+    notice: 'Ученик оплачивает занятия непосредственно преподавателю. GoStudy не принимает оплату за уроки и не удерживает комиссию с занятий.',
+};
+
+const PLATFORM_LESSON_PAYMENTS_CONTENT: LessonPaymentsContent = {
+    enabled: true,
+    mode: 'platform',
+    title: 'Оплата занятий через GoStudy',
+    notice: 'Платформа принимает оплату за занятия, рассчитывает комиссию и формирует сумму к выплате преподавателю.',
+};
+
+const LEGACY_PAGE_LEAD =
+    'Два понятных варианта работы для преподавателя — с оплатой занятий через платформу или по подписке.';
+const UNIFIED_PAGE_LEAD =
+    'Единая месячная подписка для всех преподавателей. Оплата занятий производится напрямую между учеником и преподавателем.';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -86,7 +120,11 @@ type TariffRecord = {
 
 @Injectable()
 export class TariffsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly financePolicy: TeacherFinancePolicyService,
+        private readonly marketplaceSalesPolicy: MarketplaceSalesPolicyService,
+    ) {}
 
     async publicTariffs(): Promise<Record<string, unknown>> {
         const publication = await this.prisma.tariffPublication.findFirst({
@@ -275,6 +313,7 @@ export class TariffsService {
                 features: input.individual_features.map((item) => item.trim()),
             },
             business: {
+                enabled: this.financePolicy.isLessonSettlementsEnabled(),
                 title: input.business_title.trim(),
                 badge: input.business_badge.trim(),
                 summary: input.business_summary.trim(),
@@ -285,7 +324,12 @@ export class TariffsService {
                 settlement_text: input.business_settlement_text.trim(),
                 features: input.business_features.map((item) => item.trim()),
             },
+            lesson_payments: this.lessonPaymentsContent(),
             materials: {
+                sales_enabled:
+                    this.marketplaceSalesPolicy.isMaterialSalesEnabled(),
+                sales_notice:
+                    this.marketplaceSalesPolicy.publicState().notice,
                 title: input.materials_title.trim(),
                 lead: input.materials_lead.trim(),
                 personal_library_text:
@@ -316,11 +360,54 @@ export class TariffsService {
                 ...content.materials,
             }
             : DEFAULT_MATERIALS_CONTENT;
+        const materialSales = this.marketplaceSalesPolicy.publicState();
+        const individual = isRecord(content.individual)
+            ? {
+                ...content.individual,
+                title: content.individual.title === 'Физическое лицо'
+                    ? 'Единый тариф преподавателя'
+                    : content.individual.title,
+                badge: content.individual.badge === 'Подписка'
+                    ? 'Для всех преподавателей'
+                    : content.individual.badge,
+                summary: typeof content.individual.summary === 'string'
+                    && content.individual.summary.includes(
+                        'которые самостоятельно рассчитываются с учениками',
+                    )
+                    ? 'Для всех преподавателей независимо от статуса. Использование GoStudy оплачивается по подписке, а расчёты за занятия проходят напрямую с учениками.'
+                    : content.individual.summary,
+            }
+            : content.individual;
+        const business = isRecord(content.business)
+            ? {
+                ...content.business,
+                enabled: this.financePolicy.isLessonSettlementsEnabled(),
+            }
+            : content.business;
 
         return {
             ...content,
-            materials,
+            page_lead: content.page_lead === LEGACY_PAGE_LEAD
+                ? UNIFIED_PAGE_LEAD
+                : content.page_lead,
+            individual,
+            business,
+            lesson_payments: this.lessonPaymentsContent(),
+            materials: {
+                ...materials,
+                sales_enabled: materialSales.enabled,
+                sales_notice: materialSales.notice,
+                lead: materials.lead === DEFAULT_MATERIALS_CONTENT.lead
+                    ? 'Личная библиотека и материалы для занятий входят в подписку. Публикация в общем каталоге проходит модерацию.'
+                    : materials.lead,
+            },
         };
+    }
+
+    private lessonPaymentsContent(): LessonPaymentsContent {
+        return this.financePolicy.isLessonSettlementsEnabled()
+            ? PLATFORM_LESSON_PAYMENTS_CONTENT
+            : DEFAULT_LESSON_PAYMENTS_CONTENT;
     }
 
     private serializePublication(item: TariffRecord) {

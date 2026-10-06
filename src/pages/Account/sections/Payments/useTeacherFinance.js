@@ -11,6 +11,10 @@ import {
 } from '../../../../api/api.js';
 
 const EMPTY_DATA = {
+    enabled: null,
+    mode: null,
+    notice: '',
+    subscription: null,
     summary: {
         completed_lessons: 0,
         gross_amount: 0,

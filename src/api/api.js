@@ -2,6 +2,11 @@ const NODE_API_BASE = import.meta.env.VITE_NODE_API_BASE_URL
     || (import.meta.env.DEV
         ? 'http://localhost:3002/api/v1'
         : '/api/v1');
+const LESSON_SETTLEMENTS_ENABLED = ['true', '1', 'yes', 'on'].includes(
+    String(import.meta.env.VITE_LESSON_SETTLEMENTS_ENABLED || '')
+        .trim()
+        .toLowerCase(),
+);
 
 export const API_FEATURES = Object.freeze({
     adminAccounts: true,
@@ -11,6 +16,7 @@ export const API_FEATURES = Object.freeze({
     lessonCreation: true,
     lessonChanges: true,
     lessonDisputes: true,
+    lessonSettlements: LESSON_SETTLEMENTS_ENABLED,
     teacherFinance: true,
     classroom: true,
     diary: true,
@@ -25,6 +31,7 @@ export const API_FEATURES = Object.freeze({
 
 export const API = {
     login: `${NODE_API_BASE}/auth/login`,
+    logout: `${NODE_API_BASE}/auth/logout`,
     register: `${NODE_API_BASE}/auth/register`,
     verifyEmail: `${NODE_API_BASE}/auth/verify-email`,
     resendVerification: `${NODE_API_BASE}/auth/resend-verification`,

@@ -20,10 +20,6 @@
     padding: 0 var(--page-padding);
 }
 
-.desktop-scene__decor {
-  display: none;
-}
-
 @media (max-width: 1200px) {
   .desktop-scene {
     margin-top: 44px;

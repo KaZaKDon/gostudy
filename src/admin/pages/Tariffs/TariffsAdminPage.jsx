@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { useAdminAuth } from '../../auth/useAdminAuth.js';
 import { tariffsApi } from '../../services/tariffsApi.js';
+import { LegacyCommissionSettings } from './LegacyCommissionSettings.jsx';
+import { LegacyMaterialSalesSettings } from './LegacyMaterialSalesSettings.jsx';
 
 import './tariffs-admin.css';
 
@@ -167,6 +169,12 @@ export function TariffsAdminPage() {
     const [isDirty, setIsDirty] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const commissionModelEnabled = Boolean(
+        (draft ?? active)?.content?.business?.enabled,
+    );
+    const materialSalesEnabled = Boolean(
+        (draft ?? active)?.content?.materials?.sales_enabled,
+    );
 
     async function loadSettings({ preserveMessage = false } = {}) {
         setError('');
@@ -378,9 +386,16 @@ export function TariffsAdminPage() {
 
                 <section className="tariffs-admin-card tariffs-admin-card--individual">
                     <header>
-                        <span>Подписочная модель</span>
-                        <h3>Физическое лицо</h3>
+                        <span>Действующая модель</span>
+                        <h3>Единая подписка для всех преподавателей</h3>
                     </header>
+
+                    <p className="tariffs-admin-card__hint">
+                        Условия применяются к физическим лицам, самозанятым
+                        и ИП. Стоимость основного тарифа и дополнительных
+                        блоков учеников можно менять здесь и публиковать
+                        отдельной редакцией.
+                    </p>
 
                     <div className="tariffs-admin-fields-grid">
                         <label className="tariffs-admin-field">
@@ -400,7 +415,7 @@ export function TariffsAdminPage() {
 
                     <div className="tariffs-admin-numbers-grid">
                         <label className="tariffs-admin-field">
-                            <span>Стоимость, ₽</span>
+                            <span>Стоимость тарифа, ₽</span>
                             <input type="number" name="individual_price_rubles" value={form.individual_price_rubles} onChange={updateField} min="0" step="1" disabled={!canEdit || isSaving || isPublishing} required />
                         </label>
                         <label className="tariffs-admin-field">
@@ -432,58 +447,30 @@ export function TariffsAdminPage() {
                     </label>
                 </section>
 
-                <section className="tariffs-admin-card tariffs-admin-card--business">
-                    <header>
-                        <span>Комиссионная модель</span>
-                        <h3>Самозанятый / ИП</h3>
-                    </header>
-
-                    <div className="tariffs-admin-fields-grid">
-                        <label className="tariffs-admin-field">
-                            <span>Название</span>
-                            <input name="business_title" value={form.business_title} onChange={updateField} maxLength={100} disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                        <label className="tariffs-admin-field">
-                            <span>Метка</span>
-                            <input name="business_badge" value={form.business_badge} onChange={updateField} maxLength={80} disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                    </div>
-
-                    <label className="tariffs-admin-field">
-                        <span>Описание</span>
-                        <textarea name="business_summary" value={form.business_summary} onChange={updateField} rows={3} maxLength={500} disabled={!canEdit || isSaving || isPublishing} required />
-                    </label>
-
-                    <div className="tariffs-admin-numbers-grid tariffs-admin-numbers-grid--business">
-                        <label className="tariffs-admin-field">
-                            <span>Комиссия, %</span>
-                            <input type="number" name="business_commission_percent" value={form.business_commission_percent} onChange={updateField} min="0" max="100" step="1" disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                        <label className="tariffs-admin-field">
-                            <span>Минимальная выплата, ₽</span>
-                            <input type="number" name="business_minimum_payout_rubles" value={form.business_minimum_payout_rubles} onChange={updateField} min="0" step="1" disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                        <label className="tariffs-admin-field">
-                            <span>Периодичность выплаты</span>
-                            <input name="business_payout_frequency" value={form.business_payout_frequency} onChange={updateField} maxLength={100} disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                    </div>
-
-                    <label className="tariffs-admin-field">
-                        <span>Правило начисления и выплаты</span>
-                        <textarea name="business_settlement_text" value={form.business_settlement_text} onChange={updateField} rows={4} maxLength={700} disabled={!canEdit || isSaving || isPublishing} required />
-                    </label>
-
-                    <label className="tariffs-admin-field">
-                        <span>Преимущества — по одному в строке</span>
-                        <textarea name="business_features_text" value={form.business_features_text} onChange={updateField} rows={6} disabled={!canEdit || isSaving || isPublishing} required />
-                    </label>
-                </section>
+                {commissionModelEnabled ? (
+                    <LegacyCommissionSettings
+                        form={form}
+                        onChange={updateField}
+                        disabled={!canEdit || isSaving || isPublishing}
+                    />
+                ) : (
+                    <aside className="tariffs-admin-model-status" role="status">
+                        <div>
+                            <span>Комиссионная модель по урокам</span>
+                            <strong>Отключена</strong>
+                        </div>
+                        <p>
+                            Код, настройки и ранее созданные финансовые записи
+                            сохранены. Новые начисления по урокам не создаются,
+                            пока серверный переключатель выключен.
+                        </p>
+                    </aside>
+                )}
 
                 <section className="tariffs-admin-card tariffs-admin-card--materials">
                     <header>
                         <span>Материалы и каталог</span>
-                        <h3>Публикация и продажа</h3>
+                        <h3>Личная библиотека и бесплатная публикация</h3>
                     </header>
 
                     <div className="tariffs-admin-fields-grid">
@@ -497,23 +484,6 @@ export function TariffsAdminPage() {
                         </label>
                     </div>
 
-                    <div className="tariffs-admin-materials-grid">
-                        <label className="tariffs-admin-field">
-                            <span>Комиссия с продажи, %</span>
-                            <input type="number" name="materials_sale_commission_percent" value={form.materials_sale_commission_percent} onChange={updateField} min="0" max="100" step="1" disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                        <div className="tariffs-admin-calculated">
-                            <span>Автор получает</span>
-                            <strong>
-                                {Math.max(0, 100 - Number(form.materials_sale_commission_percent || 0))}%
-                            </strong>
-                        </div>
-                        <label className="tariffs-admin-field">
-                            <span>Период возврата, дней</span>
-                            <input type="number" name="materials_payout_hold_days" value={form.materials_payout_hold_days} onChange={updateField} min="0" max="366" step="1" disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                    </div>
-
                     <div className="tariffs-admin-fields-grid">
                         <label className="tariffs-admin-field">
                             <span>Личная библиотека и свои ученики</span>
@@ -523,26 +493,28 @@ export function TariffsAdminPage() {
                             <span>Бесплатная публикация в каталоге</span>
                             <textarea name="materials_free_catalog_text" value={form.materials_free_catalog_text} onChange={updateField} rows={4} maxLength={700} disabled={!canEdit || isSaving || isPublishing} required />
                         </label>
-                        <label className="tariffs-admin-field">
-                            <span>Продажа для физического лица</span>
-                            <textarea name="materials_individual_sales_text" value={form.materials_individual_sales_text} onChange={updateField} rows={4} maxLength={700} disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
-                        <label className="tariffs-admin-field">
-                            <span>Продажа для самозанятого / ИП</span>
-                            <textarea name="materials_business_sales_text" value={form.materials_business_sales_text} onChange={updateField} rows={4} maxLength={700} disabled={!canEdit || isSaving || isPublishing} required />
-                        </label>
                     </div>
-
-                    <label className="tariffs-admin-field">
-                        <span>Личная и Профессиональная лицензии</span>
-                        <textarea name="materials_licenses_text" value={form.materials_licenses_text} onChange={updateField} rows={3} maxLength={700} disabled={!canEdit || isSaving || isPublishing} required />
-                    </label>
-
-                    <label className="tariffs-admin-field">
-                        <span>Модерация, права автора и выплата</span>
-                        <textarea name="materials_moderation_text" value={form.materials_moderation_text} onChange={updateField} rows={4} maxLength={1000} disabled={!canEdit || isSaving || isPublishing} required />
-                    </label>
                 </section>
+
+                {materialSalesEnabled ? (
+                    <LegacyMaterialSalesSettings
+                        form={form}
+                        onChange={updateField}
+                        disabled={!canEdit || isSaving || isPublishing}
+                    />
+                ) : (
+                    <aside className="tariffs-admin-model-status" role="status">
+                        <div>
+                            <span>Продажа материалов через GoStudy</span>
+                            <strong>Отключена</strong>
+                        </div>
+                        <p>
+                            Настройки комиссии и выплат сохранены для будущей
+                            версии, но не публикуются и не участвуют в расчётах
+                            первой версии платформы.
+                        </p>
+                    </aside>
+                )}
 
                 <section className="tariffs-admin-card">
                     <label className="tariffs-admin-field">

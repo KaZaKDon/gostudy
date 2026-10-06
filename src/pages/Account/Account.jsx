@@ -25,12 +25,28 @@ import {
     STUDENT_NAVIGATION,
     TEACHER_NAVIGATION,
 } from './data/accountNavigation.js';
+import {
+    clearUserSession,
+    logoutUser,
+} from '../../auth/userSession.js';
 
 import { createAccountIdentity } from './utils/accountIdentity.js';
 
 import { studentPayments } from './data/demoAccountData.js';
 
 import './Account.css';
+
+function getAccountNavigation(role) {
+    if (role === 'teacher') {
+        return TEACHER_NAVIGATION;
+    }
+
+    if (role === 'parent') {
+        return PARENT_NAVIGATION;
+    }
+
+    return STUDENT_NAVIGATION;
+}
 
 export function Account() {
     const navigate = useNavigate();
@@ -40,6 +56,7 @@ export function Account() {
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [lessonCreation, setLessonCreation] = useState(null);
     const [scheduleRevision, setScheduleRevision] = useState(0);
     const [scheduleFocusDate, setScheduleFocusDate] = useState(null);
@@ -72,6 +89,7 @@ export function Account() {
     const teacherRatingController = useTeacherRatingSummary(
         authData?.user?.role === 'teacher',
     );
+    const requestedSectionParam = searchParams.get('section');
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -91,8 +109,7 @@ export function Account() {
                 const result = await response.json();
 
                 if (!response.ok || !result.success) {
-                    sessionStorage.removeItem('gostudy_token');
-                    sessionStorage.removeItem('gostudy_user');
+                    clearUserSession();
                     navigate('/login');
                     return;
                 }
@@ -118,6 +135,26 @@ export function Account() {
         loadProfile();
     }, [navigate]);
 
+    useEffect(() => {
+        const role = authData?.user?.role;
+
+        if (!role || !requestedSectionParam) {
+            return;
+        }
+
+        const sectionIds = new Set([
+            ...getAccountNavigation(role).map((item) => item.id),
+            ...(role === 'student' ? ['findTeacher'] : []),
+        ]);
+
+        if (!sectionIds.has(requestedSectionParam)) {
+            setSearchParams(
+                { section: getAccountNavigation(role)[0].id },
+                { replace: true },
+            );
+        }
+    }, [authData, requestedSectionParam, setSearchParams]);
+
     if (isCheckingAuth) {
         return (
             <main className="account account--student">
@@ -134,12 +171,7 @@ export function Account() {
 
     const role = authData.user.role;
 
-    const baseNavigation =
-        role === 'teacher'
-            ? TEACHER_NAVIGATION
-            : role === 'parent'
-                ? PARENT_NAVIGATION
-                : STUDENT_NAVIGATION;
+    const baseNavigation = getAccountNavigation(role);
 
     const navigation = baseNavigation.map((item) => {
         if (item.id === 'messages') {
@@ -220,6 +252,22 @@ export function Account() {
         );
 
         setIsSidebarOpen(false);
+    };
+
+    const handleLogout = async () => {
+        if (isLoggingOut) {
+            return;
+        }
+
+        setIsLoggingOut(true);
+
+        try {
+            await logoutUser();
+        } catch {
+            // Local session data is cleared even if the API is unavailable.
+        } finally {
+            navigate('/', { replace: true });
+        }
     };
 
     const handleOpenLessonCreation = (student = null) => {
@@ -388,6 +436,8 @@ export function Account() {
                             : 'offers'
                     }
                     onSelectSection={handleSelectSection}
+                    onLogout={handleLogout}
+                    isLoggingOut={isLoggingOut}
                     isOpen={isSidebarOpen}
                 />
 

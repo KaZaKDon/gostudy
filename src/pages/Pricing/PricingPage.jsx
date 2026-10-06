@@ -1,9 +1,7 @@
 import {
     BadgeRussianRuble,
     BookOpen,
-    CalendarClock,
     Check,
-    History,
     Library,
     ReceiptText,
     RefreshCcw,
@@ -17,6 +15,7 @@ import { Link } from 'react-router-dom';
 import { API } from '../../api/api.js';
 import { Footer } from '../../components/Footer/Footer.jsx';
 import { Header } from '../../components/Header/Header.jsx';
+import { CommissionTariffCard } from './components/CommissionTariffCard.jsx';
 
 import './PricingPage.css';
 
@@ -42,14 +41,20 @@ function formatEffectiveDate(value) {
     }).format(date);
 }
 
+function formatBillingPeriod(days) {
+    return Number(days) === 30 ? '1 месяц' : `${days} дней`;
+}
+
 function isTariffContent(content) {
     return Boolean(
         content
         && content.individual
         && content.business
+        && content.lesson_payments
         && content.materials
         && Array.isArray(content.individual.features)
         && Array.isArray(content.business.features)
+        && typeof content.materials.sales_enabled === 'boolean'
         && Number.isFinite(content.materials.sale_commission_percent)
         && Number.isFinite(content.materials.payout_hold_days),
     );
@@ -119,6 +124,7 @@ export function PricingPage() {
     const content = publication?.content;
     const individual = content?.individual;
     const business = content?.business;
+    const lessonPayments = content?.lesson_payments;
     const materials = content?.materials;
     const effectiveDate = formatEffectiveDate(publication?.effective_from);
 
@@ -132,10 +138,21 @@ export function PricingPage() {
                 </Link>
 
                 {isLoading && (
-                    <section className="pricing-state" role="status">
-                        <ReceiptText aria-hidden="true" />
-                        <h1>Загружаем действующие тарифы…</h1>
-                    </section>
+                    <>
+                        <header className="pricing-heading">
+                            <p>GoStudy · прозрачные условия</p>
+                            <h1>Тариф для преподавателей</h1>
+                            <span>
+                                Единая месячная подписка открывает доступ
+                                к рабочим функциям платформы. Актуальная
+                                стоимость загружается с сервера GoStudy.
+                            </span>
+                        </header>
+                        <section className="pricing-state" role="status">
+                            <ReceiptText aria-hidden="true" />
+                            <p>Загружаем действующую стоимость…</p>
+                        </section>
+                    </>
                 )}
 
                 {!isLoading && error && (
@@ -149,7 +166,7 @@ export function PricingPage() {
                     </section>
                 )}
 
-                {!isLoading && content && individual && business && materials && (
+                {!isLoading && content && individual && business && lessonPayments && materials && (
                     <>
                         <header className="pricing-heading">
                             <p>GoStudy · прозрачные условия</p>
@@ -157,7 +174,10 @@ export function PricingPage() {
                             <span>{content.page_lead}</span>
                         </header>
 
-                        <section className="pricing-book" aria-label="Тарифы преподавателей">
+                        <section
+                            className={`pricing-book ${lessonPayments.enabled ? '' : 'pricing-book--single'}`}
+                            aria-label="Тариф преподавателя"
+                        >
                             <article className="pricing-receipt pricing-receipt--individual">
                                 <div className="pricing-receipt__topline">
                                     <span>{individual.badge}</span>
@@ -171,7 +191,7 @@ export function PricingPage() {
 
                                 <div className="pricing-receipt__price">
                                     <strong>{formatRubles(individual.price_rubles)}</strong>
-                                    <span>за {individual.period_days} дней</span>
+                                    <span>за {formatBillingPeriod(individual.period_days)}</span>
                                 </div>
 
                                 <div className="pricing-receipt__formula">
@@ -201,7 +221,14 @@ export function PricingPage() {
 
                                 <div className="pricing-receipt__note">
                                     <RefreshCcw aria-hidden="true" />
-                                    <p>{individual.recalculation_text}</p>
+                                    <div>
+                                        <p>
+                                            Подписка автоматически продлевается
+                                            каждый месяц до отключения
+                                            автопродления в личном кабинете.
+                                        </p>
+                                        <span>{individual.recalculation_text}</span>
+                                    </div>
                                 </div>
 
                                 <Link to="/register?role=teacher">
@@ -209,54 +236,19 @@ export function PricingPage() {
                                 </Link>
                             </article>
 
-                            <article className="pricing-receipt pricing-receipt--business">
-                                <div className="pricing-receipt__topline">
-                                    <span>{business.badge}</span>
-                                    <BadgeRussianRuble aria-hidden="true" />
-                                </div>
+                            {lessonPayments.enabled && business.enabled && (
+                                <CommissionTariffCard tariff={business} />
+                            )}
 
-                                <h2>{business.title}</h2>
-                                <p className="pricing-receipt__summary">
-                                    {business.summary}
-                                </p>
-
-                                <div className="pricing-receipt__price">
-                                    <strong>{business.commission_percent}%</strong>
-                                    <span>комиссия GoStudy</span>
-                                </div>
-
-                                <div className="pricing-receipt__formula">
-                                    <div>
-                                        <span>Выплата</span>
-                                        <strong>{business.payout_frequency}</strong>
-                                    </div>
-                                    <div>
-                                        <span>Минимальная сумма</span>
-                                        <strong>
-                                            {formatRubles(business.minimum_payout_rubles)}
-                                        </strong>
-                                    </div>
-                                </div>
-
-                                <ul className="pricing-receipt__features">
-                                    {business.features.map((feature) => (
-                                        <li key={feature}>
-                                            <Check aria-hidden="true" />
-                                            <span>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <div className="pricing-receipt__note">
-                                    <CalendarClock aria-hidden="true" />
-                                    <p>{business.settlement_text}</p>
-                                </div>
-
-                                <Link to="/register?role=teacher">
-                                    Зарегистрироваться
-                                </Link>
-                            </article>
                         </section>
+
+                        <aside className="pricing-direct-payment">
+                            <BadgeRussianRuble aria-hidden="true" />
+                            <div>
+                                <p>{lessonPayments.title}</p>
+                                <span>{lessonPayments.notice}</span>
+                            </div>
+                        </aside>
 
                         <section className="pricing-materials" aria-labelledby="pricing-materials-title">
                             <div className="pricing-materials__heading">
@@ -270,11 +262,11 @@ export function PricingPage() {
                                 </div>
                             </div>
 
-                            <div className="pricing-materials__grid">
+                            <div className={`pricing-materials__grid${materials.sales_enabled ? '' : ' pricing-materials__grid--single'}`}>
                                 <article className="pricing-materials__card pricing-materials__card--included">
                                     <div className="pricing-materials__card-title">
                                         <Library aria-hidden="true" />
-                                        <h3>Входит в оба тарифа</h3>
+                                        <h3>Входит в подписку</h3>
                                     </div>
                                     <ul>
                                         <li>
@@ -288,105 +280,51 @@ export function PricingPage() {
                                     </ul>
                                 </article>
 
-                                <article className="pricing-materials__card pricing-materials__card--sales">
-                                    <div className="pricing-materials__card-title">
-                                        <Store aria-hidden="true" />
-                                        <h3>Продажа через каталог</h3>
-                                    </div>
-                                    <p>{materials.business_sales_text}</p>
-                                    <div className="pricing-materials__figures">
-                                        <div>
-                                            <strong>{materials.sale_commission_percent}%</strong>
-                                            <span>комиссия GoStudy</span>
+                                {materials.sales_enabled && (
+                                    <article className="pricing-materials__card pricing-materials__card--sales">
+                                        <div className="pricing-materials__card-title">
+                                            <Store aria-hidden="true" />
+                                            <h3>Продажа через каталог</h3>
                                         </div>
-                                        <div>
-                                            <strong>
-                                                {Math.max(0, 100 - materials.sale_commission_percent)}%
-                                            </strong>
-                                            <span>получает автор</span>
+                                        <p>{materials.business_sales_text}</p>
+                                        <div className="pricing-materials__figures">
+                                            <div>
+                                                <strong>{materials.sale_commission_percent}%</strong>
+                                                <span>комиссия GoStudy</span>
+                                            </div>
+                                            <div>
+                                                <strong>
+                                                    {Math.max(0, 100 - materials.sale_commission_percent)}%
+                                                </strong>
+                                                <span>получает автор</span>
+                                            </div>
+                                            <div>
+                                                <strong>{materials.payout_hold_days} дней</strong>
+                                                <span>период возврата</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <strong>{materials.payout_hold_days} дней</strong>
-                                            <span>период возврата</span>
-                                        </div>
-                                    </div>
-                                    <p className="pricing-materials__restriction">
-                                        {materials.individual_sales_text}
-                                    </p>
-                                </article>
+                                        <p className="pricing-materials__restriction">
+                                            {materials.individual_sales_text}
+                                        </p>
+                                    </article>
+                                )}
                             </div>
 
                             <div className="pricing-materials__details">
                                 <ShieldCheck aria-hidden="true" />
                                 <div>
-                                    <p>{materials.licenses_text}</p>
-                                    <span>{materials.moderation_text}</span>
+                                    {materials.sales_enabled ? (
+                                        <>
+                                            <p>{materials.licenses_text}</p>
+                                            <span>{materials.moderation_text}</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p>Платная продажа материалов отключена</p>
+                                            <span>{materials.sales_notice}</span>
+                                        </>
+                                    )}
                                 </div>
-                            </div>
-                        </section>
-
-                        <section className="pricing-comparison" aria-labelledby="pricing-comparison-title">
-                            <div className="pricing-comparison__heading">
-                                <History aria-hidden="true" />
-                                <div>
-                                    <p>Коротко о различиях</p>
-                                    <h2 id="pricing-comparison-title">
-                                        Как выбрать вариант
-                                    </h2>
-                                </div>
-                            </div>
-
-                            <div className="pricing-comparison__table-wrap">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Условие</th>
-                                            <th>{individual.title}</th>
-                                            <th>{business.title}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <th>Оплата GoStudy</th>
-                                            <td>
-                                                Подписка на {individual.period_days} дней
-                                            </td>
-                                            <td>
-                                                {business.commission_percent}% с операций
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Оплата занятий</th>
-                                            <td>Напрямую преподавателю</td>
-                                            <td>Через платформу</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Количество уроков</th>
-                                            <td>Не влияет на подписку</td>
-                                            <td>Учитывается по проведённым урокам</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Ученики</th>
-                                            <td>Стоимость зависит от активных учеников</td>
-                                            <td>Без абонентской платы за их количество</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Личная библиотека</th>
-                                            <td>Включена</td>
-                                            <td>Включена</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Бесплатный каталог</th>
-                                            <td>Публикация после модерации</td>
-                                            <td>Публикация после модерации</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Продажа материалов</th>
-                                            <td>Недоступна без статуса самозанятого или ИП</td>
-                                            <td>{materials.sale_commission_percent}% с продажи</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
                             </div>
                         </section>
 
@@ -399,9 +337,14 @@ export function PricingPage() {
                                     {effectiveDate ? ` действует с ${effectiveDate}` : ''}.
                                 </span>
                             </div>
-                            <Link to="/legal/tariffs">
-                                Открыть подробные условия
-                            </Link>
+                            <div className="pricing-footer-note__links">
+                                <Link to="/legal/tariffs">
+                                    Подробные условия
+                                </Link>
+                                <Link to="/payment-and-refunds">
+                                    Оплата и возврат
+                                </Link>
+                            </div>
                         </section>
                     </>
                 )}

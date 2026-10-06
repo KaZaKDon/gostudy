@@ -1,3 +1,5 @@
+import { isEmailAddress, PLATFORM_EMAIL } from './platform-email';
+
 export function validateEnvironment(
     environment: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -13,6 +15,18 @@ export function validateEnvironment(
     const rateLimitEnabledValue = String(
         environment.AUTH_RATE_LIMIT_ENABLED ?? 'true',
     ).trim().toLowerCase();
+    const lessonSettlementsEnabledValue = String(
+        environment.LESSON_SETTLEMENTS_ENABLED ?? 'false',
+    ).trim().toLowerCase();
+    const materialMarketplaceSalesEnabledValue = String(
+        environment.MATERIAL_MARKETPLACE_SALES_ENABLED ?? 'false',
+    ).trim().toLowerCase();
+    const mailFrom = String(
+        environment.MAIL_FROM ?? PLATFORM_EMAIL.fromAddress,
+    ).trim();
+    const supportEmail = String(
+        environment.SUPPORT_EMAIL ?? PLATFORM_EMAIL.supportAddress,
+    ).trim();
     const booleanValues: Record<string, boolean> = {
         true: true,
         '1': true,
@@ -58,6 +72,28 @@ export function validateEnvironment(
         );
     }
 
+    if (!(lessonSettlementsEnabledValue in booleanValues)) {
+        throw new Error(
+            'LESSON_SETTLEMENTS_ENABLED должен быть true или false.',
+        );
+    }
+
+    if (!(materialMarketplaceSalesEnabledValue in booleanValues)) {
+        throw new Error(
+            'MATERIAL_MARKETPLACE_SALES_ENABLED должен быть true или false.',
+        );
+    }
+
+    if (!isEmailAddress(mailFrom)) {
+        throw new Error('MAIL_FROM должен содержать корректный email.');
+    }
+
+    if (!isEmailAddress(supportEmail)) {
+        throw new Error(
+            'SUPPORT_EMAIL должен содержать корректный email.',
+        );
+    }
+
     if (
         !Number.isSafeInteger(userStorageQuotaBytes)
         || userStorageQuotaBytes < 10 * 1024 * 1024
@@ -74,6 +110,12 @@ export function validateEnvironment(
         PORT: port,
         TRUST_PROXY_HOPS: trustProxyHops,
         AUTH_RATE_LIMIT_ENABLED: booleanValues[rateLimitEnabledValue],
+        LESSON_SETTLEMENTS_ENABLED:
+            booleanValues[lessonSettlementsEnabledValue],
+        MATERIAL_MARKETPLACE_SALES_ENABLED:
+            booleanValues[materialMarketplaceSalesEnabledValue],
+        MAIL_FROM: mailFrom,
+        SUPPORT_EMAIL: supportEmail,
         AUTH_RATE_LIMIT_MAX_BUCKETS: rateLimitMaxBuckets,
         UPLOAD_USER_QUOTA_BYTES: userStorageQuotaBytes,
     };

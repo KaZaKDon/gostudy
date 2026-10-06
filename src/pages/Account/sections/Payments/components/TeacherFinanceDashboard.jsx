@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { DirectLessonPaymentNotice } from './DirectLessonPaymentNotice.jsx';
 import { TeacherFinanceFilters } from './TeacherFinanceFilters.jsx';
 import { TeacherFinanceList } from './TeacherFinanceList.jsx';
 import { TeacherFinanceModal } from './TeacherFinanceModal.jsx';
@@ -8,6 +9,23 @@ import { TeacherFinanceSummary } from './TeacherFinanceSummary.jsx';
 export function TeacherFinanceDashboard({ controller }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const { data } = controller;
+
+    if (controller.isLoading && data.enabled === null) {
+        return (
+            <p className="teacher-finance-message">
+                Загружаем условия подписки…
+            </p>
+        );
+    }
+
+    if (data.enabled === false) {
+        return (
+            <DirectLessonPaymentNotice
+                notice={data.notice}
+                subscription={data.subscription}
+            />
+        );
+    }
 
     return (
         <>

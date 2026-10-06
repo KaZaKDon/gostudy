@@ -26,6 +26,7 @@ import { SecurityActionDto } from './dto/security-action.dto';
 import { PasswordRecoveryService } from './password-recovery.service';
 import { getSessionToken } from './session-token';
 import { SessionAuthGuard } from './session-auth.guard';
+import { SessionAuthService } from './session-auth.service';
 import type { SessionUser } from './session-user';
 import { SecurityService } from './security.service';
 
@@ -36,6 +37,7 @@ export class AuthController {
         private readonly authService: AuthService,
         private readonly security: SecurityService,
         private readonly passwordRecovery: PasswordRecoveryService,
+        private readonly sessionAuth: SessionAuthService,
     ) {}
 
     @Post('register')
@@ -61,6 +63,20 @@ export class AuthController {
             input,
             getRequestMetadata(request),
         );
+    }
+
+    @Post('logout')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(SessionAuthGuard)
+    async logout(
+        @Req() request: Request,
+    ): Promise<Record<string, unknown>> {
+        await this.sessionAuth.revoke(getSessionToken(request));
+
+        return {
+            success: true,
+            message: 'Выход выполнен',
+        };
     }
 
     @Get('verify-email')

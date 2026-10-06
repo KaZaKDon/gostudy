@@ -1,89 +1,148 @@
-const SITE_URL = 'https://gostudyonline.ru';
-const DEFAULT_IMAGE_PATH = '/favicon/android-chrome-512x512.png';
+import { PLATFORM_IDENTITY } from '../../config/platformIdentity.js';
+
+export const SITE_URL = 'https://gostudyonline.ru';
+export const DEFAULT_IMAGE_PATH = '/images/branding/gostudy-social-card.png';
 
 const DEFAULT_DESCRIPTION = [
     'GoStudy — онлайн-платформа для поиска преподавателей, занятий',
-    'с репетиторами, домашней работы, материалов и общения учеников,',
-    'родителей и учителей.',
+    'с репетиторами, домашних заданий, учебных материалов и общения',
+    'учеников, родителей и преподавателей.',
 ].join(' ');
 
-const HOME_STRUCTURED_DATA = {
-    '@context': 'https://schema.org',
-    '@graph': [
-        {
-            '@type': 'Organization',
-            '@id': `${SITE_URL}/#organization`,
-            name: 'GoStudy',
-            url: `${SITE_URL}/`,
-            logo: `${SITE_URL}${DEFAULT_IMAGE_PATH}`,
-        },
-        {
-            '@type': 'WebSite',
-            '@id': `${SITE_URL}/#website`,
-            url: `${SITE_URL}/`,
-            name: 'GoStudy',
-            inLanguage: 'ru-RU',
-            publisher: {
-                '@id': `${SITE_URL}/#organization`,
-            },
-        },
-    ],
-};
-
-const PUBLIC_ROUTES = {
+export const PUBLIC_ROUTES = Object.freeze({
     '/': {
+        label: 'Главная',
         title: 'GoStudy — онлайн-платформа для учеников и преподавателей',
         description: DEFAULT_DESCRIPTION,
-        structuredData: HOME_STRUCTURED_DATA,
+        indexable: true,
+        renderKey: 'home',
+        sourceEntry: 'src/pages/Home/Home.jsx',
     },
     '/about': {
+        label: 'О платформе',
         title: 'О платформе GoStudy',
         description: 'Как GoStudy помогает ученикам, родителям и преподавателям организовать онлайн-обучение.',
-        robots: 'noindex, nofollow, noarchive',
+        indexable: true,
+        renderKey: 'about',
+        sourceEntry: 'src/pages/About/AboutPage.jsx',
     },
     '/students': {
+        label: 'Ученикам',
         title: 'Ученикам — занятия и преподаватели в GoStudy',
         description: 'Поиск преподавателя, расписание, онлайн-занятия, домашние задания и результаты ученика в GoStudy.',
-        robots: 'noindex, nofollow, noarchive',
+        indexable: true,
+        renderKey: 'students',
+        sourceEntry: 'src/pages/Students/StudentsPage.jsx',
     },
     '/teachers': {
+        label: 'Преподавателям',
         title: 'Преподавателям — инструменты для работы в GoStudy',
-        description: 'Ученики, расписание, онлайн-класс, задания, материалы и расчёты преподавателя в GoStudy.',
-        robots: 'noindex, nofollow, noarchive',
+        description: 'Ученики, расписание, онлайн-класс, задания и материалы преподавателя в GoStudy.',
+        indexable: true,
+        renderKey: 'teachers',
+        sourceEntry: 'src/pages/Teachers/TeachersPage.jsx',
     },
     '/pricing': {
+        label: 'Тарифы',
         title: 'Тарифы для преподавателей — GoStudy',
-        description: 'Условия подписочной и комиссионной моделей работы преподавателей на платформе GoStudy.',
-        robots: 'noindex, nofollow, noarchive',
+        description: 'Условия единой месячной подписки для преподавателей на платформе GoStudy.',
+        indexable: true,
+        renderKey: 'pricing',
+        sourceEntry: 'src/pages/Pricing/PricingPage.jsx',
+    },
+    '/payment-and-refunds': {
+        label: 'Оплата и возврат',
+        title: 'Оплата, получение доступа и возврат — GoStudy',
+        description: 'Оплата цифровой подписки GoStudy, активация доступа, автоматическое продление, отмена и порядок возврата денежных средств.',
+        indexable: true,
+        renderKey: 'paymentAndRefunds',
+        sourceEntry: 'src/pages/CommercialInfo/PaymentAndRefundsPage.jsx',
+    },
+    '/requisites': {
+        label: 'Реквизиты',
+        title: 'Реквизиты — GoStudy',
+        description: 'Регистрационные сведения и контакты оператора платформы GoStudy.',
+        indexable: true,
+        renderKey: 'requisites',
+        sourceEntry: 'src/pages/CommercialInfo/RequisitesPage.jsx',
+        schemaType: 'AboutPage',
+    },
+    '/support': {
+        label: 'Поддержка',
+        title: 'Поддержка — GoStudy',
+        description: 'Контакты поддержки GoStudy по вопросам аккаунта, подписки, платежей и работы платформы.',
+        indexable: true,
+        renderKey: 'support',
+        sourceEntry: 'src/pages/CommercialInfo/SupportPage.jsx',
+        schemaType: 'ContactPage',
+    },
+    '/legal/offer': {
+        label: 'Публичная оферта',
+        title: 'Публичная оферта на подписку — GoStudy',
+        description: 'Условия приобретения месячной подписки на доступ к функциям платформы GoStudy.',
+        renderKey: 'legal:offer',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
     },
     '/legal/agreement': {
+        label: 'Пользовательское соглашение',
         title: 'Пользовательское соглашение — GoStudy',
         description: 'Пользовательское соглашение онлайн-платформы GoStudy.',
+        renderKey: 'legal:agreement',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
     },
     '/legal/privacy': {
+        label: 'Политика конфиденциальности',
         title: 'Политика конфиденциальности — GoStudy',
         description: 'Политика обработки и защиты персональных данных пользователей GoStudy.',
+        renderKey: 'legal:privacy',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
     },
     '/legal/rules': {
+        label: 'Правила платформы',
         title: 'Правила платформы — GoStudy',
         description: 'Правила безопасного общения, занятий и размещения материалов на платформе GoStudy.',
+        renderKey: 'legal:rules',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
     },
-};
+    '/legal/tariffs': {
+        label: 'Правила тарифа',
+        title: 'Правила тарифа и подписки — GoStudy',
+        description: 'Условия единой месячной подписки преподавателя на доступ к функциям GoStudy.',
+        renderKey: 'legal:tariffs',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
+    },
+    '/legal/personal-data-consent': {
+        label: 'Согласие на обработку персональных данных',
+        title: 'Согласие на обработку персональных данных — GoStudy',
+        description: 'Юридический документ онлайн-платформы GoStudy.',
+        renderKey: 'legal:personal-data-consent',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
+    },
+    '/legal/parent-child-data-consent': {
+        label: 'Согласие на обработку данных ребёнка',
+        title: 'Согласие Родителя на обработку данных ребёнка — GoStudy',
+        description: 'Юридический документ онлайн-платформы GoStudy.',
+        renderKey: 'legal:parent-child-data-consent',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
+    },
+    '/legal/marketing-consent': {
+        label: 'Согласие на сообщения',
+        title: 'Согласие на информационные и рекламные сообщения — GoStudy',
+        description: 'Юридический документ онлайн-платформы GoStudy.',
+        renderKey: 'legal:marketing-consent',
+        sourceEntry: 'src/data/legal/LegalPage.jsx',
+    },
+});
 
-const DRAFT_LEGAL_ROUTES = {
-    '/legal/personal-data-consent':
-        'Согласие на обработку персональных данных — GoStudy',
-    '/legal/parent-child-data-consent':
-        'Согласие Родителя на обработку данных ребёнка — GoStudy',
-    '/legal/marketing-consent':
-        'Согласие на информационные и рекламные сообщения — GoStudy',
-    '/legal/tariffs':
-        'Тарифы, подписки и приоритетное размещение — GoStudy',
-    '/legal/teacher-subscription-offer':
-        'Оферта на подписку преподавателя — GoStudy',
-    '/legal/ip-npd-commission-offer':
-        'Оферта для преподавателей-ИП и плательщиков НПД — GoStudy',
-};
+export const INDEXABLE_PUBLIC_ROUTES = Object.freeze(
+    Object.entries(PUBLIC_ROUTES)
+        .filter(([, route]) => route.indexable)
+        .map(([pathname]) => pathname),
+);
+
+export const PRERENDER_PUBLIC_ROUTES = Object.freeze(
+    Object.keys(PUBLIC_ROUTES),
+);
 
 const PRIVATE_ROUTES = {
     '/login': 'Вход — GoStudy',
@@ -102,6 +161,69 @@ function normalizePathname(pathname) {
     return `/${pathname.split('/').filter(Boolean).join('/')}`;
 }
 
+function createOrganizationData() {
+    return {
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
+        name: PLATFORM_IDENTITY.brandName,
+        legalName: PLATFORM_IDENTITY.legalName,
+        url: `${SITE_URL}/`,
+        logo: `${SITE_URL}/images/branding/logo-gostudy.svg`,
+        email: PLATFORM_IDENTITY.supportEmail,
+    };
+}
+
+function createStructuredData(pathname, route) {
+    const pageUrl = `${SITE_URL}${pathname === '/' ? '/' : pathname}`;
+    const graph = [
+        createOrganizationData(),
+        {
+            '@type': 'WebSite',
+            '@id': `${SITE_URL}/#website`,
+            url: `${SITE_URL}/`,
+            name: PLATFORM_IDENTITY.brandName,
+            inLanguage: 'ru-RU',
+            publisher: { '@id': `${SITE_URL}/#organization` },
+        },
+        {
+            '@type': route.schemaType ?? 'WebPage',
+            '@id': `${pageUrl}#webpage`,
+            url: pageUrl,
+            name: route.title,
+            description: route.description,
+            inLanguage: 'ru-RU',
+            isPartOf: { '@id': `${SITE_URL}/#website` },
+            about: { '@id': `${SITE_URL}/#organization` },
+        },
+    ];
+
+    if (pathname !== '/') {
+        graph.push({
+            '@type': 'BreadcrumbList',
+            '@id': `${pageUrl}#breadcrumb`,
+            itemListElement: [
+                {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: 'Главная',
+                    item: `${SITE_URL}/`,
+                },
+                {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: route.label,
+                    item: pageUrl,
+                },
+            ],
+        });
+    }
+
+    return {
+        '@context': 'https://schema.org',
+        '@graph': graph,
+    };
+}
+
 export function getSeoConfig(pathname) {
     const normalizedPathname = normalizePathname(pathname);
     const publicRoute = PUBLIC_ROUTES[normalizedPathname];
@@ -111,23 +233,13 @@ export function getSeoConfig(pathname) {
             ...publicRoute,
             canonical: `${SITE_URL}${normalizedPathname === '/' ? '/' : normalizedPathname}`,
             image: `${SITE_URL}${DEFAULT_IMAGE_PATH}`,
-            robots:
-                publicRoute.robots
-                ?? (normalizedPathname.startsWith('/legal/')
-                    ? 'noindex, nofollow, noarchive'
-                    : 'index, follow'),
-        };
-    }
-
-    const draftLegalTitle = DRAFT_LEGAL_ROUTES[normalizedPathname];
-
-    if (draftLegalTitle) {
-        return {
-            title: draftLegalTitle,
-            description: 'Проект юридического документа онлайн-платформы GoStudy.',
-            canonical: `${SITE_URL}${normalizedPathname}`,
-            image: `${SITE_URL}${DEFAULT_IMAGE_PATH}`,
-            robots: 'noindex, nofollow, noarchive',
+            imageWidth: '1200',
+            imageHeight: '630',
+            imageAlt: 'GoStudy — онлайн-платформа для обучения',
+            robots: publicRoute.indexable
+                ? 'index, follow'
+                : 'noindex, nofollow, noarchive',
+            structuredData: createStructuredData(normalizedPathname, publicRoute),
         };
     }
 
