@@ -101,7 +101,7 @@ const PLATFORM_LESSON_PAYMENTS_CONTENT: LessonPaymentsContent = {
 const LEGACY_PAGE_LEAD =
     'Два понятных варианта работы для преподавателя — с оплатой занятий через платформу или по подписке.';
 const UNIFIED_PAGE_LEAD =
-    'Единая месячная подписка для всех преподавателей. Оплата занятий производится напрямую между учеником и преподавателем.';
+    'Единая подписка на 30 дней для всех преподавателей. Оплата занятий производится напрямую между учеником и преподавателем.';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);

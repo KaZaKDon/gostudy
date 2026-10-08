@@ -7,7 +7,7 @@
       "label": "Публичная оферта на подписку GoStudy",
       "title": "Публичная оферта на подписку GoStudy",
       "path": "/legal/offer",
-      "version": "1.1",
+      "version": "1.2",
       "status": "active",
       "file": "platform-subscription-offer.md"
     },
@@ -77,7 +77,7 @@
       "label": "Правила тарифа и подписки",
       "title": "Правила тарифа и подписки",
       "path": "/legal/tariffs",
-      "version": "2.1",
+      "version": "2.2",
       "status": "active",
       "file": "tariffs.md"
     },

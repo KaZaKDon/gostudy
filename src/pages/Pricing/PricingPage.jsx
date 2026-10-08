@@ -42,7 +42,7 @@ function formatEffectiveDate(value) {
 }
 
 function formatBillingPeriod(days) {
-    return Number(days) === 30 ? '1 месяц' : `${days} дней`;
+    return `${days} дней`;
 }
 
 function isTariffContent(content) {
@@ -143,7 +143,7 @@ export function PricingPage() {
                             <p>GoStudy · прозрачные условия</p>
                             <h1>Тариф для преподавателей</h1>
                             <span>
-                                Единая месячная подписка открывает доступ
+                                Единая подписка на 30 дней открывает доступ
                                 к рабочим функциям платформы. Актуальная
                                 стоимость загружается с сервера GoStudy.
                             </span>
@@ -224,7 +224,7 @@ export function PricingPage() {
                                     <div>
                                         <p>
                                             Подписка автоматически продлевается
-                                            каждый месяц до отключения
+                                            каждые {formatBillingPeriod(individual.period_days)} до отключения
                                             автопродления в личном кабинете.
                                         </p>
                                         <span>{individual.recalculation_text}</span>

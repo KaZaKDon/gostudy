@@ -45,7 +45,7 @@ export const PUBLIC_ROUTES = Object.freeze({
     '/pricing': {
         label: 'Тарифы',
         title: 'Тарифы для преподавателей — GoStudy',
-        description: 'Условия единой месячной подписки для преподавателей на платформе GoStudy.',
+        description: 'Условия единой подписки на 30 дней для преподавателей на платформе GoStudy.',
         indexable: true,
         renderKey: 'pricing',
         sourceEntry: 'src/pages/Pricing/PricingPage.jsx',
@@ -79,7 +79,7 @@ export const PUBLIC_ROUTES = Object.freeze({
     '/legal/offer': {
         label: 'Публичная оферта',
         title: 'Публичная оферта на подписку — GoStudy',
-        description: 'Условия приобретения месячной подписки на доступ к функциям платформы GoStudy.',
+        description: 'Условия приобретения подписки на 30 дней для доступа к функциям платформы GoStudy.',
         renderKey: 'legal:offer',
         sourceEntry: 'src/data/legal/LegalPage.jsx',
     },
@@ -107,7 +107,7 @@ export const PUBLIC_ROUTES = Object.freeze({
     '/legal/tariffs': {
         label: 'Правила тарифа',
         title: 'Правила тарифа и подписки — GoStudy',
-        description: 'Условия единой месячной подписки преподавателя на доступ к функциям GoStudy.',
+        description: 'Условия единой подписки преподавателя на 30 дней для доступа к функциям GoStudy.',
         renderKey: 'legal:tariffs',
         sourceEntry: 'src/data/legal/LegalPage.jsx',
     },
