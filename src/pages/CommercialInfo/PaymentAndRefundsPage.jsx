@@ -7,13 +7,14 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { PLATFORM_IDENTITY } from '../../config/platformIdentity.js';
+import { usePlatformIdentity } from '../../features/platform-identity/usePlatformIdentity.js';
 import {
     PublicInfoLayout,
     PublicInfoSection,
 } from './PublicInfoLayout.jsx';
 
 export function PaymentAndRefundsPage() {
+    const identity = usePlatformIdentity();
     return (
         <PublicInfoLayout
             eyebrow="GoStudy · условия расчётов"
@@ -23,8 +24,9 @@ export function PaymentAndRefundsPage() {
             <PublicInfoSection icon={CreditCard} title="Как проходит оплата" accent>
                 <ul>
                     <li>
-                        Доступ оплачивается банковской картой через
-                        интернет-эквайринг банка «Точка».
+                        Доступ оплачивается через платёжного провайдера.
+                        Доступные способы показываются на защищённой
+                        странице оплаты перед подтверждением платежа.
                     </li>
                     <li>Валюта расчётов — российский рубль (RUB).</li>
                     <li>
@@ -52,7 +54,7 @@ export function PaymentAndRefundsPage() {
                 <p>
                     Доступ к функциям выбранного тарифа активируется в учётной
                     записи GoStudy автоматически после получения подтверждения
-                    успешной оплаты от банка. Если платёж подтверждён, но доступ
+                    успешной оплаты от платёжного провайдера. Если платёж подтверждён, но доступ
                     не появился, необходимо обратиться в поддержку.
                 </p>
             </PublicInfoSection>
@@ -100,8 +102,8 @@ export function PaymentAndRefundsPage() {
             <PublicInfoSection icon={ReceiptText} title="Как обратиться">
                 <p>
                     Напишите на{' '}
-                    <a href={`mailto:${PLATFORM_IDENTITY.supportEmail}`}>
-                        {PLATFORM_IDENTITY.supportEmail}
+                    <a href={`mailto:${identity.supportEmail}`}>
+                        {identity.supportEmail}
                     </a>
                     . Укажите электронную почту аккаунта, дату и сумму платежа,
                     а также кратко опишите причину обращения. Полные данные

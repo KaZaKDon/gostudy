@@ -1,0 +1,219 @@
+{
+  "files": {
+    "src/entry-server.jsx": {
+      "before": "ea883164192d2308147e00d60c5c8263163cea2351b62ab5e38450815d87374c",
+      "after": "54707103fcdc8d3abbba50117629948d819f279551ec51e1146706fd881f13e9"
+    },
+    "src/entry-pricing-server.jsx": {
+      "before": "cc85f5e171d576238d3ab9453479d5502f5e6b47398a1d6205f3f04c634fd9aa",
+      "after": "dc3c983a98ad5ac23f5b76ece050b2cf4e161211e7d8f76f782d1b9606089557"
+    },
+    "src/app/router.jsx": {
+      "before": "5c11c122965b3442156f8efcd95c3499efc6de6851f7a91be61b71e2920f2750",
+      "after": "b446f9ca1830cc4f5dd97e8608b1bcd10991032cf972086cc5323035a60c6ee2"
+    },
+    "src/app/App.jsx": {
+      "before": "22699fffd84b3642375242b7cf0ddc556a47dbbf326c19e0bb45097266295e14",
+      "after": "179477c551869a2368bbcf1ecb7c6cc7d2adfaf370b5f359c4c01fcd8ee5d16e"
+    },
+    "src/app/RouteErrorPage.jsx": {
+      "before": null,
+      "after": "903645a9487c965b5540943cc2270106ef5dc4d5c75b323ecec78bc70e52a67a"
+    },
+    "src/config/platformIdentity.js": {
+      "before": "815f39e6b7e45f55eb958a04d07842e2449d42fa0e0cd9b75278f2b3047f094b",
+      "after": "128ce489a60fd8042f91c54d094a771b0e47e6dd39aa3967949910e431b5330c"
+    },
+    "src/admin/AdminApp.jsx": {
+      "before": "d46d0bbc3d5f85071502f1e3d3d917e26883bcb6e60cac9c2c8976bab27a4f2a",
+      "after": "dd4cbc1e1d180e786b6997d076b2521f358949748cb818b1ca9dd2b1d7c8ab3f"
+    },
+    "src/api/api.js": {
+      "before": "a581c16a5967ee3f7784020ef841a4523c768a333a02562bcb75c30cf3ece8c0",
+      "after": "0790ca1cab7c271800a237dbdadad1c1ca420a155579f6a91f5d3274b4291439"
+    },
+    "src/components/Seo/seoConfig.js": {
+      "before": "82757750998fd17e31c833955b44955fe95f4b4f87bc210a8b8b23f319d7b9e3",
+      "after": "fe2ef40b166257819e53f9c99d28829dc6390ca8648d15897be0e704d3f49e0c"
+    },
+    "src/components/Seo/SeoManager.jsx": {
+      "before": "5362ff1eb789d023d071528927f745b8df9a9e0d8315098e445cb2a54cdc3873",
+      "after": "5f2367841b39a2a3fc5e9c2e1ed49b0f550688f476dffdb470f52b7687838adc"
+    },
+    "src/components/Footer/Footer.css": {
+      "before": "7214aba450be033ece38e4025f711f64b75f75831b78e6de6fb5503a8047f3a2",
+      "after": "7a7231612aab73e869838a0e809a8e0c18c0231ede2acc2fb1492d3582d90694"
+    },
+    "src/components/Footer/Footer.jsx": {
+      "before": "e61013cdff6c1af21e4899d8c0c907f19eb3d25b6fc685605f4c6cf3f2101855",
+      "after": "07343fb1e2cb326c03e4e29300239a645a6ea6bf32ad3737a0c5d8e423b24307"
+    },
+    "src/pages/CommercialInfo/SupportPage.jsx": {
+      "before": "ff517e6bd7a31c603ffe81b2e605a5a4aecedeee2882c279835169aabd19392b",
+      "after": "b2e815d9dd264574a03cfc5f68949a71df64e0edcbfb3c48ef48f9b3d455ede6"
+    },
+    "src/pages/CommercialInfo/RequisitesPage.jsx": {
+      "before": "57f29619028b4a154552abff870564661de93fc8550aa536a95b7d5d99ccb435",
+      "after": "0793517a64f1d2168bcb282bc6dcce44ac47862e12f5fd32d01af8f1c612bb85"
+    },
+    "src/pages/CommercialInfo/PaymentAndRefundsPage.jsx": {
+      "before": "660304f77c7b4359fa9a5544d2b8bdfc284e7fdde455d8e683c08536b68d2c44",
+      "after": "3bb54cd6c422bf26c8834bfd6559030aed77b5c4ec3973921cd63b7b23f046d3"
+    },
+    "src/admin/services/platformIdentityApi.js": {
+      "before": null,
+      "after": "5caf80449aa19e6a379c81b05b0c6915803b747d10f8e97970cfccaac8fc2c25"
+    },
+    "src/admin/components/layout/AdminSidebar.jsx": {
+      "before": "8c67fd6eb267fa20e3d86c8b0fec6e81184c05c693969c626aad05430cab72ee",
+      "after": "4b6ec4fc6cb9299e8454a629c8881412d181920a2b44be52a4effede58258be8"
+    },
+    "src/admin/pages/PlatformIdentity/platform-identity.css": {
+      "before": null,
+      "after": "b9383863686cb154c28d9dfff1705df43a8f51a3b6f8538c67282939251c286f"
+    },
+    "src/admin/pages/PlatformIdentity/PlatformIdentityPage.jsx": {
+      "before": null,
+      "after": "1abca129888c76849af75ee9aea044c5c300f9e503291d39a351a31a53dd9964"
+    },
+    "src/features/platform-identity/usePlatformIdentity.js": {
+      "before": null,
+      "after": "210bb19b343fb9b0fe1b712fadc94c3bf8c579fc6031adc041dfb99b50481ece"
+    },
+    "src/features/platform-identity/identityContext.js": {
+      "before": null,
+      "after": "07e4d606c711304d162dc926ab5113c6ec429bdfa5410a19ab100a813c205c60"
+    },
+    "src/features/platform-identity/PlatformIdentityProvider.jsx": {
+      "before": null,
+      "after": "dd725dfb9d6e92284f539769e97e6c29a789696eebbabd8876637c97d97003b3"
+    },
+    "server/src/app.module.ts": {
+      "before": "6885c87c5542a2b60a93d188bc59d864e459c97b9abc70983177b2a57018f1b8",
+      "after": "9ceb96e435fe42668b8a1cf368ad654a63d257ca67d94f6d33c0fecaca9674c8"
+    },
+    "server/src/modules/platform-identity/platform-identity.service.spec.ts": {
+      "before": null,
+      "after": "bb0d9e19d860ea3333acd4bc7cab135fb0083ec62ae946e9d012462fc183a21c"
+    },
+    "server/src/modules/platform-identity/platform-identity.module.ts": {
+      "before": null,
+      "after": "4a41ec52c5cdaafc5c625df0fd65a6141dfffbbe0ecfd96b56140001105dcbcf"
+    },
+    "server/src/modules/platform-identity/platform-identity.dto.ts": {
+      "before": null,
+      "after": "cd6b56f884d0fda7cfe0a79287eff8cfa2897f1bb65c85f7a0b7daf754046a48"
+    },
+    "server/src/modules/platform-identity/platform-identity.controller.ts": {
+      "before": null,
+      "after": "f4a9ad2a59c96071438f8f29be574f7d92998c1ba1bcdfc2192a5944bdd99de6"
+    },
+    "server/src/modules/platform-identity/platform-identity.service.ts": {
+      "before": null,
+      "after": "296d5a67b5a2d9df0d498f78defbb82731a0a6d028ab1e593e5013205a460035"
+    },
+    "server/src/modules/public-pages/public-pages.controller.ts": {
+      "before": "a2afb3f04cadd8fa6d5dcd854c800dbce1a2d23c6eba22d8d810475db0ab212f",
+      "after": "136cf180e08a09c36416d9ee53bfca749d2a75a0385320ae2c4e26c88be20527"
+    },
+    "server/src/modules/public-pages/public-page-renderer.service.ts": {
+      "before": "21f2b31351bfc49107642423dbe409eedb92a803682e73980edcb34991937964",
+      "after": "56dc7a12146a8fa1d61e9fe2a0eb9f8c5886489efe28870c419fa5be79d24df1"
+    },
+    "server/src/modules/public-pages/public-pages.service.ts": {
+      "before": "3b5cb03d27cbb9f5f3043f04f5a2dcfbf6032dc735dbded1ccb345a19b889642",
+      "after": "715c1669b394c8cca37f8c3438268113d33ea9338b9d12dccede8bd0cd0fd583"
+    },
+    "server/src/modules/public-pages/public-pages.module.ts": {
+      "before": "f74d4fc7a2c6c8ec145417a48cafc1aca0c10c0d8d53a6dc29a5f283803b6bc0",
+      "after": "fffe9aabeb34ab26e72b580909ab1c2620d42585a52a186cdb9fa4bd3f584a16"
+    },
+    "server/prisma/schema.prisma": {
+      "before": "3c78710d5048e6ab2051ea71d3ee96e6398a97598f9f9e19e2f67a39d8124771",
+      "after": "7a46df3b6107ca5b55a72bc1019adf97d4f594ec8575c0630f5eb7c7f7c83aca"
+    },
+    "server/prisma/migrations/20261024200000_platform_identity/migration.sql": {
+      "before": null,
+      "after": "8e506246bfa9de7bb22539f6995df33bac02190ea67a4ad6ba6339c15b462bfd"
+    },
+    "shared/platform-identity.json": {
+      "before": null,
+      "after": "6e7f9c7972f853d2c7be7b06bcda57b60ea13f5f58983e80287eb71930b97d19"
+    },
+    "scripts/seo-renderer.test.mjs": {
+      "before": "c2850a37d8fb558ae8047d5b4bc9e09c551b288427d81b0c85faea7fa1609dbc",
+      "after": "7c393959ef47a5001319d37bebede35e88867e7a60a37c48baa5a2a8827dcd82"
+    },
+    "scripts/nginx-seo-config.test.mjs": {
+      "before": "39e1b36cac4733dcd6e40aaea5788c417f0cfae6966c2655a52096b45d5779a7",
+      "after": "3ecee1109de2c3fe59f31d06fe31ac831edf384c0ac821174349ebf0f33bc403"
+    },
+    "scripts/prerender-public-pages.mjs": {
+      "before": "445e4f882e58a968e51429b1d0247f133b44ba38519a35d48ea29aec5156911c",
+      "after": "2e930ab3e30a28fb4fe108a509b6c95b2621840d12452f3c3761bee42249ea32"
+    },
+    "deploy/install-platform-identity-patch.py": {
+      "before": null,
+      "after": "a6847dd64b24801fb489932ce0cc49aedcde10d6545c9518c25aa5329761502d"
+    },
+    "deploy/apply-platform-identity-update.sh": {
+      "before": null,
+      "after": "547da13d112d534bc730dd9f9aead2af32e108b0d993387e4ea497c20943cfd6"
+    },
+    "deploy/nginx/gostudy-seo.conf": {
+      "before": "c548afa423128fad3696ceebbc731e1a29b69f74953bc14605e67916294e4186",
+      "after": "35bf38a82b3b119de8ea295c45acad52ec683dee2dd94f5069478501e40dbfd9"
+    },
+    ".env.example": {
+      "before": "f7076916cb42d980561545bd1c3fcc6e7d099b29ad6f2dcf86edd7561326e819",
+      "after": "8eab078a8b6fc84f76f7ae625164d8c201fac313351c9b7f20ca088bd6e292ed"
+    },
+    "server/.env.example": {
+      "before": "89a96b48c21154ae29db44ae4520f3b9b8f88d9b5cf71bde9415daf8ee7f6cde",
+      "after": "145016b1e0e9ea91e470529651b60ceec20cd03b649f68db446cff43ff50522a"
+    },
+    "src/pages/Classroom/hooks/useClassroomMedia.js": {
+      "before": "1ed0a212c1b448c243bf2eaafda2ae2e0d6b086cf700b549c79ffd673bd1d4ec",
+      "after": "e37ff50141d15d0c58074d32089647d1fc3f849155594c633e86257f3de0e328"
+    },
+    "server/src/modules/classroom/classroom.module.ts": {
+      "before": "c850058ca061250b85c3ccbbaa761fc4a52bdf6a1407270f074cce92bbf773ac",
+      "after": "4f4314d72c3e687126b42ad7dd65fb872fcad7257611e86784f4d965cd0f0496"
+    },
+    "server/src/modules/classroom/classroom.service.ts": {
+      "before": "ae8f3e2903e736436fe267004cdfadea11a5f28da60ef2e08477d03580f28142",
+      "after": "cd4c2cc3a83ca3cd8c1d0b9e383c1d8078ddd7534c284d630ed5532d792a8bd6"
+    },
+    "server/src/modules/turn/turn.module.ts": {
+      "after": "61f5165ed84662024272c5d60be8b3e84c3de1e75808032360dfdaaf99f7c43e"
+    },
+    "server/src/modules/turn/turn-credentials.service.ts": {
+      "after": "1abd0b438644c35ab79278cbd456546e18c5a38e41ff3f383db95a559a3849f2"
+    },
+    "server/src/modules/turn/turn-credentials.service.spec.ts": {
+      "after": "66d4ee39e1b8757925f08cd17b4abd60a33e44def6a1a28f370085e25b938533"
+    },
+    "server/src/modules/classroom/classroom-media.controller.ts": {
+      "after": "085f91b783b53cad882043ea2169d2161f138d0406dc0d1422c6b7d35ee4b176"
+    },
+    "server/src/modules/classroom/classroom-media.controller.spec.ts": {
+      "after": "487ea6480109b8bab77cf7d768c0b92996df3c7351ec643252c46b6e331eff35"
+    },
+    "server/src/modules/classroom/classroom-media-access.spec.ts": {
+      "after": "006832cc22d2ec297dddbab6c0d7cb19631d3d13d760eb4d767b3a90a545624d"
+    },
+    "server/src/modules/classroom/classroom-media-client.spec.js": {
+      "after": "f3be18402252ebffa01ef6870a06897b0bbdc600f2320f9b9849c4c9fd6440d3"
+    },
+    "src/pages/Classroom/api/classroomMedia.js": {
+      "after": "5f7d9264ae030378e2a8163e71902d762e7f459a548f04a0e64271c339359df8"
+    },
+    "deploy/setup-turn-rest.py": {
+      "after": "467c8a09f3e3b5f17c0b19b541d3137d26ac619e0a9205f5ee8c1c05bbf0a7dc"
+    },
+    "server/scripts/check-platform-identity-http.cjs": {
+      "before": null,
+      "after": "e02a9250bb36fd27e63e0ac1bf5ede104c54e0474401d743b9e682be4cc39caf"
+    }
+  }
+}

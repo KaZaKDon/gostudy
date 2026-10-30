@@ -7,21 +7,7 @@ import {
 
 import { API } from '../../../api/api.js';
 import { apiRequest } from '../../../api/apiRequest.js';
-
-function getIceServers() {
-    const servers = [{ urls: 'stun:stun.l.google.com:19302' }];
-    const turnUrl = String(import.meta.env.VITE_WEBRTC_TURN_URL || '').trim();
-
-    if (turnUrl) {
-        servers.push({
-            urls: turnUrl,
-            username: String(import.meta.env.VITE_WEBRTC_TURN_USERNAME || ''),
-            credential: String(import.meta.env.VITE_WEBRTC_TURN_CREDENTIAL || ''),
-        });
-    }
-
-    return servers;
-}
+import { loadClassroomIceServers } from '../api/classroomMedia.js';
 
 function stopStream(stream) {
     for (const track of stream?.getTracks() || []) {
@@ -49,6 +35,8 @@ export function useClassroomMedia({
     const remoteStreamRef = useRef(null);
     const screenStreamRef = useRef(null);
     const peerRef = useRef(null);
+    const peerCreationRef = useRef(null);
+    const peerGenerationRef = useRef(0);
     const pendingCandidatesRef = useRef([]);
 
     const attachLocalVideo = useCallback((element) => {
@@ -67,7 +55,7 @@ export function useClassroomMedia({
             element.srcObject = remoteStreamRef.current;
         }
     }, []);
-    const offerInFlightRef = useRef(false);
+    const offerInFlightRef = useRef(null);
 
     const sendSignal = useCallback((signalType, payload = {}) => apiRequest(
         API.classroomMediaSignal,
@@ -82,6 +70,9 @@ export function useClassroomMedia({
     ), [lessonId]);
 
     const closePeer = useCallback(() => {
+        peerGenerationRef.current += 1;
+        peerCreationRef.current?.controller.abort();
+        peerCreationRef.current = null;
         peerRef.current?.close();
         peerRef.current = null;
         pendingCandidatesRef.current = [];
@@ -92,67 +83,95 @@ export function useClassroomMedia({
         remoteStreamRef.current = null;
     }, []);
 
-    const createPeer = useCallback(() => {
+    const createPeer = useCallback(async () => {
         if (peerRef.current) {
             return peerRef.current;
         }
-
-        const peer = new RTCPeerConnection({ iceServers: getIceServers() });
-
-        for (const track of localStreamRef.current?.getTracks() || []) {
-            peer.addTrack(track, localStreamRef.current);
+        if (peerCreationRef.current) {
+            return peerCreationRef.current.promise;
         }
 
-        if (!localStreamRef.current?.getAudioTracks().length) {
-            peer.addTransceiver('audio', { direction: 'recvonly' });
-        }
-        if (!localStreamRef.current?.getVideoTracks().length) {
-            peer.addTransceiver('video', {
-                direction: role === 'teacher' ? 'sendrecv' : 'recvonly',
-            });
-        }
+        const request = {
+            controller: new AbortController(),
+            generation: peerGenerationRef.current,
+            promise: null,
+        };
+        peerCreationRef.current = request;
+        request.promise = (async () => {
+            try {
+                const iceServers = await loadClassroomIceServers(
+                    lessonId,
+                    request.controller.signal,
+                );
+                if (
+                    request.generation !== peerGenerationRef.current
+                    || !localStreamRef.current
+                ) {
+                    return null;
+                }
 
-        peer.onicecandidate = ({ candidate }) => {
-            if (candidate) {
-                sendSignal('ice', candidate.toJSON()).catch(() => {});
+                const peer = new RTCPeerConnection({ iceServers });
+                for (const track of localStreamRef.current.getTracks()) {
+                    peer.addTrack(track, localStreamRef.current);
+                }
+                if (!localStreamRef.current.getAudioTracks().length) {
+                    peer.addTransceiver('audio', { direction: 'recvonly' });
+                }
+                if (!localStreamRef.current.getVideoTracks().length) {
+                    peer.addTransceiver('video', {
+                        direction: role === 'teacher' ? 'sendrecv' : 'recvonly',
+                    });
+                }
+
+                peer.onicecandidate = ({ candidate }) => {
+                    if (candidate) {
+                        sendSignal('ice', candidate.toJSON()).catch(() => {});
+                    }
+                };
+                peer.ontrack = ({ streams }) => {
+                    remoteStreamRef.current = streams[0] || null;
+                    if (remoteVideoRef.current && streams[0]) {
+                        remoteVideoRef.current.srcObject = streams[0];
+                    }
+                };
+                peer.onconnectionstatechange = () => {
+                    if (peer.connectionState === 'connected') {
+                        setStatus('connected');
+                    } else if (['failed', 'disconnected'].includes(peer.connectionState)) {
+                        setStatus('waiting');
+                    }
+                };
+                peerRef.current = peer;
+                return peer;
+            } catch (error) {
+                if (request.controller.signal.aborted) return null;
+                throw error;
+            } finally {
+                if (peerCreationRef.current === request) {
+                    peerCreationRef.current = null;
+                }
             }
-        };
-        peer.ontrack = ({ streams }) => {
-            remoteStreamRef.current = streams[0] || null;
-            if (remoteVideoRef.current && streams[0]) {
-                remoteVideoRef.current.srcObject = streams[0];
-            }
-        };
-        peer.onconnectionstatechange = () => {
-            if (peer.connectionState === 'connected') {
-                setStatus('connected');
-            } else if (['failed', 'disconnected'].includes(peer.connectionState)) {
-                setStatus('waiting');
-            }
-        };
-        peerRef.current = peer;
-        return peer;
-    }, [role, sendSignal]);
+        })();
+        return request.promise;
+    }, [lessonId, role, sendSignal]);
 
     const createOffer = useCallback(async () => {
-        if (!localStreamRef.current || offerInFlightRef.current) {
+        const generation = peerGenerationRef.current;
+        if (!localStreamRef.current || offerInFlightRef.current === generation) {
             return;
         }
-
-        const peer = createPeer();
-
-        if (peer.signalingState !== 'stable') {
-            return;
-        }
-
-        offerInFlightRef.current = true;
+        offerInFlightRef.current = generation;
 
         try {
+            const peer = await createPeer();
+            if (!peer || peer.signalingState !== 'stable') return;
             const offer = await peer.createOffer();
             await peer.setLocalDescription(offer);
             await sendSignal('offer', offer);
         } finally {
-            offerInFlightRef.current = false;
+            if (offerInFlightRef.current === generation) {
+                offerInFlightRef.current = null;
+            }
         }
     }, [createPeer, sendSignal]);
 
@@ -194,7 +213,8 @@ export function useClassroomMedia({
                 return;
             }
 
-            const peer = createPeer();
+            const peer = await createPeer();
+            if (!peer) return;
 
             if (signal.signal_type === 'offer') {
                 await peer.setRemoteDescription(signal.data);
@@ -356,14 +376,19 @@ export function useClassroomMedia({
         }
 
         setScreenErrorMessage('');
+        let screenStream;
 
         try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({
+            screenStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: false,
                 video: true,
             });
             const screenTrack = screenStream.getVideoTracks()[0];
-            const peer = createPeer();
+            const peer = await createPeer();
+            if (!peer) {
+                stopStream(screenStream);
+                return;
+            }
             const videoSender = peer.getTransceivers().find(
                 (transceiver) => transceiver.receiver.track.kind === 'video',
             )?.sender;
@@ -385,6 +410,7 @@ export function useClassroomMedia({
             setIsScreenSharing(true);
             await sendSignal('screen_state', { is_sharing: true });
         } catch {
+            if (screenStreamRef.current !== screenStream) stopStream(screenStream);
             setScreenErrorMessage(
                 'Не удалось начать показ экрана. Проверьте разрешение браузера.',
             );

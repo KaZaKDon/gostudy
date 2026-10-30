@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "files": {
+    ".env.example": {
+      "before": "f7076916cb42d980561545bd1c3fcc6e7d099b29ad6f2dcf86edd7561326e819",
+      "after": "8eab078a8b6fc84f76f7ae625164d8c201fac313351c9b7f20ca088bd6e292ed"
+    },
+    "server/.env.example": {
+      "before": "89a96b48c21154ae29db44ae4520f3b9b8f88d9b5cf71bde9415daf8ee7f6cde",
+      "after": "145016b1e0e9ea91e470529651b60ceec20cd03b649f68db446cff43ff50522a"
+    },
+    "src/api/api.js": {
+      "before": "bf94bc082dc3f2efbd6f194b9859cb0625eb4abc800cc84201f74f57a3f14c3e",
+      "after": "a581c16a5967ee3f7784020ef841a4523c768a333a02562bcb75c30cf3ece8c0"
+    },
+    "src/pages/Classroom/hooks/useClassroomMedia.js": {
+      "before": "1ed0a212c1b448c243bf2eaafda2ae2e0d6b086cf700b549c79ffd673bd1d4ec",
+      "after": "e37ff50141d15d0c58074d32089647d1fc3f849155594c633e86257f3de0e328"
+    },
+    "server/src/modules/classroom/classroom.module.ts": {
+      "before": "c850058ca061250b85c3ccbbaa761fc4a52bdf6a1407270f074cce92bbf773ac",
+      "after": "4f4314d72c3e687126b42ad7dd65fb872fcad7257611e86784f4d965cd0f0496"
+    },
+    "server/src/modules/classroom/classroom.service.ts": {
+      "before": "ae8f3e2903e736436fe267004cdfadea11a5f28da60ef2e08477d03580f28142",
+      "after": "cd4c2cc3a83ca3cd8c1d0b9e383c1d8078ddd7534c284d630ed5532d792a8bd6"
+    },
+    "server/src/modules/turn/turn.module.ts": {
+      "after": "61f5165ed84662024272c5d60be8b3e84c3de1e75808032360dfdaaf99f7c43e"
+    },
+    "server/src/modules/turn/turn-credentials.service.ts": {
+      "after": "1abd0b438644c35ab79278cbd456546e18c5a38e41ff3f383db95a559a3849f2"
+    },
+    "server/src/modules/turn/turn-credentials.service.spec.ts": {
+      "after": "66d4ee39e1b8757925f08cd17b4abd60a33e44def6a1a28f370085e25b938533"
+    },
+    "server/src/modules/classroom/classroom-media.controller.ts": {
+      "after": "085f91b783b53cad882043ea2169d2161f138d0406dc0d1422c6b7d35ee4b176"
+    },
+    "server/src/modules/classroom/classroom-media.controller.spec.ts": {
+      "after": "487ea6480109b8bab77cf7d768c0b92996df3c7351ec643252c46b6e331eff35"
+    },
+    "server/src/modules/classroom/classroom-media-access.spec.ts": {
+      "after": "006832cc22d2ec297dddbab6c0d7cb19631d3d13d760eb4d767b3a90a545624d"
+    },
+    "server/src/modules/classroom/classroom-media-client.spec.js": {
+      "after": "f3be18402252ebffa01ef6870a06897b0bbdc600f2320f9b9849c4c9fd6440d3"
+    },
+    "src/pages/Classroom/api/classroomMedia.js": {
+      "after": "5f7d9264ae030378e2a8163e71902d762e7f459a548f04a0e64271c339359df8"
+    },
+    "deploy/setup-turn-rest.py": {
+      "after": "467c8a09f3e3b5f17c0b19b541d3137d26ac619e0a9205f5ee8c1c05bbf0a7dc"
+    },
+    "deploy/install-turn-rest-patch.py": {
+      "after": "20df44d2e649534f1c7f38f448ed6ae26707298e318ef8666e2faa45895e13f0"
+    }
+  }
+}

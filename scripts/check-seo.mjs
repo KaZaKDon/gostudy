@@ -1,6 +1,7 @@
 import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 import {
     getSeoConfig,
@@ -9,6 +10,7 @@ import {
     PUBLIC_ROUTES,
     SITE_URL,
 } from '../src/components/Seo/seoConfig.js';
+import { PLATFORM_IDENTITY } from '../src/config/platformIdentity.js';
 
 const projectRoot = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -87,6 +89,15 @@ async function checkBuiltPages() {
             `В HTML ${pathname} неверная директива robots`,
         );
 
+        if (pathname.startsWith('/legal/')) {
+            check(/<h1(?:\s|>)/i.test(html), `В документе ${pathname} отсутствует полный HTML`);
+            check(!html.includes('Загружаем документ'), `Документ ${pathname} остался загрузчиком`);
+        }
+
+        if (['/', '/support', '/requisites'].includes(pathname)) {
+            check(html.includes(PLATFORM_IDENTITY.supportPhoneHref), `В ${pathname} отсутствует телефон`);
+        }
+
         if (PUBLIC_ROUTES[pathname].indexable) {
             check(
                 /<h1(?:\s|>)/i.test(html),
@@ -98,6 +109,15 @@ async function checkBuiltPages() {
             );
         }
     }
+
+    const spaHtml = await readFile(path.join(distRoot, 'spa.html'), 'utf8');
+    check(/name="robots" content="noindex/.test(spaHtml), 'SPA-шаблон не закрыт noindex');
+    check(!/rel="canonical"/.test(spaHtml), 'SPA-шаблон не должен ссылаться canonical на главную');
+    check(!spaHtml.includes('ПОШЛИ УЧИТЬСЯ'), 'SPA-шаблон содержит главную вместо служебной оболочки');
+    const errorHtml = await readFile(path.join(distRoot, '404.html'), 'utf8');
+    check(errorHtml.includes('Страница не найдена'), 'Не создана настоящая 404-страница');
+    check(/name="robots" content="noindex/.test(errorHtml), '404-страница не закрыта noindex');
+    check(await fileExists(path.join(projectRoot, 'server/public-pages-renderer/renderer.cjs')), 'Не собран серверный renderer тарифа');
 }
 
 async function main() {
@@ -128,6 +148,8 @@ async function main() {
         robots.includes(`Sitemap: ${SITE_URL}/sitemap.xml`),
         'robots.txt должен ссылаться на sitemap.xml',
     );
+    check(!/Disallow:\s*\/(?:login|register|account|admin|classroom|verify-email|profile-start|password-reset)/.test(robots),
+        'robots.txt мешает чтению noindex служебных HTML-страниц');
     check(
         JSON.stringify(actualSitemapUrls) === JSON.stringify(expectedSitemapUrls),
         'sitemap.xml не совпадает с единым реестром индексируемых страниц',
@@ -180,6 +202,11 @@ async function main() {
             `SEO check failed:\n- ${errors.join('\n- ')}`,
         );
     }
+
+    execFileSync(process.execPath, [
+        '--test', path.join(projectRoot, 'scripts/seo-renderer.test.mjs'),
+        path.join(projectRoot, 'scripts/nginx-seo-config.test.mjs'),
+    ], { stdio: 'inherit' });
 
     console.log(
         `SEO check: OK (${INDEXABLE_PUBLIC_ROUTES.length} indexable pages)`,

@@ -1,3 +1,4 @@
+import { RouteErrorPage } from './RouteErrorPage.jsx';
 import { Suspense } from 'react';
 import {
     createBrowserRouter,
@@ -105,6 +106,7 @@ function AppRouteLayout() {
 
 const router = createBrowserRouter([
     {
+        errorElement: <RouteErrorPage />,
         element: <AppRouteLayout />,
         children: [
             {

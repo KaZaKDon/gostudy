@@ -9,7 +9,19 @@ import { getLegalDocument } from './legalDocuments.js';
 
 import './LegalPage.css';
 
-export function LegalPage({ documentType: legacyDocumentType }) {
+function readInitialLegalContent(metadata) {
+    if (typeof window === 'undefined') return '';
+    try {
+        const element = window.document.getElementById('gostudy-legal-document');
+        const initial = element ? JSON.parse(element.textContent) : null;
+        return initial?.key === metadata.key && initial?.version === metadata.version
+            && typeof initial.content === 'string' ? initial.content : '';
+    } catch {
+        return '';
+    }
+}
+
+export function LegalPage({ documentType: legacyDocumentType, initialContent = '' }) {
     usePublicLightTheme();
 
     const { documentType: routeDocumentType } = useParams();
@@ -24,13 +36,14 @@ export function LegalPage({ documentType: legacyDocumentType }) {
     return (
         <LegalDocumentView
             document={document}
+            initialContent={initialContent}
             key={document.key}
         />
     );
 }
 
-function LegalDocumentView({ document }) {
-    const [content, setContent] = useState('');
+function LegalDocumentView({ document, initialContent }) {
+    const [content, setContent] = useState(() => initialContent || readInitialLegalContent(document));
     const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
@@ -56,6 +69,15 @@ function LegalDocumentView({ document }) {
     return (
         <main className="legal-page">
             <article className="legal-card">
+                {content && (
+                    <script
+                        id="gostudy-legal-document"
+                        type="application/json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                            key: document.key, version: document.version, content,
+                        }).replaceAll('<', '\\u003c') }}
+                    />
+                )}
                 <Link className="legal-card__back" to="/">
                     ← На главную
                 </Link>

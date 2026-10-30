@@ -62,17 +62,27 @@ export class ClassroomService {
         await this.findLesson(this.prisma, lessonId, user);
     }
 
-    async relayMediaSignal(
-        user: SessionUser,
-        input: ClassroomMediaSignalDto,
-    ) {
+    async authorizeMedia(user: SessionUser, lessonId: number): Promise<void> {
+        await this.findMediaLesson(user, lessonId);
+    }
+
+    private async findMediaLesson(user: SessionUser, lessonId: number) {
         this.requireParticipantRole(user);
-        const lesson = await this.findLesson(this.prisma, input.lesson_id, user);
+        const lesson = await this.findLesson(this.prisma, lessonId, user);
         const access = this.accessFor(lesson, user);
 
         if (!access.canJoin || lesson.session?.status !== LessonSessionStatus.ACTIVE) {
             throw new ConflictException('Видеосвязь доступна только во время урока');
         }
+
+        return lesson;
+    }
+
+    async relayMediaSignal(
+        user: SessionUser,
+        input: ClassroomMediaSignalDto,
+    ) {
+        const lesson = await this.findMediaLesson(user, input.lesson_id);
 
         if (JSON.stringify(input.payload).length > 65_536) {
             throw new PayloadTooLargeException('Сигнал видеосвязи слишком большой');

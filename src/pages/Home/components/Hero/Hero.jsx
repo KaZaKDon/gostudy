@@ -8,6 +8,9 @@ export function Hero() {
         >
             <h1 id="home-title">
                 ПОШЛИ УЧИТЬСЯ
+                <span className="hero__subject">
+                    GoStudy — онлайн-платформа для занятий с преподавателями
+                </span>
             </h1>
 
             <p>

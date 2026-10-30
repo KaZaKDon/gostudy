@@ -7,6 +7,8 @@ import { AuthModule } from '../auth/auth.module';
 import { HomeworkModule } from '../homework/homework.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TeacherFinanceModule } from '../teacher-finance/teacher-finance.module';
+import { TurnModule } from '../turn/turn.module';
+import { ClassroomMediaController } from './classroom-media.controller';
 import { ClassroomController } from './classroom.controller';
 import { ClassroomBoardController } from './classroom-board.controller';
 import { ClassroomBoardService } from './classroom-board.service';
@@ -20,6 +22,7 @@ import { ClassroomService } from './classroom.service';
         HomeworkModule,
         NotificationsModule,
         TeacherFinanceModule,
+        TurnModule,
         PrivateFilesModule,
         MulterModule.registerAsync({
             inject: [ConfigService],
@@ -42,7 +45,7 @@ import { ClassroomService } from './classroom.service';
             },
         }),
     ],
-    controllers: [ClassroomController, ClassroomBoardController],
+    controllers: [ClassroomController, ClassroomBoardController, ClassroomMediaController],
     providers: [
         ClassroomService,
         ClassroomFileStorageService,

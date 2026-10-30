@@ -1,3 +1,4 @@
+import { usePlatformIdentity } from '../../features/platform-identity/usePlatformIdentity.js';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -60,10 +61,11 @@ function setStructuredData(data) {
 }
 
 export function SeoManager() {
+    const identity = usePlatformIdentity();
     const { pathname } = useLocation();
 
     useEffect(() => {
-        const seo = getSeoConfig(pathname);
+        const seo = getSeoConfig(pathname, identity);
         const pageUrl = seo.canonical ?? window.location.href.split(/[?#]/)[0];
 
         document.title = seo.title;
@@ -141,7 +143,7 @@ export function SeoManager() {
 
         setCanonical(seo.canonical);
         setStructuredData(seo.structuredData);
-    }, [pathname]);
+    }, [pathname, identity]);
 
     return null;
 }

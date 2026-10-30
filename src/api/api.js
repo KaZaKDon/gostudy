@@ -30,6 +30,9 @@ export const API_FEATURES = Object.freeze({
 });
 
 export const API = {
+    platformIdentity: `${NODE_API_BASE}/platform-identity`,
+    adminPlatformIdentity: `${NODE_API_BASE}/admin/platform-identity`,
+    classroomMediaConfig: NODE_API_BASE + '/classroom/media-config',
     login: `${NODE_API_BASE}/auth/login`,
     logout: `${NODE_API_BASE}/auth/logout`,
     register: `${NODE_API_BASE}/auth/register`,

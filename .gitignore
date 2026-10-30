@@ -17,6 +17,7 @@ dist
 dist-ssr
 *.local
 server/generated
+server/public-pages-renderer/
 server/src/generated
 server/coverage
 server/storage/

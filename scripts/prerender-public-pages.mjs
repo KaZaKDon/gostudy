@@ -2,7 +2,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createServer } from 'vite';
+import { build, createServer } from 'vite';
 
 import {
     getSeoConfig,
@@ -37,6 +37,9 @@ function setMeta(html, attribute, key, content) {
         `<meta\\s+[^>]*${attribute}=["']${escapeRegExp(key)}["'][^>]*>`,
         'i',
     );
+    if (content == null) {
+        return html.replace(selector, '');
+    }
     const tag = `<meta ${attribute}="${escapeHtml(key)}" content="${escapeHtml(content)}" />`;
 
     return selector.test(html)
@@ -45,8 +48,12 @@ function setMeta(html, attribute, key, content) {
 }
 
 function setCanonical(html, canonical) {
-    const tag = `<link rel="canonical" href="${escapeHtml(canonical)}" />`;
     const selector = /<link\s+[^>]*rel=["']canonical["'][^>]*>/i;
+
+    if (!canonical) {
+        return html.replace(selector, '');
+    }
+    const tag = `<link rel="canonical" href="${escapeHtml(canonical)}" />`;
 
     return selector.test(html)
         ? html.replace(selector, tag)
@@ -54,6 +61,9 @@ function setCanonical(html, canonical) {
 }
 
 function setStructuredData(html, structuredData) {
+    if (!structuredData) {
+        return html.replace(/<script\s+id=["']gostudy-structured-data["'][^>]*>[\s\S]*?<\/script>/i, '');
+    }
     const json = JSON.stringify(structuredData).replaceAll('<', '\\u003c');
     const script = [
         '<script id="gostudy-structured-data" type="application/ld+json">',
@@ -65,6 +75,47 @@ function setStructuredData(html, structuredData) {
     return selector.test(html)
         ? html.replace(selector, script)
         : html.replace('</head>', `    ${script}\n  </head>`);
+}
+
+function setRootMarkup(html, markup) {
+    return html.replace(
+        '<div id="root"></div>',
+        `<div id="root"><!--gostudy:root:start-->${markup}<!--gostudy:root:end--></div>`,
+    );
+}
+
+async function buildPublicRenderer() {
+    // createServer above selects development mode for its SSR loader. The
+    // deployable renderer must consistently use production React and JSX.
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+        await build({
+            root: projectRoot,
+            publicDir: false,
+            configFile: path.join(projectRoot, 'vite.config.js'),
+            logLevel: 'warn',
+            define: { 'process.env.NODE_ENV': JSON.stringify('production') },
+            ssr: { noExternal: true, external: ['vfile'] },
+            build: {
+                ssr: path.join(projectRoot, 'src/entry-pricing-server.jsx'),
+                outDir: path.join(projectRoot, 'server/public-pages-renderer'),
+                emptyOutDir: true,
+                manifest: false,
+                copyPublicDir: false,
+                rolldownOptions: {
+                    output: {
+                        format: 'cjs',
+                        entryFileNames: 'renderer.cjs',
+                        chunkFileNames: '[name]-[hash].cjs',
+                    },
+                },
+            },
+        });
+    } finally {
+        if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = previousNodeEnv;
+    }
 }
 
 function collectCss(manifest, entryKey, collected = new Set()) {
@@ -168,14 +219,11 @@ async function main() {
         for (const pathname of PRERENDER_PUBLIC_ROUTES) {
             const route = PUBLIC_ROUTES[pathname];
             const seo = getSeoConfig(pathname);
-            const markup = renderPublicPage(pathname, route.renderKey);
+            const markup = await renderPublicPage(pathname, route.renderKey);
             let pageHtml = applySeo(baseHtml, seo);
 
             pageHtml = addRouteStyles(pageHtml, manifest, route.sourceEntry);
-            pageHtml = pageHtml.replace(
-                '<div id="root"></div>',
-                `<div id="root">${markup}</div>`,
-            );
+            pageHtml = setRootMarkup(pageHtml, markup);
 
             const outputPath = pathname === '/'
                 ? indexPath
@@ -185,11 +233,27 @@ async function main() {
             await writeFile(outputPath, pageHtml);
         }
 
+        const privateSeo = getSeoConfig('/account');
+        await writeFile(
+            path.join(distRoot, 'spa.html'),
+            setRootMarkup(applySeo(baseHtml, privateSeo), ''),
+        );
+
+        const notFoundSeo = getSeoConfig('/404');
+        let notFoundHtml = applySeo(baseHtml, notFoundSeo);
+        notFoundHtml = addRouteStyles(notFoundHtml, manifest, 'src/pages/NotFound/NotFoundPage.jsx');
+        await writeFile(
+            path.join(distRoot, '404.html'),
+            setRootMarkup(notFoundHtml, await renderPublicPage('/404', 'notFound')),
+        );
+
         await writeFile(path.join(distRoot, 'sitemap.xml'), createSitemap());
     } finally {
         await vite.close();
         await rm(path.join(projectRoot, '.vite'), { recursive: true, force: true });
     }
+
+    await buildPublicRenderer();
 }
 
 await main();

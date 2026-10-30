@@ -11,5 +11,6 @@ import { TariffsService } from './tariffs.service';
     imports: [AuthModule, TeacherFinanceModule],
     controllers: [TariffsController, AdminTariffsController],
     providers: [MarketplaceSalesPolicyService, TariffsService],
+    exports: [TariffsService],
 })
 export class TariffsModule {}

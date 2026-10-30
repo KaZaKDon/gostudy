@@ -1,13 +1,14 @@
 import { CircleHelp, CreditCard, Mail, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { PLATFORM_IDENTITY } from '../../config/platformIdentity.js';
+import { usePlatformIdentity } from '../../features/platform-identity/usePlatformIdentity.js';
 import {
     PublicInfoLayout,
     PublicInfoSection,
 } from './PublicInfoLayout.jsx';
 
 export function SupportPage() {
+    const identity = usePlatformIdentity();
     return (
         <PublicInfoLayout
             eyebrow="GoStudy · помощь пользователям"
@@ -17,8 +18,16 @@ export function SupportPage() {
             <PublicInfoSection icon={Mail} title="Связаться с поддержкой" accent>
                 <p>
                     Основной канал связи — электронная почта:{' '}
-                    <a href={`mailto:${PLATFORM_IDENTITY.supportEmail}`}>
-                        {PLATFORM_IDENTITY.supportEmail}
+                    <a href={`mailto:${identity.supportEmail}`}>
+                        {identity.supportEmail}
+                    </a>
+                    .
+                </p>
+                <p>
+                    Телефон для связи по вопросам работы платформы, подписки
+                    и платежей:{' '}
+                    <a href={identity.supportPhoneHref}>
+                        {identity.supportPhone}
                     </a>
                     .
                 </p>
@@ -30,7 +39,7 @@ export function SupportPage() {
                 </p>
                 <p>
                     Системные письма могут приходить с адреса{' '}
-                    <strong>{PLATFORM_IDENTITY.automaticEmail}</strong>. Ответы и
+                    <strong>{identity.automaticEmail}</strong>. Ответы и
                     обращения принимаются через адрес поддержки.
                 </p>
             </PublicInfoSection>

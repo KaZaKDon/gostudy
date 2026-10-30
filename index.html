@@ -48,16 +48,7 @@
 
     <meta name="theme-color" content="#6f4a23" />
 
-    <script>
-      try {
-        const savedTheme = localStorage.getItem('gostudy-theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-          document.documentElement.dataset.theme = savedTheme;
-        }
-      } catch {
-        // Local storage can be unavailable in a restricted browser mode.
-      }
-    </script>
+    <script src="/theme-init.js"></script>
 
     <script id="gostudy-structured-data" type="application/ld+json">
       {
@@ -70,7 +61,8 @@
             "url": "https://gostudyonline.ru/",
             "legalName": "Индивидуальный предприниматель Внуков Дмитрий Николаевич",
             "logo": "https://gostudyonline.ru/images/branding/logo-gostudy.svg",
-            "email": "support@gostudyonline.ru"
+            "email": "support@gostudyonline.ru",
+            "telephone": "+7 951 522-06-69"
           },
           {
             "@type": "WebSite",

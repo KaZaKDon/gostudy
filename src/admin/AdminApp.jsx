@@ -67,6 +67,8 @@ import { DocumentsPage } from './pages/Documents/DocumentsPage.jsx';
 import { ProfileMediaPage } from './pages/ProfileMedia/ProfileMediaPage.jsx';
 import { LessonDisputesAdminPage } from './pages/LessonDisputes/LessonDisputesAdminPage.jsx';
 
+import { PlatformIdentityPage } from './pages/PlatformIdentity/PlatformIdentityPage.jsx';
+
 export function AdminApp() {
     return (
         <AdminAuthProvider>
@@ -157,6 +159,8 @@ export function AdminApp() {
                             path="lesson-disputes"
                             element={<LessonDisputesAdminPage />}
                         />
+
+                        <Route path="platform-identity" element={<PlatformIdentityPage />} />
 
                         <Route
                             path="tariffs"

@@ -1,0 +1,22 @@
+.home-overview {
+    width: min(1080px, 100%);
+    margin: 28px auto;
+    padding: clamp(18px, 3vw, 30px);
+    border: 1px solid rgba(111, 74, 35, 0.18);
+    border-radius: 22px;
+    background: var(--color-surface-paper, #fff8ec);
+    color: var(--color-ink-strong, #2d1a0c);
+    line-height: 1.6;
+}
+
+.home-overview h2 { margin: 0 0 12px; font-size: clamp(20px, 2.4vw, 28px); }
+.home-overview h3 { margin: 0; font-size: 19px; }
+.home-overview p { margin: 10px 0; }
+.home-overview a { color: inherit; font-weight: 700; text-underline-offset: 3px; }
+.home-overview a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.home-overview__roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 24px 0; }
+.home-overview__roles article { min-width: 0; }
+
+@media (max-width: 760px) {
+    .home-overview__roles { grid-template-columns: 1fr; gap: 20px; }
+}

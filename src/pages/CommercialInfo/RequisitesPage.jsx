@@ -1,19 +1,21 @@
 import { Building2, CalendarDays, Mail, ScrollText } from 'lucide-react';
 
-import { PLATFORM_IDENTITY } from '../../config/platformIdentity.js';
+import { usePlatformIdentity } from '../../features/platform-identity/usePlatformIdentity.js';
 import {
     PublicInfoLayout,
     PublicInfoSection,
 } from './PublicInfoLayout.jsx';
 
-const REQUISITES = [
-    ['Наименование', PLATFORM_IDENTITY.legalName],
-    ['ИНН', PLATFORM_IDENTITY.inn],
-    ['ОГРНИП', PLATFORM_IDENTITY.ogrnip],
-    ['Дата государственной регистрации', PLATFORM_IDENTITY.registrationDate],
-];
 
 export function RequisitesPage() {
+    const identity = usePlatformIdentity();
+    const requisites = [
+        ['Наименование', identity.legalName],
+        ['Населённый пункт', identity.city],
+        ['ИНН', identity.inn],
+        ['ОГРНИП', identity.ogrnip],
+        ['Дата государственной регистрации', identity.registrationDate],
+    ];
     return (
         <PublicInfoLayout
             eyebrow="GoStudy · сведения о продавце"
@@ -22,7 +24,7 @@ export function RequisitesPage() {
         >
             <PublicInfoSection icon={Building2} title="Сведения об операторе" accent>
                 <dl className="public-info-details">
-                    {REQUISITES.map(([label, value]) => (
+                    {requisites.map(([label, value]) => (
                         <div key={label}>
                             <dt>{label}</dt>
                             <dd>{value}</dd>
@@ -32,7 +34,7 @@ export function RequisitesPage() {
             </PublicInfoSection>
 
             <PublicInfoSection icon={ScrollText} title="Регистрация">
-                <p>{PLATFORM_IDENTITY.registeringAuthority}.</p>
+                <p>{identity.registeringAuthority}.</p>
                 <p>
                     Основной вид деятельности по ОКВЭД 62.01 — разработка
                     компьютерного программного обеспечения.
@@ -43,8 +45,16 @@ export function RequisitesPage() {
                 <p>
                     Электронная почта для обращений пользователей, вопросов
                     по подписке и юридически значимых сообщений:{' '}
-                    <a href={`mailto:${PLATFORM_IDENTITY.supportEmail}`}>
-                        {PLATFORM_IDENTITY.supportEmail}
+                    <a href={`mailto:${identity.supportEmail}`}>
+                        {identity.supportEmail}
+                    </a>
+                    .
+                </p>
+                <p>
+                    Телефон для связи по вопросам работы платформы, подписки
+                    и платежей:{' '}
+                    <a href={identity.supportPhoneHref}>
+                        {identity.supportPhone}
                     </a>
                     .
                 </p>
@@ -52,7 +62,7 @@ export function RequisitesPage() {
 
             <PublicInfoSection icon={CalendarDays} title="Платёжная модель GoStudy">
                 <p>
-                    {PLATFORM_IDENTITY.shortLegalName} продаёт пользователю
+                    {identity.shortLegalName} продаёт пользователю
                     доступ к программной платформе по подписке. GoStudy не
                     принимает оплату за уроки и не выполняет расчёты между
                     учеником и преподавателем.

@@ -6,6 +6,7 @@ import { DesktopScene } from '../../components/DesktopScene/DesktopScene.jsx';
 import { InfoModal } from '../../components/InfoModal/InfoModal.jsx';
 
 import { Hero } from './components/Hero/Hero.jsx';
+import { HomeOverview } from './components/HomeOverview/HomeOverview.jsx';
 
 import { HOME_BLOCKS } from '../../data/homeBlocks.js';
 
@@ -27,6 +28,8 @@ export function Home() {
                 blocks={HOME_BLOCKS}
                 onSelect={setActiveBlockId}
             />
+
+            <HomeOverview />
 
             <Footer />
 

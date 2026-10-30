@@ -1,3 +1,5 @@
+import { PlatformIdentityModule } from './modules/platform-identity/platform-identity.module';
+
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
@@ -33,6 +35,7 @@ import { ParentChildrenModule } from './modules/parent-children/parent-children.
 import { ParentDashboardModule } from './modules/parent-dashboard/parent-dashboard.module';
 import { ParentStudentLinksModule } from './modules/parent-student-links/parent-student-links.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { PublicPagesModule } from './modules/public-pages/public-pages.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { TariffsModule } from './modules/tariffs/tariffs.module';
@@ -78,6 +81,8 @@ import { StorageQuotaModule } from './modules/storage-quota/storage-quota.module
         ParentDashboardModule,
         ParentStudentLinksModule,
         ProfileModule,
+        PublicPagesModule,
+        PlatformIdentityModule,
         ReviewsModule,
         ScheduleModule,
         TariffsModule,

@@ -90,6 +90,10 @@ const navigationGroups = [
     ],
     [
         {
+            label: 'Реквизиты и контакты',
+            to: '/admin/platform-identity',
+        },
+        {
             label: 'Тарифы',
             to: '/admin/tariffs',
         },

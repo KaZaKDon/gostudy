@@ -2,15 +2,9 @@ User-agent: *
 
 Allow: /
 
-Disallow: /account
-Disallow: /classroom
-Disallow: /profile-start
-Disallow: /admin
+# HTML routes must remain crawlable so robots can read their noindex.
+# Authentication and authorization are enforced by the API, not robots.txt.
 Disallow: /api
 Disallow: /uploads
-Disallow: /login
-Disallow: /register
-Disallow: /password-reset
-Disallow: /verify-email
 
 Sitemap: https://gostudyonline.ru/sitemap.xml

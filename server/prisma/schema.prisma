@@ -410,6 +410,15 @@ model UserStorageUsage {
   @@map("user_storage_usages")
 }
 
+model PlatformIdentity {
+  id        Int      @id
+  content   Json
+  revision  Int      @default(1)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("platform_identity")
+}
+
 model AdminAuditLog {
   id         BigInt   @id @default(autoincrement())
   adminId    Int      @map("admin_id")

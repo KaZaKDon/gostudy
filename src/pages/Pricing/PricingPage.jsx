@@ -15,6 +15,10 @@ import { Link } from 'react-router-dom';
 import { API } from '../../api/api.js';
 import { Footer } from '../../components/Footer/Footer.jsx';
 import { Header } from '../../components/Header/Header.jsx';
+import {
+    isTariffPublication,
+    readInitialTariffPublication,
+} from '../../features/public-tariffs/tariffPublication.js';
 import { CommissionTariffCard } from './components/CommissionTariffCard.jsx';
 
 import './PricingPage.css';
@@ -45,21 +49,6 @@ function formatBillingPeriod(days) {
     return `${days} дней`;
 }
 
-function isTariffContent(content) {
-    return Boolean(
-        content
-        && content.individual
-        && content.business
-        && content.lesson_payments
-        && content.materials
-        && Array.isArray(content.individual.features)
-        && Array.isArray(content.business.features)
-        && typeof content.materials.sales_enabled === 'boolean'
-        && Number.isFinite(content.materials.sale_commission_percent)
-        && Number.isFinite(content.materials.payout_hold_days),
-    );
-}
-
 async function requestTariffs(signal) {
     const response = await fetch(API.publicTariffs, { signal });
     const result = await response.json();
@@ -68,16 +57,21 @@ async function requestTariffs(signal) {
         throw new Error(result.message || 'Не удалось загрузить тарифы');
     }
 
-    if (!isTariffContent(result.data?.content)) {
+    if (!isTariffPublication(result.data)) {
         throw new Error('Опубликованная редакция тарифов повреждена');
     }
 
     return result.data;
 }
 
-export function PricingPage() {
-    const [publication, setPublication] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+export function PricingPage({ initialPublication = null }) {
+    const [publication, setPublication] = useState(() => (
+        isTariffPublication(initialPublication)
+            ? initialPublication
+            : readInitialTariffPublication()
+    ));
+    const [isLoading, setIsLoading] = useState(!publication);
+    const [hasInitialPublication] = useState(Boolean(publication));
     const [error, setError] = useState('');
 
     async function handleRetry() {
@@ -103,7 +97,7 @@ export function PricingPage() {
         requestTariffs(controller.signal)
             .then((data) => setPublication(data))
             .catch((requestError) => {
-                if (!(requestError instanceof DOMException
+                if (!hasInitialPublication && !(requestError instanceof DOMException
                     && requestError.name === 'AbortError')) {
                     setError(
                         requestError instanceof Error
@@ -119,7 +113,7 @@ export function PricingPage() {
             });
 
         return () => controller.abort();
-    }, []);
+    }, [hasInitialPublication]);
 
     const content = publication?.content;
     const individual = content?.individual;

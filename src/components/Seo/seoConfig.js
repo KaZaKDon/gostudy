@@ -161,27 +161,29 @@ function normalizePathname(pathname) {
     return `/${pathname.split('/').filter(Boolean).join('/')}`;
 }
 
-function createOrganizationData() {
+function createOrganizationData(identity) {
     return {
         '@type': 'Organization',
         '@id': `${SITE_URL}/#organization`,
-        name: PLATFORM_IDENTITY.brandName,
-        legalName: PLATFORM_IDENTITY.legalName,
+        name: identity.brandName,
+        legalName: identity.legalName,
         url: `${SITE_URL}/`,
         logo: `${SITE_URL}/images/branding/logo-gostudy.svg`,
-        email: PLATFORM_IDENTITY.supportEmail,
+        email: identity.supportEmail,
+        telephone: identity.supportPhone,
+        address: { '@type': 'PostalAddress', addressLocality: identity.city, addressCountry: 'RU' },
     };
 }
 
-function createStructuredData(pathname, route) {
+function createStructuredData(pathname, route, identity) {
     const pageUrl = `${SITE_URL}${pathname === '/' ? '/' : pathname}`;
     const graph = [
-        createOrganizationData(),
+        createOrganizationData(identity),
         {
             '@type': 'WebSite',
             '@id': `${SITE_URL}/#website`,
             url: `${SITE_URL}/`,
-            name: PLATFORM_IDENTITY.brandName,
+            name: identity.brandName,
             inLanguage: 'ru-RU',
             publisher: { '@id': `${SITE_URL}/#organization` },
         },
@@ -224,7 +226,7 @@ function createStructuredData(pathname, route) {
     };
 }
 
-export function getSeoConfig(pathname) {
+export function getSeoConfig(pathname, identity = PLATFORM_IDENTITY) {
     const normalizedPathname = normalizePathname(pathname);
     const publicRoute = PUBLIC_ROUTES[normalizedPathname];
 
@@ -238,8 +240,8 @@ export function getSeoConfig(pathname) {
             imageAlt: 'GoStudy — онлайн-платформа для обучения',
             robots: publicRoute.indexable
                 ? 'index, follow'
-                : 'noindex, nofollow, noarchive',
-            structuredData: createStructuredData(normalizedPathname, publicRoute),
+                : 'noindex, follow',
+            structuredData: createStructuredData(normalizedPathname, publicRoute, identity),
         };
     }
 
