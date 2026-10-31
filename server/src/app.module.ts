@@ -38,6 +38,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { PublicPagesModule } from './modules/public-pages/public-pages.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { TariffsModule } from './modules/tariffs/tariffs.module';
 import { TeachersModule } from './modules/teachers/teachers.module';
 import { TeacherDashboardModule } from './modules/teacher-dashboard/teacher-dashboard.module';
@@ -86,6 +87,7 @@ import { StorageQuotaModule } from './modules/storage-quota/storage-quota.module
         ReviewsModule,
         ScheduleModule,
         TariffsModule,
+        SubscriptionsModule,
         TeachersModule,
         TeacherDashboardModule,
         TeacherFinanceModule,

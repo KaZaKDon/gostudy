@@ -393,6 +393,8 @@ model User {
   accessibilityApplicationsSubmitted AccessibilityApplication[]  @relation("AccessibilityApplicationSubmitter")
   tariffPublicationsCreated          TariffPublication[]         @relation("TariffPublicationCreator")
   tariffPublicationsPublished        TariffPublication[]         @relation("TariffPublicationPublisher")
+  subscriptionOrders                 SubscriptionOrder[]
+  subscriptionTrials                 SubscriptionTrial[]
   storageUsage                       UserStorageUsage?
 
   @@index([role, status])
@@ -1621,4 +1623,30 @@ model LegalAcceptanceDocument {
 
   @@index([documentKey, documentVersion])
   @@map("legal_acceptance_documents")
+}
+
+// Test payments are intentionally isolated from paid production access.
+model SubscriptionOrder {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  amountKopecks Int      @map("amount_kopecks")
+  tariff       Json
+  extraBlocks  Int       @map("extra_blocks")
+  status       String    @default("pending") @db.VarChar(20)
+  isTest       Boolean   @default(true) @map("is_test")
+  paidAt       DateTime? @map("paid_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@map("subscription_orders")
+}
+
+model SubscriptionTrial {
+  userId       Int      @id @map("user_id")
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(3)
+  students     Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("subscription_trials")
 }

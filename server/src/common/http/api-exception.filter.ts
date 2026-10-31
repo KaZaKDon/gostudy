@@ -29,7 +29,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
         const exceptionResponse = isHttpException
             ? exception.getResponse()
             : null;
-        const body = typeof exceptionResponse === 'object'
+        const body = exceptionResponse !== null && typeof exceptionResponse === 'object'
             ? exceptionResponse as ExceptionBody
             : {};
         const message = Array.isArray(body.message)

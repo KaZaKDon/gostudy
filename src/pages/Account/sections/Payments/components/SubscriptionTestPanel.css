@@ -1,0 +1,9 @@
+.subscription-test { margin-top: 24px; padding: 20px; border: 1px solid var(--border-color, #b8c2d1); border-radius: 12px; overflow-wrap: anywhere; }
+.subscription-test form { display: grid; gap: 12px; }
+.subscription-test label { display: grid; gap: 8px; }
+.subscription-test select { max-width: 180px; padding: 8px; }
+.subscription-test .subscription-test__check { display: flex; align-items: flex-start; }
+.subscription-test__check input { flex-shrink: 0; margin-top: 4px; }
+.subscription-test button { padding: 10px 14px; margin-top: 12px; cursor: pointer; max-width: 100%; }
+.subscription-test button:disabled { cursor: default; opacity: .6; }
+.subscription-test li { margin-block: 8px; }

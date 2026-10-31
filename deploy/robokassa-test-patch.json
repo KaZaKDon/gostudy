@@ -1,0 +1,87 @@
+[
+  {
+    "path": "server/.env.example",
+    "before": "145016b1e0e9ea91e470529651b60ceec20cd03b649f68db446cff43ff50522a",
+    "after": "7a463b82957d4fab15ea8eeeedbe687819079ba1e7bc84e000d55b0a0b95e63f"
+  },
+  {
+    "path": "server/prisma/migrations/20261030120000_subscription_test_payments/migration.sql",
+    "before": null,
+    "after": "5cb5d6443fd5aedd73a54e21bd248087ece84886fcead827360814f426774a08"
+  },
+  {
+    "path": "server/prisma/schema.prisma",
+    "before": "7a46df3b6107ca5b55a72bc1019adf97d4f594ec8575c0630f5eb7c7f7c83aca",
+    "after": "b5ccffc3199991de0e39817eee09c94d0384dee56033afcc03e81b074778b841"
+  },
+  {
+    "path": "server/src/app.module.ts",
+    "before": "9ceb96e435fe42668b8a1cf368ad654a63d257ca67d94f6d33c0fecaca9674c8",
+    "after": "4e01df3322c3652da49bb75b6e707db27cc45b167d238c7d9078fa3f3db410ec"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-signature.spec.ts",
+    "before": null,
+    "after": "a7086d74486c1a4bfd8f505e646556f42471c53b2ca9a6e12f571145516c6756"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-signature.ts",
+    "before": null,
+    "after": "fa3f0bde53eb8d824f118d28517be00fe831d238734832b1f6feeb6f6b31f336"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa.controller.ts",
+    "before": null,
+    "after": "887ca492890fb4d4385e42829d7a2fda551e08acb76a45f0044dede02dcaa009"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-policy.spec.ts",
+    "before": null,
+    "after": "0d5b3da8c52a31a2f9f69d9b18ca6b38a04e2271e9fd39878865dc93600a5a9b"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-policy.ts",
+    "before": null,
+    "after": "221b329c99c4b289e49cc3ca86bb9ec0e3cde5fc7b00867f2b2c1565b18252ba"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.controller.ts",
+    "before": null,
+    "after": "5b10286deac23726a3d08735aa79d7d5c7302877eef387ed76c2ed239b5da894"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.module.ts",
+    "before": null,
+    "after": "914929d35360cb203e4cf9123dc10767f43fc26e185e56d8c1d111207432a3a2"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.service.spec.ts",
+    "before": null,
+    "after": "2bf24ee8280feb402289ee2b01ee7f09834cd42a640da2b436913ae2834c307d"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.service.ts",
+    "before": null,
+    "after": "f3ea964b5930c28881998bfd8f41e6cfc1eb841122408db7f06eefd68fb3dc2e"
+  },
+  {
+    "path": "src/api/api.js",
+    "before": "0790ca1cab7c271800a237dbdadad1c1ca420a155579f6a91f5d3274b4291439",
+    "after": "f2ee8b7c24cdf95d53ee331906d8193af9dd5a7e7a97e24fb0c31eaad82d852a"
+  },
+  {
+    "path": "src/pages/Account/sections/Payments/components/SubscriptionTestPanel.css",
+    "before": null,
+    "after": "c400bb39398683fb04655eba26035deb117f5402a4df3cc9d279ba85c9fac4d5"
+  },
+  {
+    "path": "src/pages/Account/sections/Payments/components/SubscriptionTestPanel.jsx",
+    "before": null,
+    "after": "01fc547be3494517de2e41bd722790d552dbc04501fdb5cf4e8381635a1aca27"
+  },
+  {
+    "path": "src/pages/Account/sections/Payments/components/TeacherFinanceDashboard.jsx",
+    "before": "0945b316d4ae0771a0b767884cedc0b83d9e5f4805c4c238278b488a93ab3e1d",
+    "after": "7ac5ee199a210bbb402e5b6bf217c0e289871be9bd813425edd0b5b34e3521ab"
+  }
+]

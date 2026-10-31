@@ -19,7 +19,13 @@ async function bootstrap(): Promise<void> {
         'trust proxy',
         config.get<number>('TRUST_PROXY_HOPS', 0),
     );
-    app.use(helmet());
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                formAction: ["'self'", 'https://auth.robokassa.ru'],
+            },
+        },
+    }));
     app.setGlobalPrefix('api/v1');
     app.enableCors({
         origin: config

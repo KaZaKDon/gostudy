@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { SubscriptionTestPanel } from './SubscriptionTestPanel.jsx';
+
 import { DirectLessonPaymentNotice } from './DirectLessonPaymentNotice.jsx';
 import { TeacherFinanceFilters } from './TeacherFinanceFilters.jsx';
 import { TeacherFinanceList } from './TeacherFinanceList.jsx';
@@ -20,10 +22,10 @@ export function TeacherFinanceDashboard({ controller }) {
 
     if (data.enabled === false) {
         return (
-            <DirectLessonPaymentNotice
-                notice={data.notice}
-                subscription={data.subscription}
-            />
+            <>
+                <DirectLessonPaymentNotice notice={data.notice} subscription={data.subscription} />
+                <SubscriptionTestPanel />
+            </>
         );
     }
 
