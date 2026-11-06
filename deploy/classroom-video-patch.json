@@ -1,0 +1,12 @@
+[
+  {
+    "path": "src/pages/Classroom/components/ClassroomVideo.jsx",
+    "before": "0167afa11b178426df9b07a5255dc71b49dda281b640b4bc4335852844b59f10",
+    "after": "51d400b8170c5610f295799ee98b1112ea733fd83632b3d38d790bff054cbb1c"
+  },
+  {
+    "path": "src/pages/Classroom/ClassroomPage.css",
+    "before": "d6b0fab53f2e6de3a52487fe6778596be52432d5ed97b654503232096549db89",
+    "after": "24c6aea49d9a94a5c1849494502df48c07a5ae9f4217fc06048744456f364052"
+  }
+]

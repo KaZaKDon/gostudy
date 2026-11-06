@@ -394,6 +394,7 @@ model User {
   tariffPublicationsCreated          TariffPublication[]         @relation("TariffPublicationCreator")
   tariffPublicationsPublished        TariffPublication[]         @relation("TariffPublicationPublisher")
   subscriptionOrders                 SubscriptionOrder[]
+  subscriptionPeriods                SubscriptionPeriod[]
   subscriptionTrials                 SubscriptionTrial[]
   storageUsage                       UserStorageUsage?
 
@@ -1627,6 +1628,10 @@ model LegalAcceptanceDocument {
 
 // Test payments are intentionally isolated from paid production access.
 model SubscriptionOrder {
+    liveDetails Json? @map("live_details")
+    period SubscriptionPeriod?
+    receiptJob SubscriptionReceiptJob?
+
   id           Int       @id @default(autoincrement())
   userId       Int       @map("user_id")
   amountKopecks Int      @map("amount_kopecks")
@@ -1649,4 +1654,38 @@ model SubscriptionTrial {
   user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@map("subscription_trials")
+}
+
+// A paid order owns exactly one period; queued renewals cannot change the current limit.
+model SubscriptionPeriod {
+    id Int @id @default(autoincrement())
+    orderId Int @unique @map("order_id")
+    userId Int @map("user_id")
+    startsAt DateTime @map("starts_at") @db.Timestamptz(3)
+    endsAt DateTime @map("ends_at") @db.Timestamptz(3)
+    students Int
+    order SubscriptionOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+    user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+    @@index([userId, endsAt])
+    @@map("subscription_periods")
+}
+
+// Lease protects multiple processes. 'submitted' is persisted BEFORE the external call.
+model SubscriptionReceiptJob {
+    id Int @id @default(autoincrement())
+    orderId Int @unique @map("order_id")
+    dueAt DateTime @map("due_at") @db.Timestamptz(3)
+    state String @default("scheduled") @db.VarChar(20)
+    leaseUntil DateTime? @map("lease_until") @db.Timestamptz(3)
+    leaseToken String? @map("lease_token") @db.VarChar(36)
+    nextAttemptAt DateTime @map("next_attempt_at") @db.Timestamptz(3)
+    submittedAt DateTime? @map("submitted_at") @db.Timestamptz(3)
+    registeredAt DateTime? @map("registered_at") @db.Timestamptz(3)
+    attempts Int @default(0)
+    lastCode String? @map("last_code") @db.VarChar(80)
+    fiscalData Json? @map("fiscal_data")
+    holdReason String? @map("hold_reason") @db.VarChar(500)
+    order SubscriptionOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+    @@index([state, nextAttemptAt])
+    @@map("subscription_receipt_jobs")
 }

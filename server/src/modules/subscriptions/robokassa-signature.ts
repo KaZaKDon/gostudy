@@ -5,6 +5,7 @@ export function signature(parts: string[], password: string): string {
 }
 
 export function verifyResult(input: Record<string, unknown>, password: string): boolean {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return false;
     // No Shp_* parameters are issued by this integration. Reject unexpected ones.
     if (Object.keys(input).some((key) => key.toLowerCase().startsWith('shp_'))) return false;
     const { OutSum, InvId, SignatureValue } = input;

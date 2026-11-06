@@ -1,0 +1,20 @@
+.subscription-live { margin-top: 24px; padding: clamp(18px, 3vw, 32px); border: 1px solid var(--border-color, #707780); border-radius: 18px; overflow-wrap: anywhere; }
+.subscription-live__heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; }
+.subscription-live__heading h3 { margin: 0; font-size: 1.3rem; }
+.subscription-live__heading > span { font-size: .9rem; opacity: .8; }
+.subscription-live form { max-width: 740px; display: grid; gap: 16px; margin-block: 24px; }
+.subscription-live p { margin: 0; line-height: 1.6; }
+.subscription-live__select { display: grid; gap: 8px; }
+.subscription-live select { width: min(100%, 320px); min-height: 44px; border: 1px solid currentColor; border-radius: 8px; padding: 8px; color: inherit; background: inherit; }
+.subscription-live select option { color: #15202b; background: #fff; }
+.subscription-live__total { font-size: 1.7rem; font-weight: 700; }
+.subscription-live__total span { display: block; font-size: 1rem; font-weight: 400; }
+.subscription-live__consent { display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; }
+.subscription-live__consent input { flex-shrink: 0; width: 18px; height: 18px; margin-top: 4px; }
+.subscription-live a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.subscription-live button { min-height: 44px; border: 1px solid currentColor; border-radius: 9px; padding: 10px 18px; background: transparent; color: inherit; cursor: pointer; }
+.subscription-live .subscription-live__pay { background: #d2a668; color: #141414; font-weight: 700; border-color: #d2a668; }
+.subscription-live button:disabled { opacity: .55; cursor: default; }
+.subscription-live details { margin-block: 20px; }
+.subscription-live li { margin-block: 10px; line-height: 1.6; }
+.subscription-live__periods { margin-block: 20px; padding-left: 22px; }

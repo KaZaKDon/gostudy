@@ -18,12 +18,12 @@ export class SubscriptionsService {
         private readonly tariffs: TariffsService,
     ) {}
 
-    private settings() {
+    private settings(requireEnabled = true) {
         const enabled = String(this.config.get('ROBOKASSA_TEST_ENABLED', 'false')) === 'true';
         const merchant = this.config.get<string>('ROBOKASSA_MERCHANT_LOGIN', '').trim();
         const password1 = this.config.get<string>('ROBOKASSA_TEST_PASSWORD1', '');
         const password2 = this.config.get<string>('ROBOKASSA_TEST_PASSWORD2', '');
-        if (!enabled || !merchant || !password1 || !password2) {
+        if ((requireEnabled && !enabled) || !merchant || !password1 || !password2) {
             throw new ServiceUnavailableException('Тестовая оплата пока не настроена');
         }
         if (password1 === password2) throw new ServiceUnavailableException('Нужны разные тестовые пароли Robokassa');
@@ -56,7 +56,7 @@ export class SubscriptionsService {
         const [tariff, trial, orders] = await Promise.all([
             this.tariff(),
             this.prisma.subscriptionTrial.findUnique({ where: { userId: user.id } }),
-            this.prisma.subscriptionOrder.findMany({ where: { userId: user.id }, orderBy: { id: 'desc' }, take: 20 }),
+            this.prisma.subscriptionOrder.findMany({ where: { userId: user.id, isTest: true }, orderBy: { id: 'desc' }, take: 20 }),
         ]);
         return { success: true, data: {
             test_available: available, mode: 'test', tariff,
@@ -98,7 +98,7 @@ export class SubscriptionsService {
     }
 
     async result(input: Record<string, unknown>): Promise<string> {
-        const settings = this.settings();
+        const settings = this.settings(false);
         if (!verifyResult(input, settings.password2)) throw new BadRequestException('Некорректная подпись платежа');
         const id = Number(input.InvId);
         if (!Number.isSafeInteger(id) || id > 2147483647) throw new BadRequestException('Некорректный номер счёта');

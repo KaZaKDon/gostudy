@@ -47,7 +47,7 @@ test('admin-supplied tariff text is HTML escaped', async () => {
 test('legal documents are rendered in full before JavaScript executes', async () => {
     const html = await readFile(new URL('../dist/legal/offer.html', import.meta.url), 'utf8');
     assert.match(html, /<h1>Публичная оферта/);
-    assert.match(html, /Отключение автоматического продления/);
+    assert.match(html, /Завершение подписки/);
     assert.doesNotMatch(html, /Загружаем документ/);
 });
 

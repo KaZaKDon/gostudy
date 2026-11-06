@@ -1,3 +1,5 @@
+import { useRef, useState } from 'react';
+
 const STATUS_LABELS = {
     idle: 'Камера и микрофон выключены',
     requesting: 'Запрашиваем доступ...',
@@ -24,6 +26,8 @@ export function ClassroomVideo({
     viewerName,
     isLessonActive,
 }) {
+    const [isPreviewVisible, setIsPreviewVisible] = useState(true);
+    const previewToggleRef = useRef(null);
     const isJoined = status !== 'idle' && status !== 'error';
 
     return (
@@ -65,12 +69,25 @@ export function ClassroomVideo({
                 </p>
             )}
 
-            <div className="classroom-video__grid">
-                <figure>
+            <div className="classroom-video__stage">
+                <figure className="classroom-video__remote">
                     <video ref={remoteVideoRef} autoPlay playsInline />
                     <figcaption>{participantName}</figcaption>
                 </figure>
-                <figure>
+                {/* Keep the video mounted: hiding a preview must not stop its stream. */}
+                <figure className="classroom-video__local" hidden={!isPreviewVisible}>
+                    <button
+                        type="button"
+                        className="classroom-video__hide-preview"
+                        aria-label="Скрыть своё видео"
+                        title="Скрыть превью — камера продолжит работать"
+                        onClick={() => {
+                            setIsPreviewVisible(false);
+                            previewToggleRef.current?.focus();
+                        }}
+                    >
+                        <span aria-hidden="true">×</span>
+                    </button>
                     <video
                         ref={localVideoRef}
                         autoPlay
@@ -81,21 +98,31 @@ export function ClassroomVideo({
                 </figure>
             </div>
 
-            {isJoined && (
-                <div className="classroom-video__controls">
-                    <button type="button" disabled={!hasMicrophone} onClick={onToggleMicrophone}>
-                        {isMicrophoneEnabled
-                            ? 'Выключить микрофон'
-                            : 'Включить микрофон'}
-                    </button>
-                    <button type="button" disabled={!hasCamera} onClick={onToggleCamera}>
-                        {isCameraEnabled
-                            ? 'Выключить камеру'
-                            : 'Включить камеру'}
-                    </button>
-                    {joinMode === 'observer' && <span>Подключено без камеры и микрофона</span>}
-                </div>
-            )}
+            <div className="classroom-video__controls">
+                <button
+                    ref={previewToggleRef}
+                    type="button"
+                    aria-pressed={isPreviewVisible}
+                    onClick={() => setIsPreviewVisible((visible) => !visible)}
+                >
+                    {isPreviewVisible ? 'Скрыть своё видео' : 'Показать своё видео'}
+                </button>
+                {isJoined && (
+                    <>
+                        <button type="button" disabled={!hasMicrophone} onClick={onToggleMicrophone}>
+                            {isMicrophoneEnabled
+                                ? 'Выключить микрофон'
+                                : 'Включить микрофон'}
+                        </button>
+                        <button type="button" disabled={!hasCamera} onClick={onToggleCamera}>
+                            {isCameraEnabled
+                                ? 'Выключить камеру'
+                                : 'Включить камеру'}
+                        </button>
+                        {joinMode === 'observer' && <span>Подключено без камеры и микрофона</span>}
+                    </>
+                )}
+            </div>
         </section>
     );
 }

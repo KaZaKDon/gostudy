@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { SubscriptionLivePanel } from './SubscriptionLivePanel.jsx';
+
 import { SubscriptionTestPanel } from './SubscriptionTestPanel.jsx';
 
 import { DirectLessonPaymentNotice } from './DirectLessonPaymentNotice.jsx';
@@ -24,6 +26,7 @@ export function TeacherFinanceDashboard({ controller }) {
         return (
             <>
                 <DirectLessonPaymentNotice notice={data.notice} subscription={data.subscription} />
+                <SubscriptionLivePanel />
                 <SubscriptionTestPanel />
             </>
         );

@@ -6,6 +6,7 @@ import {
 import {
     NavLink,
 } from 'react-router-dom';
+import { useAdminAuth } from '../../auth/useAdminAuth.js';
 
 const navigationGroups = [
     [
@@ -97,6 +98,11 @@ const navigationGroups = [
             label: 'Тарифы',
             to: '/admin/tariffs',
         },
+        {
+            label: 'Подписки и оплаты',
+            to: '/admin/subscriptions',
+            adminOnly: true,
+        },
     ],
     [
         {
@@ -111,6 +117,7 @@ const navigationGroups = [
 ];
 
 export function AdminSidebar() {
+    const { user } = useAdminAuth();
     const [theme, setTheme] = useState(
         () => (
             localStorage.getItem(
@@ -157,7 +164,7 @@ export function AdminSidebar() {
                                 className="admin-sidebar__group"
                                 key={groupIndex}
                             >
-                                {group.map((item) => (
+                                {group.filter((item) => !item.adminOnly || user?.role === 'admin').map((item) => (
                                     <NavLink
                                         key={item.to}
                                         to={item.to}

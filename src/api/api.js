@@ -32,6 +32,8 @@ export const API_FEATURES = Object.freeze({
 export const API = {
     subscriptionMe: `${NODE_API_BASE}/subscriptions/me`,
     subscriptionTestCheckout: `${NODE_API_BASE}/subscriptions/test-checkout`,
+    subscriptionLive: `${NODE_API_BASE}/subscriptions/live`,
+    subscriptionCheckout: `${NODE_API_BASE}/subscriptions/checkout`,
     platformIdentity: `${NODE_API_BASE}/platform-identity`,
     adminPlatformIdentity: `${NODE_API_BASE}/admin/platform-identity`,
     classroomMediaConfig: NODE_API_BASE + '/classroom/media-config',
@@ -44,6 +46,7 @@ export const API = {
     adminMe: `${NODE_API_BASE}/admin/auth/me`,
     adminLogout: `${NODE_API_BASE}/admin/auth/logout`,
     adminAccounts: `${NODE_API_BASE}/admin/accounts`,
+    adminSubscriptions: `${NODE_API_BASE}/admin/subscriptions`,
     adminDashboardStats: `${NODE_API_BASE}/admin/dashboard/stats`,
     adminDictionaries: `${NODE_API_BASE}/admin/dictionaries`,
     adminDocuments: `${NODE_API_BASE}/admin/documents`,

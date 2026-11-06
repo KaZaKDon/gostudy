@@ -23,7 +23,9 @@ export function calculateOrder(tariff: TariffSnapshot, blocks: number) {
     if (tariff.period_days !== 30) throw new Error('Unsupported subscription period');
     const amount = Math.round(tariff.price_rubles * 100) + blocks * Math.round(tariff.extra_block_price_rubles * 100);
     if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100000000) throw new Error('Invalid total');
-    return { amount, students: tariff.students_included + blocks * tariff.extra_block_students };
+    const students = tariff.students_included + blocks * tariff.extra_block_students;
+    if (!Number.isSafeInteger(students) || students > 2147483647) throw new Error('Invalid student limit');
+    return { amount, students };
 }
 
 export function nextExpiry(current: Date | null, now: Date): Date {

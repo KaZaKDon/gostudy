@@ -217,9 +217,8 @@ export function PricingPage({ initialPublication = null }) {
                                     <RefreshCcw aria-hidden="true" />
                                     <div>
                                         <p>
-                                            Подписка автоматически продлевается
-                                            каждые {formatBillingPeriod(individual.period_days)} до отключения
-                                            автопродления в личном кабинете.
+                                            Каждые {formatBillingPeriod(individual.period_days)} оплачиваются
+                                            отдельно по вашему решению. Автоматических списаний нет.
                                         </p>
                                         <span>{individual.recalculation_text}</span>
                                     </div>

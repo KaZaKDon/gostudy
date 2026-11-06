@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Header, HttpCode, Post, Query, Redirect } from '@nestjs/common';
-import { SubscriptionsService } from './subscriptions.service';
+import { RobokassaCallbackService } from './robokassa-callback.service';
 
 @Controller('payments/robokassa')
 export class RobokassaController {
-    constructor(private readonly subscriptions: SubscriptionsService) {}
+    constructor(private readonly subscriptions: RobokassaCallbackService) {}
 
     // Callback is public: authentication is the mandatory Robokassa signature.
     @Post('result') @HttpCode(200) @Header('Content-Type', 'text/plain; charset=utf-8')

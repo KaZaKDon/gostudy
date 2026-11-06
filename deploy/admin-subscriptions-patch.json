@@ -1,0 +1,92 @@
+[
+  {
+    "path": "deploy/ADMIN_SUBSCRIPTIONS_RU.md",
+    "before": null,
+    "after": "1c277e113a48788b4d46096f8828ec04bb83a1d1c5285f888d9f2c75db3bd1de"
+  },
+  {
+    "path": "server/scripts/check-admin-subscriptions-http.cjs",
+    "before": null,
+    "after": "53a5d7f81d3a9fc4472a7bcc9d140f577d35d680c2b3678465098f4dbd3fd966"
+  },
+  {
+    "path": "server/src/modules/subscriptions/admin-subscriptions.controller.ts",
+    "before": null,
+    "after": "b64bc2be8a9d056a8d48098b32077b4b777bb18f30f431c424eb4e30c80dbefe"
+  },
+  {
+    "path": "server/src/modules/subscriptions/admin-subscriptions.service.spec.ts",
+    "before": null,
+    "after": "c55c150827673f79018f8b6dbd7c69e7898b93f4ee4f191bb6713d5401d88aa8"
+  },
+  {
+    "path": "server/src/modules/subscriptions/admin-subscriptions.service.ts",
+    "before": null,
+    "after": "5d1a4341dcf7aced390f7c12f60d4b963f65d7cfff131e9ce4dae75999993819"
+  },
+  {
+    "path": "server/src/modules/subscriptions/dto/list-admin-subscriptions-query.dto.ts",
+    "before": null,
+    "after": "c4184a55b690529f3d6f13885ca39ebd50e6a2423fc803605acf5840f61826f5"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.module.ts",
+    "before": "ea29b9653743dee85d406c2909476f8e370d93c49cbf7e7239de89af2c868f96",
+    "after": "ec2d6efdc411a0be346ef639af5a5810103a8115b24aca79dbc038f2ee6dcc87"
+  },
+  {
+    "path": "src/admin/AdminApp.jsx",
+    "before": "dd4cbc1e1d180e786b6997d076b2521f358949748cb818b1ca9dd2b1d7c8ab3f",
+    "after": "1539904be547d866ba30e11310e9232a3716efe4853ba3ff3647d8e8d0caff80"
+  },
+  {
+    "path": "src/admin/components/layout/AdminHeader.jsx",
+    "before": "0e2423c3ec017696562f51e665b7cb9f225e9baeb9402108b36d13d53e203577",
+    "after": "612f42c9477de1217e2aeb63ebeeb5cfebe0c3737da2df7fabcb79ba4d137978"
+  },
+  {
+    "path": "src/admin/components/layout/AdminSidebar.jsx",
+    "before": "4b6ec4fc6cb9299e8454a629c8881412d181920a2b44be52a4effede58258be8",
+    "after": "26ac86d69afc1ac418f934bb9e6c2f01ef9af058ead4a8b1711cc0135295b635"
+  },
+  {
+    "path": "src/admin/hooks/useAdminSubscriptions.js",
+    "before": null,
+    "after": "50d68ac10f28b1b9a131789fef765120b8e1b0807a1f6b6eab6ef4b0bf8a9da9"
+  },
+  {
+    "path": "src/admin/pages/Subscriptions/SubscriptionsAdminPage.jsx",
+    "before": null,
+    "after": "97ef8153c85bc5eab4e12c5576a3407e7c32f4664f9c7fe8ae246e90e8d81707"
+  },
+  {
+    "path": "src/admin/pages/Subscriptions/SubscriptionsTable.jsx",
+    "before": null,
+    "after": "b919c08b8f99cb3ddbbcebe97c7e9f221ef2879454a3d3ef262136a7cdd7026a"
+  },
+  {
+    "path": "src/admin/pages/Subscriptions/SubscriptionsToolbar.jsx",
+    "before": null,
+    "after": "5a76141a2ac414cfd867abcf61dac6062073974f2c42defc161bb01605840c34"
+  },
+  {
+    "path": "src/admin/pages/Subscriptions/subscriptionPresentation.js",
+    "before": null,
+    "after": "56d65d2cef6f025311a0442bebcfa935d2226051b626465d0bd96e121479568e"
+  },
+  {
+    "path": "src/admin/pages/Subscriptions/subscriptions-admin.css",
+    "before": null,
+    "after": "7964f8ced87c33c4924a6f24b36a3541c46ca43aee07dc69889b7467dd6784ce"
+  },
+  {
+    "path": "src/admin/services/subscriptionsApi.js",
+    "before": null,
+    "after": "cc9de9112714df2a10442c7fe24e2bda0ae205f56127968ce58432022378c795"
+  },
+  {
+    "path": "src/api/api.js",
+    "before": "dd5ca4fe9c6de0a540c0bd9e667b7d1c876e8cb2b184da047806c8e46a2588fe",
+    "after": "3c4f7d602ff65b9fcf93d57904cf397c4e04ec2ee838e30be0f2f6bdd43f1209"
+  }
+]

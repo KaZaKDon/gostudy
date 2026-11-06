@@ -1,0 +1,202 @@
+[
+  {
+    "path": "deploy/ROBOKASSA_LIVE_PILOT_RU.md",
+    "before": null,
+    "after": "78f4f94b350446edb1f5e86c2a1c62349d66af25b7fcd6469799cd1ba46b8626"
+  },
+  {
+    "path": "docs/GOSTUDY_ROBOKASSA_FISCALIZATION_2026-10-30.md",
+    "before": "7b84f3aeb01943b652bfe678a4208db28afa9426482c81174e07c5a83bc670ef",
+    "after": "00959b013d3a969a20deb579976f277899860cc748df1cc17b15250969f5504e"
+  },
+  {
+    "path": "docs/ROBOKASSA_LIVE_VALIDATION_2026-11-01.md",
+    "before": null,
+    "after": "6511b4a26c600e06bb8b6803deacf83542831d8cd8105dbd9edb5462c411ad04"
+  },
+  {
+    "path": "docs/legal-history/2026-10-08/platform-subscription-offer.md",
+    "before": null,
+    "after": "9ad83deed4e98017ff545290fac42665789e2df44039f4e4efed683455a926c4"
+  },
+  {
+    "path": "docs/legal-history/2026-10-08/tariffs.md",
+    "before": null,
+    "after": "33007e4fa47bd62cb1b8adb75dd406fe3b8849b31cebb936c944c4a90d82ade6"
+  },
+  {
+    "path": "scripts/seo-renderer.test.mjs",
+    "before": "7c393959ef47a5001319d37bebede35e88867e7a60a37c48baa5a2a8827dcd82",
+    "after": "d8353db0f25da49a9a79199dfd43ea1cee0daae6e054dbc982b753f1d4907dcf"
+  },
+  {
+    "path": "server/.env.example",
+    "before": "7a463b82957d4fab15ea8eeeedbe687819079ba1e7bc84e000d55b0a0b95e63f",
+    "after": "ffd8a21e0c0410fc7cc5af891bb42d46e448bd57518f86695992d27b25ac5e47"
+  },
+  {
+    "path": "server/prisma/migrations/20261031120000_subscription_live_pilot/migration.sql",
+    "before": null,
+    "after": "a70ca805221375e7c0bb09dc2749f624294fbd520f910465892c25446f6b8951"
+  },
+  {
+    "path": "server/prisma/schema.prisma",
+    "before": "b5ccffc3199991de0e39817eee09c94d0384dee56033afcc03e81b074778b841",
+    "after": "ac3ce887e091f5a84d5c15a4522209114520ecf62684c61a3a212e9c6d7648ad"
+  },
+  {
+    "path": "server/scripts/check-subscription-postgres.cjs",
+    "before": null,
+    "after": "a890432ba756bc9df98238cd70f1337b71fb796b69a65bff96071bb47d9d59c1"
+  },
+  {
+    "path": "server/src/common/http/api-exception.filter.spec.ts",
+    "before": null,
+    "after": "d3bd4396de363650bd07c90cc2d7fcd17750308fb8649c1ff34d769f69313d8b"
+  },
+  {
+    "path": "server/src/modules/subscriptions/live-subscriptions.controller.ts",
+    "before": null,
+    "after": "ec39dd10f31bd6c090ea60b60560322b64a131f47c525fb0b38d437fe72de5c9"
+  },
+  {
+    "path": "server/src/modules/subscriptions/live-subscriptions.service.spec.ts",
+    "before": null,
+    "after": "53291b870e6cbf7c279341f3bc6d1a58c64444f8f95ea51ea2178026bf2155a0"
+  },
+  {
+    "path": "server/src/modules/subscriptions/live-subscriptions.service.ts",
+    "before": null,
+    "after": "40435d483398a54920183dd36e8e64783b5536b1f1107cc0606225f3e4fbfa3a"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-callback.service.ts",
+    "before": null,
+    "after": "1f8950b111084acd353f3467cc389ee77be8e8c04d5e6901fc5ffc99d7ccc324"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-fiscal.client.ts",
+    "before": null,
+    "after": "76b022d79cabf4361202822ad096cb33d187cc19faf6ce90f6235152cb3e1a21"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-live-settings.ts",
+    "before": null,
+    "after": "488f3ff01db5582e22d9eed6df492b3adcec9743697105b6d52c73b07b9980f8"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-signature.spec.ts",
+    "before": "a7086d74486c1a4bfd8f505e646556f42471c53b2ca9a6e12f571145516c6756",
+    "after": "93ee85bd962e322bc0ff71bc52345ea8a0ea1c6dab23ddfc806671a48f201ad5"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa-signature.ts",
+    "before": "fa3f0bde53eb8d824f118d28517be00fe831d238734832b1f6feeb6f6b31f336",
+    "after": "1e905eb548adfd71182622641ab27ed9222002ce761f247163971766c17935aa"
+  },
+  {
+    "path": "server/src/modules/subscriptions/robokassa.controller.ts",
+    "before": "887ca492890fb4d4385e42829d7a2fda551e08acb76a45f0044dede02dcaa009",
+    "after": "e64f2e3979c2819b94244516cbd57597ac1d3046a76a4b65c9cb9111c2bb9cb7"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-policy.ts",
+    "before": "221b329c99c4b289e49cc3ca86bb9ec0e3cde5fc7b00867f2b2c1565b18252ba",
+    "after": "d6ebe1e23c32cd495894fca6a28fd00d9be4a15fa577bab82cd466ecc1255800"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-receipt-admin.controller.ts",
+    "before": null,
+    "after": "205332a14db50d9fa0f04566d963d75cc3ebf40040a4d8070fca7ccf65b4b9a3"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-receipt.spec.ts",
+    "before": null,
+    "after": "1eccd7eefecbe2f2b7af876941d268768f0626d6960833ccebc88a5e751a8d5b"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-receipt.ts",
+    "before": null,
+    "after": "bb39eb53a0cba9ee91f56a44442b177a6d09447da7cc24567b0db6daf3f9f4d8"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-receipt.worker.spec.ts",
+    "before": null,
+    "after": "c3864f2b8948ee4e3d0c0a7d56201a574338dad8580f428ae95fdbc211d80939"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-receipt.worker.ts",
+    "before": null,
+    "after": "59cd0ae8da3403010b050e10fa9cd6461355a47d9623174f67750a227b1330c0"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscription-terms.service.ts",
+    "before": null,
+    "after": "526459ca99b26b67db74345acbbe2d3054d42f51673ccb3362de037b0e37e8fc"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.module.ts",
+    "before": "914929d35360cb203e4cf9123dc10767f43fc26e185e56d8c1d111207432a3a2",
+    "after": "ea29b9653743dee85d406c2909476f8e370d93c49cbf7e7239de89af2c868f96"
+  },
+  {
+    "path": "server/src/modules/subscriptions/subscriptions.service.ts",
+    "before": "4d15e315bd36a45afb052e269c74365b6a68af65500376e067733bc324333315",
+    "after": "9894d2097af3aa8d559df2514e48dadf685b5df318892b8b64afca5295557c0d"
+  },
+  {
+    "path": "shared/legal/manifest.json",
+    "before": "00456677415c493dc3b8b182875372a9ad7da5ddd75369c6df2ade59f3c38aa9",
+    "after": "1f692225f9c3ec8246dc46540fca1c683e7dce5470da26dc45ba8d127d425a71"
+  },
+  {
+    "path": "shared/legal/platform-subscription-offer.md",
+    "before": "9ad83deed4e98017ff545290fac42665789e2df44039f4e4efed683455a926c4",
+    "after": "a952979b10c04712d4eb326c586397eef3cbded5ac3650c159bd971380150d88"
+  },
+  {
+    "path": "shared/legal/tariffs.md",
+    "before": "33007e4fa47bd62cb1b8adb75dd406fe3b8849b31cebb936c944c4a90d82ade6",
+    "after": "8a31c2fec6cc63365e14d3527da9e8abf05e29196dee737b1e1dc0f458cdc8e6"
+  },
+  {
+    "path": "src/api/api.js",
+    "before": "f2ee8b7c24cdf95d53ee331906d8193af9dd5a7e7a97e24fb0c31eaad82d852a",
+    "after": "dd5ca4fe9c6de0a540c0bd9e667b7d1c876e8cb2b184da047806c8e46a2588fe"
+  },
+  {
+    "path": "src/components/Seo/seoConfig.js",
+    "before": "fe2ef40b166257819e53f9c99d28829dc6390ca8648d15897be0e704d3f49e0c",
+    "after": "d8942d1b275eb136027810cde3ecdd30b86840c0410b0c3989455523155a5849"
+  },
+  {
+    "path": "src/pages/Account/sections/Payments/components/SubscriptionLivePanel.css",
+    "before": null,
+    "after": "617dfdcfc0c6fc8a80b3662a46b05010616c932cdc433f3921529a96583e2f5c"
+  },
+  {
+    "path": "src/pages/Account/sections/Payments/components/SubscriptionLivePanel.jsx",
+    "before": null,
+    "after": "d4591fa65039cf613123be6a40a99cf94ef1368ab1d22ec31b315d43102e88f2"
+  },
+  {
+    "path": "src/pages/Account/sections/Payments/components/TeacherFinanceDashboard.jsx",
+    "before": "7ac5ee199a210bbb402e5b6bf217c0e289871be9bd813425edd0b5b34e3521ab",
+    "after": "c2f0eb56354736d83c9c783e4192acadb72aa0a0d6acb18cda05e3a662efcb5e"
+  },
+  {
+    "path": "src/pages/CommercialInfo/PaymentAndRefundsPage.jsx",
+    "before": "3bb54cd6c422bf26c8834bfd6559030aed77b5c4ec3973921cd63b7b23f046d3",
+    "after": "a7046a2a51c5aa3dab3e7673ead2ad2884e3fa9b9cd579f568dcf7ddbffc9f7c"
+  },
+  {
+    "path": "src/pages/CommercialInfo/SupportPage.jsx",
+    "before": "b2e815d9dd264574a03cfc5f68949a71df64e0edcbfb3c48ef48f9b3d455ede6",
+    "after": "3fa300953ccfb74d7be2bf80f770c54abf7f0a5f4e2d9289e9c1c0c5c998487c"
+  },
+  {
+    "path": "src/pages/Pricing/PricingPage.jsx",
+    "before": "077256274310a8fb789329ebfa95cd5e7009fb8beb2819d68ff2cf5d6e86df62",
+    "after": "693d6d28bf02c04fd1018618316e4b86098405c00871ae70ba3a1ac146c4591f"
+  }
+]

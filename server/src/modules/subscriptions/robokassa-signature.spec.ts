@@ -27,3 +27,12 @@ describe('Robokassa callback authentication', () => {
         for (const amount of ['NaN', '-1', '1e3', '99,00', '990.000001']) expect(() => kopecks(amount)).toThrow();
     });
 });
+
+
+describe('Malformed callback bodies', () => {
+    it('rejects missing and non-object input without throwing', () => {
+        for (const input of [null, undefined, 'not-json', [], 12]) {
+            expect(verifyResult(input as any, 'fixture')).toBe(false);
+        }
+    });
+});

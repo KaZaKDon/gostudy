@@ -53,7 +53,7 @@ export const PUBLIC_ROUTES = Object.freeze({
     '/payment-and-refunds': {
         label: 'Оплата и возврат',
         title: 'Оплата, получение доступа и возврат — GoStudy',
-        description: 'Оплата цифровой подписки GoStudy, активация доступа, автоматическое продление, отмена и порядок возврата денежных средств.',
+        description: 'Оплата цифровой подписки GoStudy, активация доступа, разовое продление, завершение подписки и порядок возврата денежных средств.',
         indexable: true,
         renderKey: 'paymentAndRefunds',
         sourceEntry: 'src/pages/CommercialInfo/PaymentAndRefundsPage.jsx',
