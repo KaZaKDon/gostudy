@@ -36,8 +36,8 @@ export const PUBLIC_ROUTES = Object.freeze({
     },
     '/teachers': {
         label: 'Преподавателям',
-        title: 'Преподавателям — инструменты для работы в GoStudy',
-        description: 'Ученики, расписание, онлайн-класс, задания и материалы преподавателя в GoStudy.',
+        title: 'Платформа для репетиторов онлайн — уроки и ученики | GoStudy',
+        description: 'GoStudy — платформа для репетиторов онлайн: анкета преподавателя, расписание, онлайн-класс, домашние задания и общение с учениками в одном месте.',
         indexable: true,
         renderKey: 'teachers',
         sourceEntry: 'src/pages/Teachers/TeachersPage.jsx',

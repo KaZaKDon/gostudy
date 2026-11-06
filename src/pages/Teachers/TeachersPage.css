@@ -160,7 +160,9 @@
 }
 
 .teacher-journal h1 {
-    font-size: clamp(42px, 5vw, 70px);
+    /* Long H1 fits the journal cover on desktop and mobile. */
+    font-size: clamp(32px, 3.3vw, 52px);
+    overflow-wrap: break-word;
 }
 
 .teacher-journal h2,
